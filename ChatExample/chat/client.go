@@ -47,7 +47,7 @@ func (this *Client) Write(message *Message) {
 	select{
 		// Пишем сообщение в канал
         case this.msgChannel <- message:{
-
+            log.Println("Client write:", message)
         }
         default: {
         	// Удаляем клиента
@@ -111,9 +111,11 @@ func (this *Client) listenRead() {
 					this.successChannel <- true
 				} else if err != nil {
 					// Ошибка
+                    log.Println("Send error")
 					this.server.SendErr(err)
 				} else {
 					// Отправляем сообщение всем
+                    log.Println("Send all:", msg)
 					this.server.SendAll(&msg)
 				}
 			}

@@ -81,6 +81,7 @@ func (this *Server) Listen() {
 
     // Обработчик подключения WebSocket
     onConnected := func(ws *websocket.Conn) {
+        // Функция автоматического закрытия
         defer func() {
             err := ws.Close()
             if err != nil {
@@ -88,6 +89,7 @@ func (this *Server) Listen() {
             }
         }()
 
+        // Создание нового клиента
         client := NewClient(ws, this)
         this.Add(client)
         client.Listen()
@@ -100,9 +102,8 @@ func (this *Server) Listen() {
         select {
             // Добавление нового юзера
             case c := <-this.addChannel:
-                log.Println("Added new client")
                 this.clients[c.id] = c
-                log.Println("Now", len(this.clients), "clients connected.")
+                log.Println("Added new client: now", len(this.clients), "clients connected.")
                 this.sendPastMessages(c)
 
             // Удаление клиента

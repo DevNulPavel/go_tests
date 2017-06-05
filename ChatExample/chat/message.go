@@ -1,13 +1,12 @@
 package chat
 
 
-
 type Message struct {
-    author string
-    body string
+    Author string `json:"author"`
+    Body   string `json:"body"`
 }
 
 // конвертация в строку
 func (this *Message) String() string {
-    return this.author + "sad: " + this.body
+    return this.Author + " says " + this.Body
 }
