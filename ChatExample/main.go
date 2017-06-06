@@ -7,14 +7,14 @@ import "./chat"
 func main() {
 	log.SetFlags(log.Lshortfile)
 
-	// websocket server
-	server := chat.NewServer("/websocket")
-	go server.Listen()
+	// Запуск сервера
+	server := chat.NewServer()
+	server.StartAsyncListen()
 
-	// HTTP Server
-	// static files
+	// HTTP сервер
 	http.Handle("/", http.FileServer(http.Dir("web")))
-	// Listen
-	error := http.ListenAndServe(":8080", nil)
-	log.Fatal(error)
+	err := http.ListenAndServe(":8080", nil)
+    if err != nil {
+        log.Fatal(err)
+    }
 }

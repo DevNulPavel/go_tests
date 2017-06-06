@@ -5,19 +5,18 @@ import "net/http"
 import "golang.org/x/net/websocket"
 
 type Server struct {
-    pattern string
-    messages []*Message
-    clients map[int]*Client
-    addChannel chan *Client
-    deleteChannel chan *Client
+    messages       []*Message
+    clients        map[int]*Client
+    addChannel     chan *Client
+    deleteChannel  chan *Client
     sendAllChannel chan *Message
-    successChannel chan bool
-    errorChannel chan error
+    exitChannel    chan bool
+    errorChannel   chan error
 }
 
 
 // Создание нового сервера
-func NewServer(pattern string) *Server {
+func NewServer() *Server {
     messages := []*Message{}
     clients := make(map[int]*Client)
     addChannel := make(chan *Client)
@@ -27,7 +26,6 @@ func NewServer(pattern string) *Server {
     errorChannel := make(chan error)
 
     return &Server{
-        pattern,
         messages,
         clients,
         addChannel,
@@ -38,91 +36,104 @@ func NewServer(pattern string) *Server {
     }
 }
 
-// Добавление клиента
-func (this *Server) Add(c *Client) {
-    this.addChannel <- c
+// Добавление клиента через очередь
+func (server *Server) QueueAddNewClient(c *Client) {
+    server.addChannel <- c
 }
 
-func (this *Server) Del(c *Client) {
-    this.deleteChannel <- c
+// Удаление клиента через очередь
+func (server *Server) QueueDeleteClient(c *Client) {
+    server.deleteChannel <- c
 }
 
-func (this *Server) SendAll(msg *Message) {
-    this.sendAllChannel <- msg
+// Отправить всем сообщения через очередь
+func (server *Server) QueueSendAll(msg *Message) {
+    server.sendAllChannel <- msg
 }
 
-func (this *Server) SendDone() {
-    this.successChannel <- true
+func (server *Server) QueueExitServer() {
+    server.exitChannel <- true
 }
 
-func (this *Server) SendErr(err error) {
-    this.errorChannel <- err
+func (server *Server) QueueSendErr(err error) {
+    server.errorChannel <- err
+}
+
+func (server *Server) StartAsyncListen()  {
+    go server.mainListenFunction()
 }
 
 // Отправка всех последних сообщений
-func (this *Server) sendPastMessages(c *Client) {
-    for _, msg := range this.messages {
-        c.Write(msg)
+func (server *Server) sendPastMessages(c *Client) {
+    for _, msg := range server.messages {
+        c.QueueWrite(msg)
     }
 }
 
 // Отправить всем сообщение
-func (this *Server) sendAll(msg *Message) {
-    for _, c := range this.clients {
-        c.Write(msg)
+func (server *Server) sendAll(msg *Message) {
+    for _, c := range server.clients {
+        c.QueueWrite(msg)
     }
 }
 
-// Listen and serve.
-// It serves client connection and broadcast request.
-func (this *Server) Listen() {
+func (server *Server) deleteClientFromMap(client *Client)  {
+    // Даже если нету клиента в мапе - ничего страшного
+    delete(server.clients, client.id)
+}
+
+// Основная функция прослушивания
+func (server *Server) mainListenFunction() {
 
     log.Println("Listening server...")
 
     // Обработчик подключения WebSocket
-    onConnected := func(ws *websocket.Conn) {
+    onConnectedHandler := func(ws *websocket.Conn) {
         // Функция автоматического закрытия
         defer func() {
             err := ws.Close()
             if err != nil {
-                this.errorChannel <- err
+                server.errorChannel <- err
             }
         }()
 
         // Создание нового клиента
-        client := NewClient(ws, this)
-        this.Add(client)
-        client.Listen()
+        client := NewClient(ws, server)
+        server.QueueAddNewClient(client) // выставляем клиента в очередь на добавление
+        client.SyncListen()              // блокируется выполнение на данной функции, пока не выйдет клиент
+        log.Println("WebSocket connect handler out")
     }
-    http.Handle(this.pattern, websocket.Handler(onConnected))
-    log.Println("Created handler")
+    http.Handle("/websocket", websocket.Handler(onConnectedHandler))
+    log.Println("Web socket handler created")
 
-    // Обработка каналов
+    // Обработка каналов в главной горутине
     for {
         select {
             // Добавление нового юзера
-            case c := <-this.addChannel:
-                this.clients[c.id] = c
-                log.Println("Added new client: now", len(this.clients), "clients connected.")
-                this.sendPastMessages(c)
+            case c := <-server.addChannel:
+                server.clients[c.id] = c
+                log.Println("Added new client: now", len(server.clients), "clients connected.")
+                server.sendPastMessages(c)
 
             // Удаление клиента
-            case c := <-this.deleteChannel:
+            case c := <-server.deleteChannel:
                 log.Println("Delete client")
-                delete(this.clients, c.id)
+                server.deleteClientFromMap(c)
 
             // Отправка сообщения всем клиентам
-            case msg := <-this.sendAllChannel:
+            case msg := <-server.sendAllChannel:
                 log.Println("Send all:", msg)
-                this.messages = append(this.messages, msg)
-                this.sendAll(msg)
+                // Пополняем список сообщений на сервере
+                server.messages = append(server.messages, msg)
+                // Вызываем отправку сообщений всем клиентам
+                server.sendAll(msg)
 
             // Была какая-то ошибка
-            case err := <-this.errorChannel:
+            case err := <-server.errorChannel:
                 log.Println("Error:", err.Error())
 
             // Завершение работы
-            case <-this.successChannel:
+            case <-server.exitChannel:
                 return
         }
     }

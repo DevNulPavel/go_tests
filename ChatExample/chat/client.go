@@ -11,13 +11,13 @@ const CHANNEL_BUF_SIZE = 100
 // Variables
 var maxId int = 0
 
-// Client code
+// Структура клиента
 type Client struct {
-	id int
-	wSocket *websocket.Conn
-	server *Server
-	msgChannel chan *Message
-	successChannel chan bool
+	id          int
+	wSocket     *websocket.Conn
+	server      *Server
+	msgChannel  chan *Message
+	exitChannel chan bool
 }
 
 // Constructor
@@ -31,60 +31,60 @@ func NewClient(ws *websocket.Conn, server *Server) *Client{
 
     maxId++
 
-	// Конструируем клиента
+	// Конструируем клиента и его каналы
 	messageChannel := make(chan *Message, CHANNEL_BUF_SIZE)
 	successChannel := make(chan bool)
 
 	return &Client{maxId, ws, server, messageChannel, successChannel}
 }
 
-func (this *Client) GetConn() *websocket.Conn  {
-	return this.wSocket
-}
-
 // Пишем сообщение клиенту
-func (this *Client) Write(message *Message) {
+func (client *Client) QueueWrite(message *Message) {
 	select{
 		// Пишем сообщение в канал
-        case this.msgChannel <- message:{
-            log.Println("Client write:", message)
+        case client.msgChannel <- message:{
+            //log.Println("Client wrote:", message)
         }
         default: {
         	// Удаляем клиента
-        	this.server.Del(this)
-        	error := fmt.Errorf("Client %d disconnected", this.id)
-        	this.server.SendErr(error)
+        	client.server.QueueDeleteClient(client)
+        	err := fmt.Errorf("Client %d disconnected", client.id)
+        	client.server.QueueSendErr(err)
+            client.QueueSendExit() // Вызываем выход из горутины listenWrite
+            return
         }
     }
 }
 
 // Отправляем успешный результат
-func (this *Client) SendSuccess() {
-	this.successChannel <- true
+func (client *Client) QueueSendExit() {
+	client.exitChannel <- true
 }
 
-// Запускаем ожидания записи и чтения
-func (this *Client) Listen() {
-	go this.listenWrite() // в отдельной горутине
-	this.listenRead()
+// Запускаем ожидания записи и чтения (блокирующая функция)
+func (client *Client) SyncListen() {
+	go client.listenWrite() // в отдельной горутине
+	client.listenRead()
 }
 
 // Ожидание записи
-func (this *Client) listenWrite() {
-	log.Println("Listen write to client")
-
+func (client *Client) listenWrite() {
+	//log.Println("SyncListen write to client")
 	for {
 		select {
 			// Отправка записи клиенту
-			case message := <-this.msgChannel:{
-				log.Println("Send:", message)
-				websocket.JSON.Send(this.wSocket, message)
+			case message := <-client.msgChannel:{
+				//log.Println("Send:", message)
+
+                // С помощью библиотеки websocket производим кодирование сообщения и отправку на сокет
+				websocket.JSON.Send(client.wSocket, message) // Функция синхронная
             }
 
-            // Получение успешности
-            case <-this.successChannel:{
-                this.server.Del(this)
-                this.successChannel <- true // для метода listenRead
+            // Получение флага выхода из функции
+            case <-client.exitChannel:{
+                client.server.QueueDeleteClient(client)
+                log.Println("listenWrite->exit")
+                client.QueueSendExit() // для метода listenRead, чтобы выйти из него
                 return
 			}
 		}
@@ -92,31 +92,34 @@ func (this *Client) listenWrite() {
 }
 
 // Ожидание чтения
-func (this *Client) listenRead() {
-	log.Println("Listening read from client")
+func (client *Client) listenRead() {
+	//log.Println("Listening read from client")
 	for {
 		select {
 			// Получение успешности
-			case <- this.successChannel:
-				this.server.Del(this)
-				this.successChannel <- true // для метода listenWrite
+			case <- client.exitChannel:
+				client.server.QueueDeleteClient(client)
+                log.Println("listenRead->exit")
+                client.QueueSendExit() // для метода listenWrite, чтобы выйти из него
 				return
 
 			// Чтение данных из webSocket
 			default:
+                // Выполняем получение данных из вебсокета и декодирование из Json в структуру
 				var msg Message
-				err := websocket.JSON.Receive(this.wSocket, &msg)
+				err := websocket.JSON.Receive(client.wSocket, &msg) // Функция синхронная
 
 				if err == io.EOF {
-					this.successChannel <- true
+                    // Отправляем в очередь сообщение выхода для listenWrite
+					client.QueueSendExit()
+					return
 				} else if err != nil {
 					// Ошибка
-                    log.Println("Send error")
-					this.server.SendErr(err)
+					client.server.QueueSendErr(err)
 				} else {
 					// Отправляем сообщение всем
-                    log.Println("Send all:", msg)
-					this.server.SendAll(&msg)
+                    //log.Println("Send all:", msg)
+					client.server.QueueSendAll(&msg)
 				}
 			}
 	}
