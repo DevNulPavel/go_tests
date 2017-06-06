@@ -8,7 +8,7 @@ import (
 
 var allRooms = make(map[string]*Room)
 var freeRooms = make(map[string]*Room)
-var roomsCount int
+var roomsCount int = 0
 
 type Room struct {
     name string
@@ -20,7 +20,8 @@ type Room struct {
 
 // Запуск главного цикла опроса комнаты
 func (r *Room) runRoomMainLoop() {
-    for {
+    exitFromLoop := false
+    for exitFromLoop == false {
         select {
             // Присоединение игроков
             case c := <-r.join:
@@ -42,29 +43,34 @@ func (r *Room) runRoomMainLoop() {
 
             // Выход игроков
             case c := <-r.leave:
-                c.player.GiveUp()
+                // Выход
+                c.player.Leave()
+                // Отправка обновления состояния игрокам
                 r.sendUpdateAllPlayers()
+                // Удаляем соединение
                 delete(r.playerConns, c)
                 if len(r.playerConns) == 0 {
-                    goto Exit
+                    exitFromLoop = true
+                    break;
                 }
+
+            // Просто рассылка обновления всем юзерам
             case <-r.updateAll:
                 r.sendUpdateAllPlayers()
         }
     }
 
-Exit:
-
-// delete Room
+    // Очистка комнат
     delete(allRooms, r.name)
     delete(freeRooms, r.name)
     roomsCount -= 1
     log.Print("Room closed:", r.name)
 }
 
+// Рассылка обновления всем юзерам
 func (r *Room) sendUpdateAllPlayers() {
     for c := range r.playerConns {
-        c.sendState()
+        c.SendStateAsync() // Асинхронный вызов
     }
 }
 

@@ -31,6 +31,6 @@ func (p *Player) GetState() string {
     return "Game state for Player: " + p.Name
 }
 
-func (p *Player) GiveUp() {
+func (p *Player) Leave() {
     log.Print("Player gave up: ", p.Name)
 }

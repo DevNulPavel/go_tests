@@ -40,7 +40,7 @@ func (pc *PlayerConnection) receiver() {
 }
 
 // Метод отправки текущего состояния на сокет
-func (pc *PlayerConnection) sendState() {
+func (pc *PlayerConnection) SendStateAsync() {
     go func() {
         msg := pc.player.GetState()
         err := pc.ws.WriteMessage(websocket.TextMessage, []byte(msg))
