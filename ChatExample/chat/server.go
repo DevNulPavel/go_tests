@@ -3,6 +3,7 @@ package chat
 import "log"
 import "net/http"
 import "golang.org/x/net/websocket"
+import _ "net/http/pprof"
 
 type Server struct {
     messages       []*Message
