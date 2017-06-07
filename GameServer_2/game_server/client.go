@@ -36,7 +36,7 @@ func NewClient(ws *websocket.Conn, server *Server) *Client{
     maxId++
 
 	// Конструируем клиента и его каналы
-    clientState := ClienState{maxId, rand.Int() % 600, rand.Int() % 600}
+    clientState := ClienState{maxId, float64(rand.Int() % 600), float64(rand.Int() % 600)}
     usersStateChannel := make(chan []ClienState, CHANNEL_BUF_SIZE)
 	successChannel := make(chan bool)
 
