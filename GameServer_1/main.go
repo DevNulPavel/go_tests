@@ -19,7 +19,7 @@ func homeHandler(c http.ResponseWriter, r *http.Request) {
     data := struct {
         Host       string
         RoomsCount int
-    }{r.Host, roomsCount}
+    }{r.Host, game.GetRoomsCount()}
 
     // Обрабатываем шаблон и отдаем его в соединение
     homeTempl.Execute(c, data)
@@ -44,25 +44,17 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     // Получаем свободную комнату
-    var room *Room
-    if len(freeRooms) > 0 {
-        for _, r := range freeRooms {
-            room = r
-            break
-        }
-    } else {
-        room = NewRoom("")
-    }
+    var room *game.Room = game.GetFreeOrNewRoom()
 
     // Создание игрока и соединения
     player := game.NewPlayer(playerName)
-    pConn := NewPlayerConn(ws, player, room)
+    pConn := game.NewPlayerConn(ws, player, room)
     pConn.RunAsyncReceiver()
 
     // Цепляем игрока к комнате
-    room.join <- pConn
+    room.QueueJoinToRoom(pConn)
 
-    log.Printf("Player: %s has joined to Room: %s", pConn.Name, room.name)
+    log.Printf("Player: %s has joined to Room: %s", pConn.Player.Name, *(room.GetName()))
 }
 
 func main() {

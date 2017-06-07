@@ -1,17 +1,16 @@
-package main
+package game
 
 import (
     "github.com/gorilla/websocket"
-    "./game"
 )
 
 type PlayerConnection struct {
-    ws *websocket.Conn
-    player *game.Player
-    room *Room
+    ws     *websocket.Conn
+    Player *Player
+    room   *Room
 }
 
-func NewPlayerConn(ws *websocket.Conn, player *game.Player, room *Room) *PlayerConnection {
+func NewPlayerConn(ws *websocket.Conn, player *Player, room *Room) *PlayerConnection {
     pc := &PlayerConnection{ws, player, room}
     return pc
 }
@@ -29,12 +28,12 @@ func (pc *PlayerConnection) receiver() {
             break
         }
         // Выполняем комманду у игрока
-        pc.player.Command(string(command))
+        pc.Player.Command(string(command))
         // Заказываем полное обновление у игроков
-        pc.room.updateAll <- true
+        pc.room.updateAllChannel <- true
     }
     // Заказываем выход из комнаты
-    pc.room.leave <- pc
+    pc.room.leaveChannel <- pc
     // Закрытие вебсокета
     pc.ws.Close()
 }
@@ -42,11 +41,11 @@ func (pc *PlayerConnection) receiver() {
 // Метод отправки текущего состояния на сокет
 func (pc *PlayerConnection) SendStateAsync() {
     go func() {
-        msg := pc.player.GetState()
+        msg := pc.Player.GetState()
         err := pc.ws.WriteMessage(websocket.TextMessage, []byte(msg))
         if err != nil {
             // Была ошибка, поэтому запрашиваем выход из комнаты
-            pc.room.leave <- pc
+            pc.room.leaveChannel <- pc
             // Закрытие сокета
             pc.ws.Close()
         }
