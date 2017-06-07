@@ -90,9 +90,6 @@ func NewRoom(name string) *Room {
     allRooms[name] = room
     freeRooms[name] = room
 
-    // run Room
-    go room.run()
-
     roomsCount += 1
 
     return room

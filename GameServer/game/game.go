@@ -23,7 +23,6 @@ func PairPlayers(p1 *Player, p2 *Player) {
 ///////////////////////////////////////////////////////
 
 func (p *Player) Command(command string) {
-
     log.Print("Command: '", command, "' received by player: ", p.Name)
 }
 
