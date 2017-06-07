@@ -70,7 +70,7 @@ func (server *Server) sendStateToClient(c *Client) {
     }
 
     // Отослать юзеру
-    c.QueueSendNewStates(clientStates)
+    c.QueueSendAllStates(clientStates)
 }
 
 // Отправить всем сообщение
@@ -84,8 +84,12 @@ func (server *Server) sendAllNewState() {
 
     // Отослать всем
     for _, c := range server.clients {
-        c.QueueSendNewStates(clientStates)
+        c.QueueSendAllStates(clientStates)
     }
+}
+
+func (server *Server) addClientToMap(client *Client)  {
+    server.clients[client.id] = client // TODO: TO METHOD
 }
 
 func (server *Server) deleteClientFromMap(client *Client)  {
@@ -122,8 +126,8 @@ func (server *Server) mainListenFunction() {
         select {
             // Добавление нового юзера
             case c := <-server.addChannel:
-                server.clients[c.id] = c // TODO: TO METHOD
-                log.Println("Added new client: now", len(server.clients), "clients connected.")
+                server.addClientToMap(c)
+                c.QueueSendCurrentClientState() // После добавления на сервере - отправляем клиенту состояние
                 server.sendAllNewState()
 
             // Удаление клиента

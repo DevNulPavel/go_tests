@@ -44,7 +44,7 @@ func NewClient(ws *websocket.Conn, server *Server) *Client{
 }
 
 // Пишем сообщение клиенту
-func (client *Client) QueueSendNewStates(states []ClienState) {
+func (client *Client) QueueSendAllStates(states []ClienState) {
 	select{
 		// Пишем сообщение в канал
         case client.usersStateChannel <- states:{
@@ -58,6 +58,25 @@ func (client *Client) QueueSendNewStates(states []ClienState) {
             client.QueueSendExit() // Вызываем выход из горутины loopWrite
             return
         }
+    }
+}
+
+// Пишем сообщение клиенту только с его состоянием
+func (client *Client) QueueSendCurrentClientState() {
+    currentUserStateArray := []ClienState{client.state}
+    select{
+    // Пишем сообщение в канал
+    case client.usersStateChannel <- currentUserStateArray:{
+        //log.Println("Client wrote:", message)
+    }
+    default: {
+        // Удаляем клиента
+        client.server.QueueDeleteClient(client)
+        err := fmt.Errorf("Client %d disconnected", client.id)
+        client.server.QueueSendErr(err)
+        client.QueueSendExit() // Вызываем выход из горутины loopWrite
+        return
+    }
     }
 }
 
