@@ -29,8 +29,11 @@ type Client struct {
 
 // Конструктор
 func NewClient(connection *net.Conn, server *Server) *Client{
+    if connection == nil {
+        panic("No connection")
+    }
 	if server == nil {
-		panic("No game_server")
+		panic("No game server")
 	}
 
     // Увеличиваем id

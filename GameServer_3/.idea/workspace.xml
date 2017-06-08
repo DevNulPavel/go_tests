@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7e4c1c70-2512-4f8b-aa98-dfbbbf015b07" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../GameServer_2/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../GameServer_2/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/game_server/client.go" afterPath="$PROJECT_DIR$/game_server/client.go" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -37,8 +37,8 @@
       <file leaf-file-name="client.go" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/game_server/client.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="166">
-              <caret line="37" column="0" lean-forward="true" selection-start-line="37" selection-start-column="0" selection-end-line="37" selection-end-column="0" />
+            <state relative-caret-position="392">
+              <caret line="45" column="21" lean-forward="false" selection-start-line="45" selection-start-column="4" selection-end-line="45" selection-end-column="21" />
               <folding />
             </state>
           </provider>
@@ -119,7 +119,7 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="353" />
+    <option name="x" value="377" />
     <option name="y" value="23" />
     <option name="width" value="1229" />
     <option name="height" value="1011" />
@@ -279,7 +279,7 @@
     <option name="remove_strategy" value="false" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="353" y="23" width="1229" height="1011" extended-state="0" />
+    <frame x="377" y="23" width="1229" height="1011" extended-state="1" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.28478438" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -605,8 +605,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/game_server/client.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="166">
-          <caret line="37" column="0" lean-forward="true" selection-start-line="37" selection-start-column="0" selection-end-line="37" selection-end-column="0" />
+        <state relative-caret-position="392">
+          <caret line="45" column="21" lean-forward="false" selection-start-line="45" selection-start-column="4" selection-end-line="45" selection-end-column="21" />
           <folding />
         </state>
       </provider>
