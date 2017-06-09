@@ -79,7 +79,7 @@ func (server *Server) sendStateToClient(c *Client) {
 // Отправить всем сообщение
 func (server *Server) sendAllNewState() {
     // Создать состояние текущее
-    clientStates := []ClienState{}
+    clientStates := make([]ClienState, 0, len(server.clients))
     for _, client := range server.clients {
         clientStates = append(clientStates, client.state)
     }
@@ -216,7 +216,7 @@ func (server *Server) mainQueueHandleFunction() {
 
             // Удаление клиента
             case c := <-server.deleteChannel:
-                log.Println("Delete client")
+                //log.Println("Delete client")
                 server.deleteClientFromMap(c)
                 server.sendAllNewState()
 

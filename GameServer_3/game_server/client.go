@@ -4,7 +4,6 @@ import (
 	"net"
 	"fmt"
 	"io"
-	"log"
     "math/rand"
     "encoding/json"
 )
@@ -77,7 +76,7 @@ func (client *Client) QueueSendAllStates(states []ClienState) {
 
 // Пишем сообщение клиенту только с его состоянием
 func (client *Client) QueueSendCurrentClientState() {
-    currentUserStateArray := []ClienState{client.state}
+    currentUserStateArray := []ClienState{ client.state }
     select{
     // Пишем сообщение в канал
     case client.usersStateChannel <- currentUserStateArray:
@@ -155,8 +154,8 @@ func (client *Client) loopRead() {
 					client.server.QueueSendErr(err)
                     // TODO: ???
                     // Разрыв соединения - отправляем в очередь сообщение выхода для loopWrite
-                    //client.QueueSendExit()
-                    //return
+                    client.QueueSendExit()
+                    return
 				} else {
                     if state.Id > 0 {
                         // Сбновляем состояние данного клиента
