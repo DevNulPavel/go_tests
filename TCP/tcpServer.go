@@ -4,7 +4,10 @@ import "fmt"
 import "net"
 import "encoding/gob"
 import "encoding/json"
-import "./request"
+import (
+    "./request"
+    "time"
+)
 
 
 func handleServerConnection(c net.Conn) {
@@ -94,24 +97,46 @@ func HandleServerConnectionRaw(c net.Conn) {
     defer c.Close()
 
     for {
-        bytes := make([]byte, 0)
+        timeVal := time.Now().Add(5 * time.Minute)
+        c.SetDeadline(timeVal)
+        c.SetWriteDeadline(timeVal)
+        c.SetReadDeadline(timeVal)
+
+        fullData := make([]byte, 0)
+
+        // TODO: в одном блоке данных могут быть получены сразу 2 сообщения
 
         dataReceived := false
         for {
-            readCount, err := c.Read(bytes)
+            tempBytes := make([]byte, 128)
+            readCount, err := c.Read(tempBytes)
             if err != nil {
-                break
+                return
             }
             fmt.Println("Read count:", readCount)
-            bytesLen := len(bytes)
-            if (bytesLen > 0) && (bytes[bytesLen-1] == byte(0)) {
-                dataReceived = true
-                break
+            if (readCount > 0) {
+                fullData = append(fullData, tempBytes[:readCount]...)
+
+                if fullData[len(fullData)-1] == byte(0) {
+                    dataReceived = true
+                    break
+                }
+            }
+
+            if readCount == 0 {
+                 return
             }
         }
 
         if dataReceived {
-            fmt.Println("Received:", bytes)
+            fmt.Println("Received:", string(fullData[:len(fullData)-1]))
+
+            // Теперь очередь ответной записи??
+            writeBytes := make([]byte, 0)
+            _, err := c.Write(writeBytes)
+            if err != nil {
+                return
+            }
         }
     }
 }
@@ -131,7 +156,7 @@ func server() {
             continue
         }
         // Запуск горутины
-        go handleServerConnectionJson(c)
+        go HandleServerConnectionRaw(c)
     }
 }
 

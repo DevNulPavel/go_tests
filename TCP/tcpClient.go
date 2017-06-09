@@ -5,7 +5,10 @@ import "net"
 import "time"
 import "encoding/gob"
 import "encoding/json"
-import "./request"
+import (
+    "./request"
+    "log"
+)
 
 func client() {
     // Подключение к серверу
@@ -108,8 +111,15 @@ func rawClient()  {
     }
     defer c.Close() // Отложеннное закрытие при выходе
 
+    // TODO: в одном блоке данных могут быть получены сразу 2 сообщения
+
     // Бесконечный цикл записи
     for {
+        timeVal := time.Now().Add(5 * time.Minute)
+        c.SetDeadline(timeVal)
+        c.SetWriteDeadline(timeVal)
+        c.SetReadDeadline(timeVal)
+
         testData := []byte("Test message");
         testData = append(testData, 0)
         testDataSize := len(testData)
@@ -122,18 +132,25 @@ func rawClient()  {
                 writtenBytes += currentWritten
                 if writtenBytes == testDataSize {
                     writeSuccess = true
-                    c.Close()
                     break
                 }else{
                     writtenBytes--
                 }
             }else{
+                log.Println(err)
                 break;
             }
         }
 
         if writeSuccess {
-            fmt.Println("Write succes")
+            fmt.Println("Write success")
+
+            // Теперь очередь чтения??
+            getData := make([]byte, 0)
+            _, err = c.Read(getData)
+            if err != nil {
+                return
+            }
         }else{
             fmt.Println("Write failed")
             break
@@ -142,7 +159,7 @@ func rawClient()  {
 }
 
 func main() {
-    jsonClient()
+    rawClient()
 
     var input string
     fmt.Scanln(&input)
