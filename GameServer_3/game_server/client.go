@@ -40,7 +40,7 @@ func NewClient(connection *net.Conn, server *Server) *Client{
     maxId++
 
 	// Конструируем клиента и его каналы
-    clientState := ClienState{maxId, float64(rand.Int() % 600), float64(rand.Int() % 600)}
+    clientState := ClienState{maxId, float64(rand.Int() % 100), float64(rand.Int() % 100)}
     encoder := json.NewEncoder(*connection)
     decoder := json.NewDecoder(*connection)
     usersStateChannel := make(chan []ClienState, CHANNEL_BUF_SIZE)
@@ -121,7 +121,7 @@ func (client *Client) loopWrite() {
             // Получение флага выхода из функции
             case <-client.exitChannel:
                 client.server.QueueDeleteClient(client)
-                log.Println("loopWrite->exit")
+                //log.Println("loopWrite->exit")
                 client.QueueSendExit() // для метода loopRead, чтобы выйти из него
                 return
 		}
@@ -136,7 +136,7 @@ func (client *Client) loopRead() {
 			// Получение флага выхода
 			case <- client.exitChannel:
 				client.server.QueueDeleteClient(client)
-                log.Println("loopRead->exit")
+                //log.Println("loopRead->exit")
                 client.QueueSendExit() // для метода loopWrite, чтобы выйти из него
 				return
 
@@ -144,7 +144,7 @@ func (client *Client) loopRead() {
 			default:
                 // Выполняем получение данных из вебсокета и декодирование из Json в структуру
 				var state ClienState
-				err := client.decoder.Decode(state)
+				err := client.decoder.Decode(&state)
 
 				if err == io.EOF {
                     // Разрыв соединения - отправляем в очередь сообщение выхода для loopWrite
@@ -153,6 +153,10 @@ func (client *Client) loopRead() {
 				} else if err != nil {
 					// Ошибка
 					client.server.QueueSendErr(err)
+                    // TODO: ???
+                    // Разрыв соединения - отправляем в очередь сообщение выхода для loopWrite
+                    //client.QueueSendExit()
+                    //return
 				} else {
                     if state.Id > 0 {
                         // Сбновляем состояние данного клиента
