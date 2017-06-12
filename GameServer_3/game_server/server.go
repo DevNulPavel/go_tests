@@ -37,25 +37,25 @@ func NewServer() *Server {
 }
 
 // Добавление клиента через очередь
-func (server *Server) QueueAddNewClient(c *Client) {
+func (server *Server) AddNewClient(c *Client) {
     server.addChannel <- c
 }
 
 // Удаление клиента через очередь
-func (server *Server) QueueDeleteClient(c *Client) {
+func (server *Server) DeleteClient(c *Client) {
     server.deleteChannel <- c
 }
 
 // Отправить всем сообщения через очередь
-func (server *Server) QueueSendAll() {
+func (server *Server) SendAll() {
     server.sendAllChannel <- true
 }
 
-func (server *Server) QueueExitServer() {
+func (server *Server) ExitServer() {
     server.exitChannel <- true
 }
 
-func (server *Server) QueueSendErr(err error) {
+func (server *Server) SendErr(err error) {
     server.errorChannel <- err
 }
 
@@ -103,64 +103,10 @@ func (server *Server) deleteClientFromMap(client *Client)  {
 func (server *Server) newAsyncServerConnectionHandler(c *net.Conn) {
     // Создание нового клиента
     client := NewClient(c, server)
-    server.QueueAddNewClient(client) // Выставляем клиента в очередь на добавление
-    client.StartSyncListenLoop()     // Блокируется выполнение на данной функции, пока не выйдет клиент
+    server.AddNewClient(client)  // Выставляем клиента в очередь на добавление
+    client.StartSyncListenLoop() // Блокируется выполнение на данной функции, пока не выйдет клиент
 
     (*c).Close()
-
-    /*
-    // Собственные экземпляры декодеров
-    decoder := json.NewDecoder(c)
-    encoder := json.NewEncoder(c)
-
-    for {
-        // Получаем сообщение
-        state :=
-
-        err := decoder.Decode(&message)
-        if err != nil {
-            fmt.Println(err)
-            fmt.Println("Client out (error)")
-            return
-        } else {
-            //fmt.Println("Received:", message)
-
-            // Working
-            // 1
-            param1, ok1 := message.Params["param1"].(string)
-            if ok1 {
-                param1 = "Text handled for " + param1
-                message.Params["param1"] = param1
-            }
-            // 2
-            param2, ok2 := message.Params["param2"].(float64)
-            if ok2 {
-                param2 *= 10
-                message.Params["param2"] = int(param2)
-            }
-            // 3
-            param3, ok3 := message.Params["param3"].(float64)
-            if ok3 {
-                param3 *= float64(10.0)
-                message.Params["param3"] = float64(param3)
-            }
-            // 4
-            param4, ok4 := message.Params["param4"].([]interface{})
-            if ok4 {
-                for i, value := range param4 {
-                    param4[i] = value.(float64) * 10
-                }
-                message.Params["param4"] = param4
-            }
-        }
-
-        // Отправляем ответ
-        err = encoder.Encode(message)
-        if err != nil {
-            fmt.Println(err)
-            return
-        }
-    }*/
 }
 
 // Обработка входящих подключений
@@ -169,7 +115,7 @@ func (server *Server) startAsyncSocketAcceptListener()  {
     createdListener, err := net.Listen("tcp", ":9999")
     if err != nil {
         log.Println("Server listener start error")
-        server.QueueExitServer()
+        server.ExitServer()
         return
     }
     defer createdListener.Close() // TODO: Может быть не нужно? уже есть в exitAsyncSocketListener
@@ -186,7 +132,7 @@ func (server *Server) startAsyncSocketAcceptListener()  {
         // Ожидаем новое подключение
         c, err := (*server.listener).Accept()
         if err != nil {
-            server.QueueSendErr(err)
+            server.SendErr(err)
             continue
         }
 

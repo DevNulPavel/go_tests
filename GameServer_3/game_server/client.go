@@ -9,9 +9,6 @@ import (
 	"encoding/binary"
 )
 
-// Constants
-const CHANNEL_BUF_SIZE = 10
-
 // Variables
 var maxId int = 1
 
@@ -39,7 +36,7 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 
 	// Конструируем клиента и его каналы
 	clientState := ClienState{maxId, float64(rand.Int() % 100), float64(rand.Int() % 100)}
-	usersStateChannel := make(chan []ClienState, CHANNEL_BUF_SIZE)
+	usersStateChannel := make(chan []ClienState, 10) // В канале апдейтов может накапливаться максимум 10 апдейтов
 	successChannel := make(chan bool)
 
 	return &Client{
@@ -61,9 +58,9 @@ func (client *Client) QueueSendAllStates(states []ClienState) {
 
 	// Удаляем клиента раз у нас произошла ошибка какая-то
 	default:
-		client.server.QueueDeleteClient(client)
+		client.server.DeleteClient(client)
 		err := fmt.Errorf("Client %d disconnected", client.id)
-		client.server.QueueSendErr(err)
+		client.server.SendErr(err)
 		client.QueueSendExit() // Вызываем выход из горутины loopWrite
 		return
 	}
@@ -79,9 +76,9 @@ func (client *Client) QueueSendCurrentClientState() {
 
 	// Удаляем клиента если нельзя отправлять
 	default:
-		client.server.QueueDeleteClient(client)
+		client.server.DeleteClient(client)
 		err := fmt.Errorf("Client %d disconnected", client.id)
-		client.server.QueueSendErr(err)
+		client.server.SendErr(err)
 		client.QueueSendExit() // Вызываем выход из горутины loopWrite
 		return
 	}
@@ -124,7 +121,7 @@ func (client *Client) loopWrite() {
 
 		// Получение флага выхода из функции
 		case <-client.exitChannel:
-			client.server.QueueDeleteClient(client)
+			client.server.DeleteClient(client)
 			//log.Println("loopWrite->exit")
 			client.QueueSendExit() // для метода loopRead, чтобы выйти из него
 			return
@@ -139,7 +136,7 @@ func (client *Client) loopRead() {
 		select {
 		// Получение флага выхода
 		case <-client.exitChannel:
-			client.server.QueueDeleteClient(client)
+			client.server.DeleteClient(client)
 			client.QueueSendExit() // для метода loopWrite, чтобы выйти из него
 			return
 
@@ -149,7 +146,7 @@ func (client *Client) loopRead() {
 			dataSizeBytes := make([]byte, 8)
 			readCount, err :=(*client.connection).Read(dataSizeBytes)
 			if (err != nil) || (readCount == 0) {
-				client.server.QueueDeleteClient(client)
+				client.server.DeleteClient(client)
 				client.QueueSendExit() // для метода loopWrite, чтобы выйти из него
 				return
 			}
@@ -165,7 +162,7 @@ func (client *Client) loopRead() {
 				return
 			} else if err != nil {
 				// Ошибка
-				client.server.QueueSendErr(err)
+				client.server.SendErr(err)
 				// TODO: ???
 				// Разрыв соединения - отправляем в очередь сообщение выхода для loopWrite
 				client.QueueSendExit()
@@ -182,7 +179,7 @@ func (client *Client) loopRead() {
 
 						// Отправляем обновление состояния всем
 						//log.Println("Send all:", msg)
-						client.server.QueueSendAll()
+						client.server.SendAll()
 					}
 				}else{
 					// Разрыв соединения - отправляем в очередь сообщение выхода для loopWrite
