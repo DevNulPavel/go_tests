@@ -121,7 +121,7 @@ func (client *Client) loopWrite() {
 			dataBytes := make([]byte, 8)
 			binary.LittleEndian.PutUint64(dataBytes, uint64(len(jsonDataBytes)))
 
-            log.Printf("Send to client %d: %s\n", client.id, string(jsonDataBytes))
+            //log.Printf("Send to client %d: %s\n", client.id, string(jsonDataBytes))
 
             timeout := time.Now().Add(5 * time.Second)
             (*client.connection).SetWriteDeadline(timeout)
@@ -207,7 +207,7 @@ func (client *Client) loopRead() {
 					err := json.Unmarshal(data, &state)
 
 					if (err == nil) && (state.ID > 0) {
-                        log.Printf("Client %d received: %s \n", client.id, string(data))
+                        //log.Printf("Client %d received: %s \n", client.id, string(data))
 
 						// Сбновляем состояние данного клиента
 						client.state = state
