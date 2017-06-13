@@ -9,6 +9,7 @@ import (
 	"net"
 	"log"
     "bufio"
+    "time"
 )
 
 // Variables
@@ -42,7 +43,7 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 	clientState := ClienState{maxID, float64(rand.Int() % 100), float64(rand.Int() % 100), 0}
     writer := bufio.NewWriter(*connection)
     reader := bufio.NewReader(*connection)
-	usersStateChannel := make(chan []ClienState, 10) // В канале апдейтов может накапливаться максимум 10 апдейтов
+	usersStateChannel := make(chan []ClienState, 1000) // В канале апдейтов может накапливаться максимум 10 апдейтов
 	successChannel := make(chan bool)
 
 	return &Client{
@@ -66,8 +67,8 @@ func (client *Client) QueueSendAllStates(states []ClienState) {
 
 	// Удаляем клиента раз у нас произошла ошибка какая-то
 	default:
+        err := fmt.Errorf("Client %d disconnected", client.id)
 		client.server.DeleteClient(client)
-		err := fmt.Errorf("Client %d disconnected", client.id)
 		client.server.SendErr(err)
 		client.QueueSendExit() // Вызываем выход из горутины loopWrite
 		return
@@ -122,10 +123,18 @@ func (client *Client) loopWrite() {
 
             log.Printf("Send to client %d: %s\n", client.id, string(jsonDataBytes))
 
+            timeout := time.Now().Add(20 * time.Second)
+            (*client.connection).SetWriteDeadline(timeout)
+
 			// Отсылаем
             client.writer.Write(dataBytes)
             client.writer.Write(jsonDataBytes)
-            client.writer.Flush()
+            err = client.writer.Flush()
+            if err != nil {
+                client.server.DeleteClient(client)
+                log.Println("LoopWrite exit by ERROR, clientId =", client.id)
+                return
+            }
 
 			//(*client.connection).Write(dataBytes)
 			//(*client.connection).Write(jsonDataBytes)
