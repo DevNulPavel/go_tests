@@ -93,9 +93,13 @@ func (server *Server) addClientToMap(client *Client) {
 	server.clients[client.id] = client
 }
 
-func (server *Server) deleteClientFromMap(client *Client) {
+func (server *Server) deleteClientFromMap(client *Client) (bool) {
 	// Даже если нету клиента в мапе - ничего страшного
-	delete(server.clients, client.id)
+    if _, exists := server.clients[client.id]; exists {
+        delete(server.clients, client.id)
+        return true
+    }
+    return false
 }
 
 // Работа с новыми соединением идет в отдельной горутине
@@ -155,15 +159,18 @@ func (server *Server) mainQueueHandleFunction() {
 		select {
 		// Добавление нового юзера
 		case c := <-server.addChannel:
+            log.Printf("Client %d added\n", c.id)
 			server.addClientToMap(c)
 			c.QueueSendCurrentClientState() // После добавления на сервере - отправляем клиенту состояние
 			server.sendAllNewState()
 
 		// Удаление клиента
 		case c := <-server.deleteChannel:
-			//log.Println("Delete client")
-			server.deleteClientFromMap(c)
-			server.sendAllNewState()
+			deleted := server.deleteClientFromMap(c)
+            if deleted {
+                log.Printf("Client %d deleted\n", c.id)
+                server.sendAllNewState()
+            }
 
 		// Отправка сообщения всем клиентам
 		case <-server.sendAllChannel:

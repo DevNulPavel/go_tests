@@ -7,6 +7,7 @@ import (
 	"io"
 	"math/rand"
 	"net"
+	"log"
 )
 
 // Variables
@@ -97,7 +98,7 @@ func (client *Client) StartSyncListenLoop() {
 
 // Ожидание записи
 func (client *Client) loopWrite() {
-	//log.Println("StartSyncListenLoop write to client")
+	log.Println("StartSyncListenLoop write to client:", client.id)
 	for {
 		select {
 		// Отправка записи клиенту
@@ -112,6 +113,8 @@ func (client *Client) loopWrite() {
 			dataBytes := make([]byte, 8)
 			binary.LittleEndian.PutUint64(dataBytes, uint64(len(jsonDataBytes)))
 
+            log.Printf("Send to client %d: %s\n", client.id, string(jsonDataBytes))
+
 			// Отсылаем
 			(*client.connection).Write(dataBytes)
 			(*client.connection).Write(jsonDataBytes)
@@ -122,8 +125,7 @@ func (client *Client) loopWrite() {
 		// Получение флага выхода из функции
 		case <-client.exitChannel:
 			client.server.DeleteClient(client)
-			//log.Println("loopWrite->exit")
-			client.QueueSendExit() // для метода loopRead, чтобы выйти из него
+            log.Println("LoopWrite exit, clientId =", client.id)
 			return
 		}
 	}
@@ -138,6 +140,7 @@ func (client *Client) loopRead() {
 		case <-client.exitChannel:
 			client.server.DeleteClient(client)
 			client.QueueSendExit() // для метода loopWrite, чтобы выйти из него
+            log.Println("LoopRead exit, clientId =", client.id)
 			return
 
 		// Чтение данных из webSocket
@@ -148,17 +151,16 @@ func (client *Client) loopRead() {
 			if (err != nil) || (readCount == 0) {
 				client.server.DeleteClient(client)
 				client.QueueSendExit() // для метода loopWrite, чтобы выйти из него
+                log.Println("LoopRead exit, clientId =", client.id)
 				return
 			}
 			dataSize := binary.LittleEndian.Uint64(dataSizeBytes)
-
-			//log.Printf("Received size: %d \n", dataSize)
 
 			// Данные
 			data := make([]byte, dataSize)
 			readCount, err = (*client.connection).Read(data)
 
-			if err == io.EOF {
+            if err == io.EOF {
 				// Разрыв соединения - отправляем в очередь сообщение выхода для loopWrite
 				client.QueueSendExit()
 				return
@@ -176,6 +178,8 @@ func (client *Client) loopRead() {
 					err := json.Unmarshal(data, &state)
 
 					if (err == nil) && (state.ID > 0) {
+                        log.Printf("Client %d received: %s \n", client.id, string(data))
+
 						// Сбновляем состояние данного клиента
 						client.state = state
 
@@ -186,6 +190,7 @@ func (client *Client) loopRead() {
 				} else {
 					// Разрыв соединения - отправляем в очередь сообщение выхода для loopWrite
 					client.QueueSendExit()
+                    log.Println("LoopRead exit, clientId =", client.id)
 					return
 				}
 			}
