@@ -12,6 +12,8 @@ import (
     "time"
 )
 
+const UPDATE_QUEUE_SIZE = 10
+
 // Variables
 var maxID int = 1
 
@@ -43,7 +45,7 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 	clientState := ClienState{maxID, float64(rand.Int() % 100), float64(rand.Int() % 100), 0}
     writer := bufio.NewWriter(*connection)
     reader := bufio.NewReader(*connection)
-	usersStateChannel := make(chan []ClienState, 1000) // В канале апдейтов может накапливаться максимум 10 апдейтов
+	usersStateChannel := make(chan []ClienState, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
 	successChannel := make(chan bool)
 
 	return &Client{
@@ -60,6 +62,11 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 
 // QueueSendAllStates ... Пишем сообщение клиенту
 func (client *Client) QueueSendAllStates(states []ClienState) {
+    if len(client.usersStateChannel)+1 > UPDATE_QUEUE_SIZE {
+        log.Printf("Queue full for client %d", client.id)
+        return
+    }
+
 	select {
 	// Пишем сообщение в канал
 	case client.usersStateChannel <- states:
@@ -77,6 +84,11 @@ func (client *Client) QueueSendAllStates(states []ClienState) {
 
 // QueueSendCurrentClientState ... Пишем сообщение клиенту только с его состоянием
 func (client *Client) QueueSendCurrentClientState() {
+    if len(client.usersStateChannel)+1 > UPDATE_QUEUE_SIZE {
+        log.Printf("Queue full for client %d", client.id)
+        return
+    }
+    
 	currentUserStateArray := []ClienState{client.state}
 	select {
 	// Пишем сообщение в канал
@@ -123,7 +135,7 @@ func (client *Client) loopWrite() {
 
             //log.Printf("Send to client %d: %s\n", client.id, string(jsonDataBytes))
 
-            timeout := time.Now().Add(5 * time.Second)
+            timeout := time.Now().Add(30 * time.Second)
             (*client.connection).SetWriteDeadline(timeout)
 
 			// Отсылаем
@@ -167,8 +179,8 @@ func (client *Client) loopRead() {
 
 		// Чтение данных из webSocket
 		default:
-            // Ожидается, что за 2 минуты что-то придет, иначе - это отвал
-            timeout := time.Now().Add(2 * time.Minute)
+            // Ожидается, что за 3 минуты что-то придет, иначе - это отвал
+            timeout := time.Now().Add(3 * time.Minute)
             (*client.connection).SetReadDeadline(timeout)
 
 			// Размер данных
@@ -182,7 +194,8 @@ func (client *Client) loopRead() {
 			}
 			dataSize := binary.LittleEndian.Uint64(dataSizeBytes)
 
-            timeout = time.Now().Add(10 * time.Second)
+            // Ожидается, что будут данные в течении 20 секунд - иначе отвал
+            timeout = time.Now().Add(20 * time.Second)
             (*client.connection).SetReadDeadline(timeout)
 
             // Данные

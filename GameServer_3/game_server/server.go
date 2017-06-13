@@ -110,6 +110,7 @@ func (server *Server) newAsyncServerConnectionHandler(c *net.Conn) {
 	client.StartSyncListenLoop() // Блокируется выполнение на данной функции, пока не выйдет клиент
 
 	(*c).Close()
+    log.Println("Server connection closed for client ", client.id)
 }
 
 // Обработка входящих подключений
