@@ -123,7 +123,7 @@ func (client *Client) loopWrite() {
 
             log.Printf("Send to client %d: %s\n", client.id, string(jsonDataBytes))
 
-            timeout := time.Now().Add(20 * time.Second)
+            timeout := time.Now().Add(5 * time.Second)
             (*client.connection).SetWriteDeadline(timeout)
 
 			// Отсылаем
@@ -132,6 +132,7 @@ func (client *Client) loopWrite() {
             err = client.writer.Flush()
             if err != nil {
                 client.server.DeleteClient(client)
+                // TODO: client.QueueSendExit() надо ли??
                 log.Println("LoopWrite exit by ERROR, clientId =", client.id)
                 return
             }
