@@ -133,6 +133,7 @@ func (client *Client) loopWrite() {
             if err != nil {
                 client.server.DeleteClient(client)
                 // TODO: client.QueueSendExit() надо ли??
+                client.QueueSendExit()
                 log.Println("LoopWrite exit by ERROR, clientId =", client.id)
                 return
             }
@@ -166,6 +167,10 @@ func (client *Client) loopRead() {
 
 		// Чтение данных из webSocket
 		default:
+            // Ожидается, что за 2 минуты что-то придет, иначе - это отвал
+            timeout := time.Now().Add(2 * time.Minute)
+            (*client.connection).SetReadDeadline(timeout)
+
 			// Размер данных
 			dataSizeBytes := make([]byte, 8)
 			readCount, err := client.reader.Read(dataSizeBytes)
@@ -177,7 +182,10 @@ func (client *Client) loopRead() {
 			}
 			dataSize := binary.LittleEndian.Uint64(dataSizeBytes)
 
-			// Данные
+            timeout = time.Now().Add(10 * time.Second)
+            (*client.connection).SetReadDeadline(timeout)
+
+            // Данные
 			data := make([]byte, dataSize)
 			readCount, err = client.reader.Read(data)
 
