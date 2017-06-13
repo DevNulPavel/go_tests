@@ -12,7 +12,7 @@ import (
     "time"
 )
 
-const UPDATE_QUEUE_SIZE = 10
+const UPDATE_QUEUE_SIZE = 100
 
 // Variables
 var maxID int = 1
