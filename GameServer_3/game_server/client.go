@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net"
 	"log"
+    "bufio"
 )
 
 // Variables
@@ -19,6 +20,8 @@ type Client struct {
 	connection        *net.Conn
 	id                int
 	state             ClienState
+    writer            *bufio.Writer
+    reader            *bufio.Reader
 	usersStateChannel chan []ClienState
 	exitChannel       chan bool
 }
@@ -37,6 +40,8 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 
 	// Конструируем клиента и его каналы
 	clientState := ClienState{maxID, float64(rand.Int() % 100), float64(rand.Int() % 100), 0}
+    writer := bufio.NewWriter(*connection)
+    reader := bufio.NewReader(*connection)
 	usersStateChannel := make(chan []ClienState, 10) // В канале апдейтов может накапливаться максимум 10 апдейтов
 	successChannel := make(chan bool)
 
@@ -45,6 +50,8 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 		connection,
 		maxID,
 		clientState,
+        writer,
+        reader,
 		usersStateChannel,
 		successChannel,
 	}
@@ -116,8 +123,12 @@ func (client *Client) loopWrite() {
             log.Printf("Send to client %d: %s\n", client.id, string(jsonDataBytes))
 
 			// Отсылаем
-			(*client.connection).Write(dataBytes)
-			(*client.connection).Write(jsonDataBytes)
+            client.writer.Write(dataBytes)
+            client.writer.Write(jsonDataBytes)
+            client.writer.Flush()
+
+			//(*client.connection).Write(dataBytes)
+			//(*client.connection).Write(jsonDataBytes)
 
 			//tempBytes := make([]byte, len(dataBytes))
 			//(*client.connection).Read(tempBytes)
@@ -147,7 +158,7 @@ func (client *Client) loopRead() {
 		default:
 			// Размер данных
 			dataSizeBytes := make([]byte, 8)
-			readCount, err := (*client.connection).Read(dataSizeBytes)
+			readCount, err := client.reader.Read(dataSizeBytes)
 			if (err != nil) || (readCount == 0) {
 				client.server.DeleteClient(client)
 				client.QueueSendExit() // для метода loopWrite, чтобы выйти из него
@@ -158,7 +169,7 @@ func (client *Client) loopRead() {
 
 			// Данные
 			data := make([]byte, dataSize)
-			readCount, err = (*client.connection).Read(data)
+			readCount, err = client.reader.Read(data)
 
             if err == io.EOF {
 				// Разрыв соединения - отправляем в очередь сообщение выхода для loopWrite
