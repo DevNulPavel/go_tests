@@ -111,7 +111,7 @@ func (server *Server) newAsyncServerConnectionHandler(c *net.Conn) {
 // Обработка входящих подключений
 func (server *Server) startAsyncSocketAcceptListener() {
 	// Создание листенера
-	createdListener, err := net.Listen("tcp", ":9998")
+	createdListener, err := net.Listen("tcp", ":9999")
 	if err != nil {
 		log.Println("Server listener start error")
 		server.ExitServer()
