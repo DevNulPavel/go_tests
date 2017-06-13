@@ -1,4 +1,4 @@
-package game_server
+package gameserver
 
 import (
 	"encoding/binary"
@@ -35,7 +35,7 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 	maxID++
 
 	// Конструируем клиента и его каналы
-	clientState := ClienState{maxID, float64(rand.Int() % 100), float64(rand.Int() % 100)}
+	clientState := ClienState{maxID, float64(rand.Int() % 100), float64(rand.Int() % 100), 0}
 	usersStateChannel := make(chan []ClienState, 10) // В канале апдейтов может накапливаться максимум 10 апдейтов
 	successChannel := make(chan bool)
 
@@ -49,7 +49,7 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 	}
 }
 
-// Пишем сообщение клиенту
+// QueueSendAllStates ... Пишем сообщение клиенту
 func (client *Client) QueueSendAllStates(states []ClienState) {
 	select {
 	// Пишем сообщение в канал
@@ -66,7 +66,7 @@ func (client *Client) QueueSendAllStates(states []ClienState) {
 	}
 }
 
-// Пишем сообщение клиенту только с его состоянием
+// QueueSendCurrentClientState ... Пишем сообщение клиенту только с его состоянием
 func (client *Client) QueueSendCurrentClientState() {
 	currentUserStateArray := []ClienState{client.state}
 	select {
@@ -175,7 +175,7 @@ func (client *Client) loopRead() {
 					var state ClienState
 					err := json.Unmarshal(data, &state)
 
-					if (err == nil) && (state.Id > 0) {
+					if (err == nil) && (state.ID > 0) {
 						// Сбновляем состояние данного клиента
 						client.state = state
 

@@ -7,6 +7,6 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 
 	// Запуск сервера
-	server := game_server.NewServer()
+	server := gameserver.NewServer()
 	server.StartSyncListen()
 }
