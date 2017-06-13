@@ -1,18 +1,18 @@
 package game_server
 
 import (
+	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math/rand"
 	"net"
-	"encoding/json"
-	"encoding/binary"
 )
 
 // Variables
-var maxId int = 1
+var maxID int = 1
 
-// Структура клиента
+// Client ... Структура клиента
 type Client struct {
 	server            *Server
 	connection        *net.Conn
@@ -22,7 +22,7 @@ type Client struct {
 	exitChannel       chan bool
 }
 
-// Конструктор
+// NewClient ... Конструктор
 func NewClient(connection *net.Conn, server *Server) *Client {
 	if connection == nil {
 		panic("No connection")
@@ -32,17 +32,17 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 	}
 
 	// Увеличиваем id
-	maxId++
+	maxID++
 
 	// Конструируем клиента и его каналы
-	clientState := ClienState{maxId, float64(rand.Int() % 100), float64(rand.Int() % 100)}
+	clientState := ClienState{maxID, float64(rand.Int() % 100), float64(rand.Int() % 100)}
 	usersStateChannel := make(chan []ClienState, 10) // В канале апдейтов может накапливаться максимум 10 апдейтов
 	successChannel := make(chan bool)
 
 	return &Client{
 		server,
 		connection,
-		maxId,
+		maxID,
 		clientState,
 		usersStateChannel,
 		successChannel,
@@ -144,13 +144,15 @@ func (client *Client) loopRead() {
 		default:
 			// Размер данных
 			dataSizeBytes := make([]byte, 8)
-			readCount, err :=(*client.connection).Read(dataSizeBytes)
+			readCount, err := (*client.connection).Read(dataSizeBytes)
 			if (err != nil) || (readCount == 0) {
 				client.server.DeleteClient(client)
 				client.QueueSendExit() // для метода loopWrite, чтобы выйти из него
 				return
 			}
 			dataSize := binary.LittleEndian.Uint64(dataSizeBytes)
+
+			//log.Printf("Received size: %d \n", dataSize)
 
 			// Данные
 			data := make([]byte, dataSize)
@@ -181,7 +183,7 @@ func (client *Client) loopRead() {
 						//log.Println("Send all:", msg)
 						client.server.SendAll()
 					}
-				}else{
+				} else {
 					// Разрыв соединения - отправляем в очередь сообщение выхода для loopWrite
 					client.QueueSendExit()
 					return
