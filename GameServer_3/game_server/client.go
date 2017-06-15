@@ -3,7 +3,6 @@ package gameserver
 import (
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"io"
 	"math/rand"
 	"net"
@@ -12,7 +11,7 @@ import (
     "time"
 )
 
-const UPDATE_QUEUE_SIZE = 100
+const UPDATE_QUEUE_SIZE = 10
 
 // Variables
 var maxID int = 1
@@ -26,7 +25,8 @@ type Client struct {
     writer            *bufio.Writer
     reader            *bufio.Reader
 	usersStateChannel chan []ClienState
-	exitChannel       chan bool
+	exitReadChannel   chan bool
+    exitWriteChannel  chan bool
 }
 
 // NewClient ... Конструктор
@@ -46,7 +46,8 @@ func NewClient(connection *net.Conn, server *Server) *Client {
     writer := bufio.NewWriter(*connection)
     reader := bufio.NewReader(*connection)
 	usersStateChannel := make(chan []ClienState, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
-	successChannel := make(chan bool)
+    exitReadChannel := make(chan bool)
+    exitWriteChannel := make(chan bool)
 
 	return &Client{
 		server,
@@ -56,58 +57,38 @@ func NewClient(connection *net.Conn, server *Server) *Client {
         writer,
         reader,
 		usersStateChannel,
-		successChannel,
+        exitReadChannel,
+        exitWriteChannel,
 	}
 }
 
 // QueueSendAllStates ... Пишем сообщение клиенту
 func (client *Client) QueueSendAllStates(states []ClienState) {
+	// Если очередь превышена - считаем, что юзер отвалился
     if len(client.usersStateChannel)+1 > UPDATE_QUEUE_SIZE {
         log.Printf("Queue full for client %d", client.id)
-        return
-    }
-
-	select {
-	// Пишем сообщение в канал
-	case client.usersStateChannel <- states:
-		//log.Println("Client wrote:", message)
-
-	// Удаляем клиента раз у нас произошла ошибка какая-то
-	default:
-        err := fmt.Errorf("Client %d disconnected", client.id)
 		client.server.DeleteClient(client)
-		client.server.SendErr(err)
-		client.QueueSendExit() // Вызываем выход из горутины loopWrite
-		return
+        client.exitReadChannel <- true
+        client.exitWriteChannel <- true
+        return
+    }else{
+		client.usersStateChannel <- states
 	}
 }
 
 // QueueSendCurrentClientState ... Пишем сообщение клиенту только с его состоянием
 func (client *Client) QueueSendCurrentClientState() {
+    // Если очередь превышена - считаем, что юзер отвалился
     if len(client.usersStateChannel)+1 > UPDATE_QUEUE_SIZE {
         log.Printf("Queue full for client %d", client.id)
+        client.server.DeleteClient(client)
+        client.exitReadChannel <- true
+        client.exitWriteChannel <- true
         return
+    }else{
+        currentUserStateArray := []ClienState{client.state}
+        client.usersStateChannel <- currentUserStateArray
     }
-    
-	currentUserStateArray := []ClienState{client.state}
-	select {
-	// Пишем сообщение в канал
-	case client.usersStateChannel <- currentUserStateArray:
-		//log.Println("Client wrote:", message)
-
-	// Удаляем клиента если нельзя отправлять
-	default:
-		client.server.DeleteClient(client)
-		err := fmt.Errorf("Client %d disconnected", client.id)
-		client.server.SendErr(err)
-		client.QueueSendExit() // Вызываем выход из горутины loopWrite
-		return
-	}
-}
-
-// Отправляем успешный результат
-func (client *Client) QueueSendExit() {
-	client.exitChannel <- true
 }
 
 // Запускаем ожидания записи и чтения (блокирующая функция)
@@ -145,7 +126,7 @@ func (client *Client) loopWrite() {
             if err != nil {
                 client.server.DeleteClient(client)
                 // TODO: client.QueueSendExit() надо ли??
-                client.QueueSendExit()
+                client.exitReadChannel <- true // Выход из loopRead
                 log.Println("LoopWrite exit by ERROR, clientId =", client.id)
                 return
             }
@@ -157,7 +138,7 @@ func (client *Client) loopWrite() {
 			//(*client.connection).Read(tempBytes)
 
 		// Получение флага выхода из функции
-		case <-client.exitChannel:
+		case <-client.exitWriteChannel:
 			client.server.DeleteClient(client)
             log.Println("LoopWrite exit, clientId =", client.id)
 			return
@@ -171,9 +152,8 @@ func (client *Client) loopRead() {
 	for {
 		select {
 		// Получение флага выхода
-		case <-client.exitChannel:
+		case <-client.exitReadChannel:
 			client.server.DeleteClient(client)
-			client.QueueSendExit() // для метода loopWrite, чтобы выйти из него
             log.Println("LoopRead exit, clientId =", client.id)
 			return
 
@@ -188,7 +168,7 @@ func (client *Client) loopRead() {
 			readCount, err := client.reader.Read(dataSizeBytes)
 			if (err != nil) || (readCount == 0) {
 				client.server.DeleteClient(client)
-				client.QueueSendExit() // для метода loopWrite, чтобы выйти из него
+                client.exitWriteChannel <- true // для метода loopWrite, чтобы выйти из него
                 log.Println("LoopRead exit, clientId =", client.id)
 				return
 			}
@@ -204,14 +184,15 @@ func (client *Client) loopRead() {
 
             if err == io.EOF {
 				// Разрыв соединения - отправляем в очередь сообщение выхода для loopWrite
-				client.QueueSendExit()
+                client.exitWriteChannel <- true
 				return
 			} else if err != nil {
+                // TODO: ???
 				// Ошибка
-				client.server.SendErr(err)
-				// TODO: ???
+                log.Printf("Client %d error: ", client.id, err)
 				// Разрыв соединения - отправляем в очередь сообщение выхода для loopWrite
-				client.QueueSendExit()
+                client.exitWriteChannel <- true
+                log.Println("LoopRead exit, clientId =", client.id)
 				return
 			} else {
 				if readCount > 0 {
@@ -230,8 +211,8 @@ func (client *Client) loopRead() {
 						client.server.SendAll()
 					}
 				} else {
-					// Разрыв соединения - отправляем в очередь сообщение выхода для loopWrite
-					client.QueueSendExit()
+                    // Разрыв соединения - отправляем в очередь сообщение выхода для loopWrite
+                    client.exitWriteChannel <- true
                     log.Println("LoopRead exit, clientId =", client.id)
 					return
 				}

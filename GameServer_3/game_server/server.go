@@ -12,7 +12,6 @@ type Server struct {
 	deleteChannel  chan *Client
 	sendAllChannel chan bool
 	exitChannel    chan bool
-	errorChannel   chan error
 }
 
 // Создание нового сервера
@@ -22,7 +21,6 @@ func NewServer() *Server {
 	deleteChannel := make(chan *Client)
 	sendAllChannel := make(chan bool)
 	successChannel := make(chan bool)
-	errorChannel := make(chan error)
 
 	return &Server{
 		nil,
@@ -31,7 +29,6 @@ func NewServer() *Server {
 		deleteChannel,
 		sendAllChannel,
 		successChannel,
-		errorChannel,
 	}
 }
 
@@ -52,10 +49,6 @@ func (server *Server) SendAll() {
 
 func (server *Server) ExitServer() {
 	server.exitChannel <- true
-}
-
-func (server *Server) SendErr(err error) {
-	server.errorChannel <- err
 }
 
 func (server *Server) StartSyncListen() {
@@ -110,7 +103,7 @@ func (server *Server) newAsyncServerConnectionHandler(c *net.Conn) {
 	client.StartSyncListenLoop() // Блокируется выполнение на данной функции, пока не выйдет клиент
 
 	(*c).Close()
-    log.Println("Server connection closed for client ", client.id)
+    log.Printf("Server connection closed for client %d\n", client.id)
 }
 
 // Обработка входящих подключений
@@ -136,7 +129,7 @@ func (server *Server) startAsyncSocketAcceptListener() {
 		// Ожидаем новое подключение
 		c, err := (*server.listener).Accept()
 		if err != nil {
-			server.SendErr(err)
+            log.Print("Accept error") // Либо наш лиснер закрылся и надо будет выйти из цикла
 			continue
 		}
 
@@ -177,10 +170,6 @@ func (server *Server) mainQueueHandleFunction() {
 		case <-server.sendAllChannel:
 			// Вызываем отправку сообщений всем клиентам
 			server.sendAllNewState()
-
-		// Была какая-то ошибка
-		case err := <-server.errorChannel:
-			log.Println("Error:", err.Error())
 
 		// Завершение работы
 		case <-server.exitChannel:
