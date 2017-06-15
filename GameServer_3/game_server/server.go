@@ -101,9 +101,8 @@ func (server *Server) newAsyncServerConnectionHandler(c *net.Conn) {
 	client := NewClient(c, server)
 	server.AddNewClient(client)  // Выставляем клиента в очередь на добавление
 	client.StartSyncListenLoop() // Блокируется выполнение на данной функции, пока не выйдет клиент
-
-	(*c).Close()
-    log.Printf("Server connection closed for client %d\n", client.id)
+	client.Close()
+    log.Printf("Server goroutine closed for client %d\n", client.id)
 }
 
 // Обработка входящих подключений

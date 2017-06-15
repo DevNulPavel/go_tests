@@ -62,6 +62,13 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 	}
 }
 
+func (client *Client) Close()  {
+    close(client.usersStateChannel)
+    close(client.exitWriteChannel)
+    close(client.exitReadChannel)
+    (*client.connection).Close()
+}
+
 // QueueSendAllStates ... Пишем сообщение клиенту
 func (client *Client) QueueSendAllStates(states []ClienState) {
 	// Если очередь превышена - считаем, что юзер отвалился
@@ -101,7 +108,7 @@ func (client *Client) StartSyncListenLoop() {
 
 // Ожидание записи
 func (client *Client) loopWrite() {
-	log.Println("StartSyncListenLoop write to client:", client.id)
+	//log.Println("StartSyncListenLoop write to client:", client.id)
 	for {
 		select {
 		// Отправка записи клиенту
