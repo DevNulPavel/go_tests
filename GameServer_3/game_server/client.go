@@ -46,8 +46,8 @@ func NewClient(connection *net.Conn, server *Server) *Client {
     writer := bufio.NewWriter(*connection)
     reader := bufio.NewReader(*connection)
 	usersStateChannel := make(chan []ClienState, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
-    exitReadChannel := make(chan bool)
-    exitWriteChannel := make(chan bool)
+    exitReadChannel := make(chan bool, 1)
+    exitWriteChannel := make(chan bool, 1)
 
 	return &Client{
 		server,
@@ -63,9 +63,6 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 }
 
 func (client *Client) Close()  {
-    close(client.usersStateChannel)
-    close(client.exitWriteChannel)
-    close(client.exitReadChannel)
     (*client.connection).Close()
 }
 
@@ -134,7 +131,6 @@ func (client *Client) loopWrite() {
             err = client.writer.Flush()
             if err != nil {
                 client.server.DeleteClient(client)
-                // TODO: client.QueueSendExit() надо ли??
                 client.exitReadChannel <- true // Выход из loopRead
                 log.Println("LoopWrite exit by ERROR, clientId =", client.id)
                 return
@@ -166,7 +162,7 @@ func (client *Client) loopRead() {
             log.Println("LoopRead exit, clientId =", client.id)
 			return
 
-		// Чтение данных из webSocket
+		// Чтение данных из сокета
 		default:
             // Ожидается, что за 10 минут что-то придет, иначе - это отвал
             timeout := time.Now().Add(10 * time.Minute)
