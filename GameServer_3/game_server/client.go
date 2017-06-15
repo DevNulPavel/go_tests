@@ -159,8 +159,8 @@ func (client *Client) loopRead() {
 
 		// Чтение данных из webSocket
 		default:
-            // Ожидается, что за 3 минуты что-то придет, иначе - это отвал
-            timeout := time.Now().Add(3 * time.Minute)
+            // Ожидается, что за 10 минут что-то придет, иначе - это отвал
+            timeout := time.Now().Add(10 * time.Minute)
             (*client.connection).SetReadDeadline(timeout)
 
 			// Размер данных
@@ -185,6 +185,7 @@ func (client *Client) loopRead() {
             if err == io.EOF {
 				// Разрыв соединения - отправляем в очередь сообщение выхода для loopWrite
                 client.exitWriteChannel <- true
+                log.Println("LoopRead exit, clientId =", client.id)
 				return
 			} else if err != nil {
                 // TODO: ???
@@ -207,7 +208,6 @@ func (client *Client) loopRead() {
 						client.state = state
 
 						// Отправляем обновление состояния всем
-						//log.Println("Send all:", msg)
 						client.server.SendAll()
 					}
 				} else {
