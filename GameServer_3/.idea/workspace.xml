@@ -27,8 +27,8 @@
       <file leaf-file-name="client.go" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/game_server/client.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2501">
-              <caret line="192" column="63" lean-forward="true" selection-start-line="192" selection-start-column="63" selection-end-line="192" selection-end-column="63" />
+            <state relative-caret-position="151">
+              <caret line="72" column="40" lean-forward="false" selection-start-line="72" selection-start-column="40" selection-end-line="72" selection-end-column="40" />
               <folding />
             </state>
           </provider>
@@ -47,7 +47,7 @@
       <file leaf-file-name="server.go" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/game_server/server.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1192">
+            <state relative-caret-position="2576">
               <caret line="161" column="40" lean-forward="false" selection-start-line="161" selection-start-column="27" selection-end-line="161" selection-end-column="40" />
               <folding />
             </state>
@@ -79,6 +79,7 @@
       <find>LoopRead</find>
       <find />
       <find>deleteChannel</find>
+      <find>exitReadChannel</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -118,7 +119,7 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="282" />
+    <option name="x" value="295" />
     <option name="y" value="23" />
     <option name="width" value="1234" />
     <option name="height" value="1011" />
@@ -272,7 +273,7 @@
     <option name="remove_strategy" value="false" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="282" y="23" width="1234" height="1011" extended-state="0" />
+    <frame x="295" y="23" width="1234" height="1011" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.26094005" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -638,7 +639,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/game_server/server.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1192">
+        <state relative-caret-position="2576">
           <caret line="161" column="40" lean-forward="false" selection-start-line="161" selection-start-column="27" selection-end-line="161" selection-end-column="40" />
           <folding />
         </state>
@@ -646,8 +647,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/game_server/client.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2501">
-          <caret line="192" column="63" lean-forward="true" selection-start-line="192" selection-start-column="63" selection-end-line="192" selection-end-column="63" />
+        <state relative-caret-position="151">
+          <caret line="72" column="40" lean-forward="false" selection-start-line="72" selection-start-column="40" selection-end-line="72" selection-end-column="40" />
           <folding />
         </state>
       </provider>

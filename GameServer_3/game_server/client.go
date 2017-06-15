@@ -67,9 +67,10 @@ func (client *Client) QueueSendAllStates(states []ClienState) {
 	// Если очередь превышена - считаем, что юзер отвалился
     if len(client.usersStateChannel)+1 > UPDATE_QUEUE_SIZE {
         log.Printf("Queue full for client %d", client.id)
-		client.server.DeleteClient(client)
-        client.exitReadChannel <- true
-        client.exitWriteChannel <- true
+        // TODO: Ждем таймаут??
+        //client.server.DeleteClient(client)
+        //client.exitWriteChannel <- true
+        //client.exitReadChannel <- true
         return
     }else{
 		client.usersStateChannel <- states
@@ -81,9 +82,10 @@ func (client *Client) QueueSendCurrentClientState() {
     // Если очередь превышена - считаем, что юзер отвалился
     if len(client.usersStateChannel)+1 > UPDATE_QUEUE_SIZE {
         log.Printf("Queue full for client %d", client.id)
-        client.server.DeleteClient(client)
-        client.exitReadChannel <- true
-        client.exitWriteChannel <- true
+        // TODO: Ждем таймаут??
+        //client.server.DeleteClient(client)
+        //client.exitWriteChannel <- true
+        //client.exitReadChannel <- true
         return
     }else{
         currentUserStateArray := []ClienState{client.state}
