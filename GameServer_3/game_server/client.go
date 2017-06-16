@@ -22,7 +22,7 @@ type Client struct {
 	connection        *net.Conn
 	id                int
 	state             ClienState
-    mutex             sync.Mutex
+    mutex             sync.RWMutex
 	usersStateChannel chan []ClienState
 	exitReadChannel   chan bool
     exitWriteChannel  chan bool
@@ -42,6 +42,7 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 
 	// Конструируем клиента и его каналы
 	clientState := ClienState{maxID, float64(rand.Int() % 100), float64(rand.Int() % 100), 0}
+    mutex := sync.RWMutex{}
 	usersStateChannel := make(chan []ClienState, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
     exitReadChannel := make(chan bool)
     exitWriteChannel := make(chan bool)
@@ -51,6 +52,7 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 		connection: connection,
 		id: maxID,
 		state: clientState,
+        mutex: mutex,
 		usersStateChannel: usersStateChannel,
         exitReadChannel: exitReadChannel,
         exitWriteChannel: exitWriteChannel,
@@ -59,6 +61,14 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 
 func (client *Client) Close()  {
     (*client.connection).Close()
+}
+
+func (client *Client) GetCurrentStateWithTimeReset() ClienState {
+    client.mutex.Lock()
+    var stateCopy ClienState = client.state
+    client.state.Delta = 0.0
+    client.mutex.Unlock()
+    return stateCopy
 }
 
 // QueueSendAllStates ... Пишем сообщение клиенту
@@ -87,7 +97,10 @@ func (client *Client) QueueSendCurrentClientState() {
         //client.exitReadChannel <- true
         return
     }else{
+        client.mutex.RLock()
         currentUserStateArray := []ClienState{client.state}
+        client.mutex.RUnlock()
+
         client.usersStateChannel <- currentUserStateArray
     }
 }
@@ -214,7 +227,11 @@ func (client *Client) loopRead() {
 
                 if (err == nil) && (state.ID > 0) {
                     // Сбновляем состояние данного клиента
-                    client.state = state
+                    client.mutex.Lock()
+                    client.state.X = state.X
+                    client.state.Y = state.Y
+                    client.state.Delta += state.Delta
+                    client.mutex.Unlock()
 
                     // Отправляем обновление состояния всем
                     client.server.SendAll()

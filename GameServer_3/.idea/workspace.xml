@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7e4c1c70-2512-4f8b-aa98-dfbbbf015b07" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/game_server/client.go" afterPath="$PROJECT_DIR$/game_server/client.go" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.go" afterPath="$PROJECT_DIR$/main.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/game_server/server.go" afterPath="$PROJECT_DIR$/game_server/server.go" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -26,11 +25,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="client.go" pinned="false" current-in-tab="true">
+      <file leaf-file-name="client.go" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/game_server/client.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="348">
-              <caret line="205" column="17" lean-forward="false" selection-start-line="205" selection-start-column="17" selection-end-line="205" selection-end-column="17" />
+            <state relative-caret-position="502">
+              <caret line="228" column="58" lean-forward="false" selection-start-line="228" selection-start-column="58" selection-end-line="228" selection-end-column="58" />
               <folding />
             </state>
           </provider>
@@ -46,11 +45,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="server.go" pinned="false" current-in-tab="false">
+      <file leaf-file-name="server.go" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/game_server/server.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1147">
-              <caret line="160" column="40" lean-forward="false" selection-start-line="160" selection-start-column="27" selection-end-line="160" selection-end-column="40" />
+            <state relative-caret-position="-954">
+              <caret line="79" column="13" lean-forward="false" selection-start-line="79" selection-start-column="8" selection-end-line="79" selection-end-column="13" />
               <folding />
             </state>
           </provider>
@@ -83,6 +82,7 @@
       <find>exitReadChannel</find>
       <find>exitWriteChannel</find>
       <find>deleteChannel</find>
+      <find>state</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -103,9 +103,9 @@
         <option value="$PROJECT_DIR$/web/js/UserStateUpdater.js" />
         <option value="$PROJECT_DIR$/web/js/main.js" />
         <option value="$PROJECT_DIR$/game_server/updateMessage.go" />
-        <option value="$PROJECT_DIR$/game_server/server.go" />
-        <option value="$PROJECT_DIR$/game_server/client.go" />
         <option value="$PROJECT_DIR$/main.go" />
+        <option value="$PROJECT_DIR$/game_server/client.go" />
+        <option value="$PROJECT_DIR$/game_server/server.go" />
       </list>
     </option>
   </component>
@@ -122,7 +122,7 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="327" />
+    <option name="x" value="331" />
     <option name="y" value="23" />
     <option name="width" value="1234" />
     <option name="height" value="1011" />
@@ -276,7 +276,7 @@
     <option name="remove_strategy" value="false" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="327" y="23" width="1234" height="1011" extended-state="0" />
+    <frame x="331" y="23" width="1234" height="1011" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15153971" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -284,7 +284,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3995633" sideWeight="0.42" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32975295" sideWeight="0.49714285" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23144105" sideWeight="0.4942857" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22707424" sideWeight="0.4942857" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24981897" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -586,13 +586,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/local/Cellar/go/1.8.3/libexec/src/sync/mutex.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="179">
-          <caret line="43" column="36" lean-forward="true" selection-start-line="43" selection-start-column="36" selection-end-line="43" selection-end-column="36" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///usr/local/Cellar/go/1.8.3/libexec/src/bufio/bufio.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="211">
@@ -605,14 +598,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2703">
           <caret line="254" column="7" lean-forward="false" selection-start-line="254" selection-start-column="7" selection-end-line="254" selection-end-column="7" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/game_server/server.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1147">
-          <caret line="160" column="40" lean-forward="false" selection-start-line="160" selection-start-column="27" selection-end-line="160" selection-end-column="40" />
           <folding />
         </state>
       </provider>
@@ -633,14 +618,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="112">
-          <caret line="7" column="0" lean-forward="true" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/game_server/updateMessage.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="80">
@@ -649,10 +626,34 @@
         </state>
       </provider>
     </entry>
+    <entry file="file:///usr/local/Cellar/go/1.8.3/libexec/src/sync/mutex.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="393">
+          <caret line="31" column="5" lean-forward="false" selection-start-line="31" selection-start-column="5" selection-end-line="31" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="112">
+          <caret line="7" column="0" lean-forward="true" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/game_server/client.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="348">
-          <caret line="205" column="17" lean-forward="false" selection-start-line="205" selection-start-column="17" selection-end-line="205" selection-end-column="17" />
+        <state relative-caret-position="502">
+          <caret line="228" column="58" lean-forward="false" selection-start-line="228" selection-start-column="58" selection-end-line="228" selection-end-column="58" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/game_server/server.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-954">
+          <caret line="79" column="13" lean-forward="false" selection-start-line="79" selection-start-column="8" selection-end-line="79" selection-end-column="13" />
           <folding />
         </state>
       </provider>

@@ -3,15 +3,17 @@ package gameserver
 import (
 	"log"
 	"net"
+	"time"
 )
 
 type Server struct {
-	listener       *net.Listener
-	clients        map[int]*Client
-	addChannel     chan *Client
-	deleteChannel  chan *Client
-	sendAllChannel chan bool
-	exitChannel    chan bool
+	listener        *net.Listener
+	clients         map[int]*Client
+	needSendAllFlag bool
+	addChannel      chan *Client
+	deleteChannel   chan *Client
+	sendAllChannel  chan bool
+	exitChannel     chan bool
 }
 
 // Создание нового сервера
@@ -25,6 +27,7 @@ func NewServer() *Server {
 	return &Server{
 		nil,
 		clients,
+		false,
 		addChannel,
 		deleteChannel,
 		sendAllChannel,
@@ -61,7 +64,8 @@ func (server *Server) sendStateToClient(c *Client) {
 	// Создать состояние текущее
 	clientStates := []ClienState{}
 	for _, client := range server.clients {
-		clientStates = append(clientStates, client.state)
+		state := client.GetCurrentStateWithTimeReset()
+		clientStates = append(clientStates, state)
 	}
 
 	// Отослать юзеру
@@ -73,7 +77,8 @@ func (server *Server) sendAllNewState() {
 	// Создать состояние текущее
 	clientStates := make([]ClienState, 0, len(server.clients))
 	for _, client := range server.clients {
-		clientStates = append(clientStates, client.state)
+		state := client.GetCurrentStateWithTimeReset()
+		clientStates = append(clientStates, state)
 	}
 
 	// Отослать всем
@@ -86,13 +91,13 @@ func (server *Server) addClientToMap(client *Client) {
 	server.clients[client.id] = client
 }
 
-func (server *Server) deleteClientFromMap(client *Client) (bool) {
+func (server *Server) deleteClientFromMap(client *Client) bool {
 	// Даже если нету клиента в мапе - ничего страшного
-    if _, exists := server.clients[client.id]; exists {
-        delete(server.clients, client.id)
-        return true
-    }
-    return false
+	if _, exists := server.clients[client.id]; exists {
+		delete(server.clients, client.id)
+		return true
+	}
+	return false
 }
 
 // Работа с новыми соединением идет в отдельной горутине
@@ -102,7 +107,7 @@ func (server *Server) newAsyncServerConnectionHandler(c *net.Conn) {
 	server.AddNewClient(client)  // Выставляем клиента в очередь на добавление
 	client.StartSyncListenLoop() // Блокируется выполнение на данной функции, пока не выйдет клиент
 	client.Close()
-    log.Printf("Server goroutine closed for client %d\n", client.id)
+	log.Printf("Server goroutine closed for client %d\n", client.id)
 }
 
 // Обработка входящих подключений
@@ -128,7 +133,7 @@ func (server *Server) startAsyncSocketAcceptListener() {
 		// Ожидаем новое подключение
 		c, err := (*server.listener).Accept()
 		if err != nil {
-            log.Print("Accept error") // Либо наш лиснер закрылся и надо будет выйти из цикла
+			log.Print("Accept error") // Либо наш лиснер закрылся и надо будет выйти из цикла
 			continue
 		}
 
@@ -147,12 +152,14 @@ func (server *Server) exitAsyncSocketListener() {
 
 // Основная функция прослушивания
 func (server *Server) mainQueueHandleFunction() {
+	ticker := time.NewTicker(time.Millisecond * 1.0 / 10.0) // 10 FPS
+
 	// Обработка каналов в главной горутине
 	for {
 		select {
 		// Добавление нового юзера
 		case c := <-server.addChannel:
-            log.Printf("Client %d added\n", c.id)
+			log.Printf("Client %d added\n", c.id)
 			server.addClientToMap(c)
 			c.QueueSendCurrentClientState() // После добавления на сервере - отправляем клиенту состояние
 			server.sendAllNewState()
@@ -160,15 +167,21 @@ func (server *Server) mainQueueHandleFunction() {
 		// Удаление клиента
 		case c := <-server.deleteChannel:
 			deleted := server.deleteClientFromMap(c)
-            if deleted {
-                log.Printf("Client %d deleted\n", c.id)
-                server.sendAllNewState()
-            }
+			if deleted {
+				log.Printf("Client %d deleted\n", c.id)
+				server.sendAllNewState()
+			}
 
 		// Отправка сообщения всем клиентам
 		case <-server.sendAllChannel:
-			// Вызываем отправку сообщений всем клиентам
-			server.sendAllNewState()
+			server.needSendAllFlag = true
+
+        // Проверяем необходимость разослать всем новый статус
+		case <-ticker.C:
+            if server.needSendAllFlag {
+                server.sendAllNewState()
+                server.needSendAllFlag = false
+            }
 
 		// Завершение работы
 		case <-server.exitChannel:
