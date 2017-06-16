@@ -188,6 +188,7 @@ func (server *Server) mainQueueHandleFunction() {
 
 		// Завершение работы
 		case <-server.exitChannel:
+            ticker.Stop()
 			server.exitAsyncSocketListener()
 			return
 		}
