@@ -19,7 +19,7 @@ var maxID int = 1
 // Client ... Структура клиента
 type Client struct {
 	server            *Server
-	connection        *net.Conn
+	connection        *net.TCPConn
 	id                int
 	state             ClienState
     mutex             sync.RWMutex
@@ -29,7 +29,7 @@ type Client struct {
 }
 
 // NewClient ... Конструктор
-func NewClient(connection *net.Conn, server *Server) *Client {
+func NewClient(connection *net.TCPConn, server *Server) *Client {
 	if connection == nil {
 		panic("No connection")
 	}

@@ -7,7 +7,7 @@ import (
 )
 
 type Server struct {
-	listener        *net.Listener
+	listener        *net.TCPListener
 	clients         map[int]*Client
 	needSendAllFlag bool
 	addChannel      chan *Client
@@ -104,7 +104,7 @@ func (server *Server) deleteClientFromMap(client *Client) bool {
 }
 
 // Работа с новыми соединением идет в отдельной горутине
-func (server *Server) newAsyncServerConnectionHandler(c *net.Conn) {
+func (server *Server) newAsyncServerConnectionHandler(c *net.TCPConn) {
 	// Создание нового клиента
 	client := NewClient(c, server)
 	server.AddNewClient(client)  // Выставляем клиента в очередь на добавление
@@ -115,8 +115,15 @@ func (server *Server) newAsyncServerConnectionHandler(c *net.Conn) {
 
 // Обработка входящих подключений
 func (server *Server) startAsyncSocketAcceptListener() {
+    address, err := net.ResolveTCPAddr("tcp", ":9999")
+    if err != nil {
+        log.Println("Server address resolve error")
+        server.ExitServer()
+        return
+    }
+
 	// Создание листенера
-	createdListener, err := net.Listen("tcp", ":9999")
+	createdListener, err := net.ListenTCP("tcp", address)
 	if err != nil {
 		log.Println("Server listener start error")
 		server.ExitServer()
@@ -125,7 +132,7 @@ func (server *Server) startAsyncSocketAcceptListener() {
 	defer createdListener.Close() // TODO: Может быть не нужно? уже есть в exitAsyncSocketListener
 
 	// Сохраняем листенер для возможности закрытия
-	server.listener = &createdListener
+	server.listener = createdListener
 
 	for {
         select {
@@ -135,14 +142,16 @@ func (server *Server) startAsyncSocketAcceptListener() {
 
         default:
             // Ожидаем новое подключение
-            c, err := (*server.listener).Accept()
+            c, err := (*server.listener).AcceptTCP()
             if err != nil {
                 log.Printf("Accept error: %s\n", err) // Либо наш лиснер закрылся и надо будет выйти из цикла
                 continue
             }
+            c.SetKeepAlive(true)
+            c.SetNoDelay(true)
 
             // Раз появилось новое соединение - запускаем его в работу с отдельной горутине
-            go server.newAsyncServerConnectionHandler(&c)
+            go server.newAsyncServerConnectionHandler(c)
         }
 	}
 }
