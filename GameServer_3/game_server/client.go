@@ -22,7 +22,7 @@ type Client struct {
 	connection        *net.Conn
 	id                int
 	state             ClienState
-    mutex             sync.RWMutex
+    mutex             sync.Mutex
 	usersStateChannel chan []ClienState
 	exitReadChannel   chan bool
     exitWriteChannel  chan bool
@@ -42,7 +42,7 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 
 	// Конструируем клиента и его каналы
 	clientState := ClienState{maxID, float64(rand.Int() % 100), float64(rand.Int() % 100), 0}
-    mutex := sync.RWMutex{}
+    mutex := sync.Mutex{}
 	usersStateChannel := make(chan []ClienState, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
     exitReadChannel := make(chan bool)
     exitWriteChannel := make(chan bool)
@@ -97,9 +97,11 @@ func (client *Client) QueueSendCurrentClientState() {
         //client.exitReadChannel <- true
         return
     }else{
-        client.mutex.RLock()
-        currentUserStateArray := []ClienState{client.state}
-        client.mutex.RUnlock()
+        client.mutex.Lock()
+        var currentUserStateCopy ClienState = client.state
+        client.mutex.Lock()
+
+        currentUserStateArray := []ClienState{currentUserStateCopy}
 
         client.usersStateChannel <- currentUserStateArray
     }
