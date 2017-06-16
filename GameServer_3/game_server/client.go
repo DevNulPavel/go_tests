@@ -99,7 +99,7 @@ func (client *Client) QueueSendCurrentClientState() {
     }else{
         client.mutex.Lock()
         var currentUserStateCopy ClienState = client.state
-        client.mutex.Lock()
+        client.mutex.Unlock()
 
         currentUserStateArray := []ClienState{currentUserStateCopy}
 
