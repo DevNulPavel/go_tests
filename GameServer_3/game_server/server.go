@@ -152,9 +152,10 @@ func (server *Server) exitAsyncSocketListener() {
 
 // Основная функция прослушивания
 func (server *Server) mainQueueHandleFunction() {
-    worldUpdateTime := time.Millisecond * (1.0/20.0*1000.0)   // 20 FPS
+    const updatePeriodMS = 50 // 20 FPS
+    worldUpdateTime := time.Millisecond * updatePeriodMS
 	ticker := time.NewTicker(worldUpdateTime)
-    log.Printf("Server world update period = %dms\n", worldUpdateTime/1000/1000)
+    log.Printf("Server world update period = %dms\n", updatePeriodMS)
 
 	// Обработка каналов в главной горутине
 	for {
