@@ -178,8 +178,8 @@ func (client *Client) loopRead() {
             (*client.connection).SetReadDeadline(timeout)
 
 			// Размер данных
-			dataSizeBytes := make([]byte, 8)
-			readCount, err := (*client.connection).Read(dataSizeBytes)
+            dataSizeBytes := make([]byte, 8)
+            readCount, err := (*client.connection).Read(dataSizeBytes)
 
             // Ошибка чтения данных
             if (err != nil) || (readCount < 8) {
@@ -203,8 +203,8 @@ func (client *Client) loopRead() {
             (*client.connection).SetReadDeadline(timeout)
 
             // Данные
-			data := make([]byte, dataSize)
-			readCount, err = (*client.connection).Read(data)
+            data := make([]byte, dataSize)
+            readCount, err = (*client.connection).Read(data)
 
             // Ошибка чтения данных
             if (err != nil) || (uint64(readCount) < dataSize) {
