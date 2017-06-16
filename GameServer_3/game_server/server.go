@@ -14,6 +14,7 @@ type Server struct {
 	deleteChannel   chan *Client
 	sendAllChannel  chan bool
 	exitChannel     chan bool
+    listenerExitCh  chan bool
 }
 
 // Создание нового сервера
@@ -22,7 +23,8 @@ func NewServer() *Server {
 	addChannel := make(chan *Client)
 	deleteChannel := make(chan *Client)
 	sendAllChannel := make(chan bool)
-	successChannel := make(chan bool)
+	exitChannel := make(chan bool)
+    listenerExitCh := make(chan bool, 1)
 
 	return &Server{
 		nil,
@@ -31,7 +33,8 @@ func NewServer() *Server {
 		addChannel,
 		deleteChannel,
 		sendAllChannel,
-		successChannel,
+        exitChannel,
+        listenerExitCh,
 	}
 }
 
@@ -125,29 +128,29 @@ func (server *Server) startAsyncSocketAcceptListener() {
 	server.listener = &createdListener
 
 	for {
-		// Для возможности выхода из цикла
-		if server.listener == nil {
-			return
-		}
+        select {
+        case <-server.listenerExitCh:
+            log.Print("Socket listener exit") // Либо наш лиснер закрылся и надо будет выйти из цикла
+            return
 
-		// Ожидаем новое подключение
-		c, err := (*server.listener).Accept()
-		if err != nil {
-			log.Print("Accept error") // Либо наш лиснер закрылся и надо будет выйти из цикла
-			continue
-		}
+        default:
+            // Ожидаем новое подключение
+            c, err := (*server.listener).Accept()
+            if err != nil {
+                log.Printf("Accept error: %s\n", err) // Либо наш лиснер закрылся и надо будет выйти из цикла
+                continue
+            }
 
-		// Раз появилось новое соединение - запускаем его в работу с отдельной горутине
-		go server.newAsyncServerConnectionHandler(&c)
+            // Раз появилось новое соединение - запускаем его в работу с отдельной горутине
+            go server.newAsyncServerConnectionHandler(&c)
+        }
 	}
 }
 
 // Выход из обработчика событий
 func (server *Server) exitAsyncSocketListener() {
-	if server.listener != nil {
-		(*server.listener).Close()
-		server.listener = nil
-	}
+    server.listenerExitCh <- true
+    (*server.listener).Close()
 }
 
 // Основная функция прослушивания

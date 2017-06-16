@@ -22,7 +22,7 @@ type Client struct {
 	connection        *net.Conn
 	id                int
 	state             ClienState
-    mutex             sync.Mutex
+    mutex             sync.RWMutex
 	usersStateChannel chan []ClienState
 	exitReadChannel   chan bool
     exitWriteChannel  chan bool
@@ -42,10 +42,10 @@ func NewClient(connection *net.Conn, server *Server) *Client {
 
 	// Конструируем клиента и его каналы
 	clientState := ClienState{maxID, float64(rand.Int() % 100), float64(rand.Int() % 100), 0}
-    mutex := sync.Mutex{}
+    mutex := sync.RWMutex{}
 	usersStateChannel := make(chan []ClienState, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
-    exitReadChannel := make(chan bool)
-    exitWriteChannel := make(chan bool)
+    exitReadChannel := make(chan bool, 1)
+    exitWriteChannel := make(chan bool, 1)
 
 	return &Client{
 		server: server,
@@ -97,9 +97,9 @@ func (client *Client) QueueSendCurrentClientState() {
         //client.exitReadChannel <- true
         return
     }else{
-        client.mutex.Lock()
+        client.mutex.RLock()
         var currentUserStateCopy ClienState = client.state
-        client.mutex.Unlock()
+        client.mutex.RUnlock()
 
         currentUserStateArray := []ClienState{currentUserStateCopy}
 
@@ -148,7 +148,7 @@ func (client *Client) loopWrite() {
                 if (err != nil) {
                     log.Printf("LoopWrite exit by ERROR (%s), clientId = %d\n", err, client.id)
                 }else if writenCount < len(sendData) {
-                    log.Printf("LoopWrite exit by ERROR (%s), clientId = %d\n", err, client.id)
+                    log.Printf("LoopWrite exit by less bytes - %d from %d, clientId = %d\n", writenCount, len(sendData), client.id)
                 }
                 return
             }
