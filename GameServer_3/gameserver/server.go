@@ -14,7 +14,7 @@ type Server struct {
 	deleteChannel   chan *Client
 	sendAllChannel  chan bool
 	exitChannel     chan bool
-    listenerExitCh  chan bool
+	listenerExitCh  chan bool
 }
 
 // Создание нового сервера
@@ -24,7 +24,7 @@ func NewServer() *Server {
 	deleteChannel := make(chan *Client)
 	sendAllChannel := make(chan bool)
 	exitChannel := make(chan bool)
-    listenerExitCh := make(chan bool, 1)
+	listenerExitCh := make(chan bool, 1)
 
 	return &Server{
 		nil,
@@ -33,8 +33,8 @@ func NewServer() *Server {
 		addChannel,
 		deleteChannel,
 		sendAllChannel,
-        exitChannel,
-        listenerExitCh,
+		exitChannel,
+		listenerExitCh,
 	}
 }
 
@@ -115,12 +115,12 @@ func (server *Server) newAsyncServerConnectionHandler(c *net.TCPConn) {
 
 // Обработка входящих подключений
 func (server *Server) startAsyncSocketAcceptListener() {
-    address, err := net.ResolveTCPAddr("tcp", ":9999")
-    if err != nil {
-        log.Println("Server address resolve error")
-        server.ExitServer()
-        return
-    }
+	address, err := net.ResolveTCPAddr("tcp", ":9999")
+	if err != nil {
+		log.Println("Server address resolve error")
+		server.ExitServer()
+		return
+	}
 
 	// Создание листенера
 	createdListener, err := net.ListenTCP("tcp", address)
@@ -135,39 +135,39 @@ func (server *Server) startAsyncSocketAcceptListener() {
 	server.listener = createdListener
 
 	for {
-        select {
-        case <-server.listenerExitCh:
-            log.Print("Socket listener exit") // Либо наш лиснер закрылся и надо будет выйти из цикла
-            return
+		select {
+		case <-server.listenerExitCh:
+			log.Print("Socket listener exit") // Либо наш лиснер закрылся и надо будет выйти из цикла
+			return
 
-        default:
-            // Ожидаем новое подключение
-            c, err := (*server.listener).AcceptTCP()
-            if err != nil {
-                log.Printf("Accept error: %s\n", err) // Либо наш лиснер закрылся и надо будет выйти из цикла
-                continue
-            }
-            c.SetKeepAlive(true)
-            c.SetNoDelay(true)
+		default:
+			// Ожидаем новое подключение
+			c, err := (*server.listener).AcceptTCP()
+			if err != nil {
+				log.Printf("Accept error: %s\n", err) // Либо наш лиснер закрылся и надо будет выйти из цикла
+				continue
+			}
+			c.SetKeepAlive(true)
+			c.SetNoDelay(true)
 
-            // Раз появилось новое соединение - запускаем его в работу с отдельной горутине
-            go server.newAsyncServerConnectionHandler(c)
-        }
+			// Раз появилось новое соединение - запускаем его в работу с отдельной горутине
+			go server.newAsyncServerConnectionHandler(c)
+		}
 	}
 }
 
 // Выход из обработчика событий
 func (server *Server) exitAsyncSocketListener() {
-    server.listenerExitCh <- true
-    (*server.listener).Close()
+	server.listenerExitCh <- true
+	(*server.listener).Close()
 }
 
 // Основная функция прослушивания
 func (server *Server) mainQueueHandleFunction() {
-    const updatePeriodMS = 50 // 20 FPS
-    worldUpdateTime := time.Millisecond * updatePeriodMS
+	const updatePeriodMS = 50 // 20 FPS
+	worldUpdateTime := time.Millisecond * updatePeriodMS
 	ticker := time.NewTicker(worldUpdateTime)
-    log.Printf("Server world update period = %dms\n", updatePeriodMS)
+	log.Printf("Server world update period = %dms\n", updatePeriodMS)
 
 	// Обработка каналов в главной горутине
 	for {
@@ -191,16 +191,16 @@ func (server *Server) mainQueueHandleFunction() {
 		case <-server.sendAllChannel:
 			server.needSendAllFlag = true
 
-        // Проверяем необходимость разослать всем новый статус
+			// Проверяем необходимость разослать всем новый статус
 		case <-ticker.C:
-            if server.needSendAllFlag {
-                server.sendAllNewState()
-                server.needSendAllFlag = false
-            }
+			if server.needSendAllFlag {
+				server.sendAllNewState()
+				server.needSendAllFlag = false
+			}
 
 		// Завершение работы
 		case <-server.exitChannel:
-            ticker.Stop()
+			ticker.Stop()
 			server.exitAsyncSocketListener()
 			return
 		}
