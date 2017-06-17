@@ -42,7 +42,6 @@ func NewClient(connection *net.TCPConn, server *Server) *Client {
 
 	// Конструируем клиента и его каналы
 	clientState := ClienState{maxID, float64(rand.Int() % 100), float64(rand.Int() % 100), 0}
-	mutex := sync.RWMutex{}
 	usersStateChannel := make(chan []ClienState, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
 	exitReadChannel := make(chan bool, 1)
 	exitWriteChannel := make(chan bool, 1)
@@ -52,7 +51,7 @@ func NewClient(connection *net.TCPConn, server *Server) *Client {
 		connection:        connection,
 		id:                maxID,
 		state:             clientState,
-		mutex:             mutex,
+		mutex:             sync.RWMutex{},
 		usersStateChannel: usersStateChannel,
 		exitReadChannel:   exitReadChannel,
 		exitWriteChannel:  exitWriteChannel,
@@ -65,7 +64,7 @@ func (client *Client) Close() {
 
 func (client *Client) GetCurrentStateWithTimeReset() ClienState {
 	client.mutex.Lock()
-	var stateCopy ClienState = client.state
+	stateCopy := client.state
 	client.state.Delta = 0.0
 	client.mutex.Unlock()
 	return stateCopy
