@@ -1,8 +1,8 @@
 package gameserver
 
 import (
+	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"io"
 	"log"
 	"math/rand"
@@ -14,13 +14,13 @@ import (
 const UPDATE_QUEUE_SIZE = 100
 
 // Variables
-var maxID int = 1
+var maxID int32 = 1
 
 // Client ... Структура клиента
 type Client struct {
 	server            *Server
 	connection        *net.TCPConn
-	id                int
+	id                int32
 	state             ClienState
 	mutex             sync.RWMutex
 	usersStateChannel chan []ClienState
@@ -41,7 +41,7 @@ func NewClient(connection *net.TCPConn, server *Server) *Client {
 	maxID++
 
 	// Конструируем клиента и его каналы
-	clientState := ClienState{maxID, float64(rand.Int() % 100), float64(rand.Int() % 100), 0}
+	clientState := ClienState{maxID, rand.Int31() % 100, rand.Int31() % 100, 0}
 	usersStateChannel := make(chan []ClienState, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
 	exitReadChannel := make(chan bool, 1)
 	exitWriteChannel := make(chan bool, 1)
@@ -118,21 +118,29 @@ func (client *Client) loopWrite() {
 	for {
 		select {
 		// Отправка записи клиенту
-		case message := <-client.usersStateChannel:
+		case states := <-client.usersStateChannel:
+			payloadDataBuffer := new(bytes.Buffer)
+
+			// Количество состояний
+			var statesCount int32 = int32(len(states))
+			binary.Write(payloadDataBuffer, binary.BigEndian, statesCount)
+
 			// Данные
-			jsonDataBytes, err := json.Marshal(message)
-			if err != nil {
-				continue
+			for _, state := range states {
+				stateByteData, err := state.ConvertToBytes()
+				if err != nil {
+					continue
+				}
+
+				payloadDataBuffer.Write(stateByteData)
 			}
 
-			// Размер
-			dataBytes := make([]byte, 8)
-			binary.LittleEndian.PutUint64(dataBytes, uint64(len(jsonDataBytes)))
-
-			//log.Printf("Send to client %d: %s\n", client.id, string(jsonDataBytes))
+			// Размер данных
+			dataBytes := make([]byte, 4)
+			binary.BigEndian.PutUint32(dataBytes, uint32(payloadDataBuffer.Len()))
 
 			// Данные для отправки
-			sendData := append(dataBytes, jsonDataBytes...)
+			sendData := append(dataBytes, payloadDataBuffer.Bytes()...)
 
 			// Таймаут
 			timeout := time.Now().Add(30 * time.Second)
@@ -177,11 +185,11 @@ func (client *Client) loopRead() {
 			(*client.connection).SetReadDeadline(timeout)
 
 			// Размер данных
-			dataSizeBytes := make([]byte, 8)
+			dataSizeBytes := make([]byte, 4)
 			readCount, err := (*client.connection).Read(dataSizeBytes)
 
 			// Ошибка чтения данных
-			if (err != nil) || (readCount < 8) {
+			if (err != nil) || (readCount < 4) {
 				client.server.DeleteClient(client)
 				client.Close()
 				client.exitWriteChannel <- true // для метода loopWrite, чтобы выйти из него
@@ -190,12 +198,12 @@ func (client *Client) loopRead() {
 					log.Printf("LoopRead exit by disconnect, clientId = %d\n", client.id)
 				} else if err != nil {
 					log.Printf("LoopRead exit by ERROR (%s), clientId = %d\n", err, client.id)
-				} else if readCount < 8 {
+				} else if readCount < 4 {
 					log.Printf("LoopRead exit - read less 8 bytes (%d bytes), clientId = %d\n", readCount, client.id)
 				}
 				return
 			}
-			dataSize := binary.LittleEndian.Uint64(dataSizeBytes)
+			dataSize := binary.BigEndian.Uint32(dataSizeBytes)
 
 			// Ожидается, что будут данные в течении 20 секунд - иначе отвал
 			timeout = time.Now().Add(20 * time.Second)
@@ -206,7 +214,7 @@ func (client *Client) loopRead() {
 			readCount, err = (*client.connection).Read(data)
 
 			// Ошибка чтения данных
-			if (err != nil) || (uint64(readCount) < dataSize) {
+			if (err != nil) || (uint32(readCount) < dataSize) {
 				client.server.DeleteClient(client)
 				client.Close()
 				client.exitWriteChannel <- true // для метода loopWrite, чтобы выйти из него
@@ -215,16 +223,15 @@ func (client *Client) loopRead() {
 					log.Printf("LoopRead exit by disconnect, clientId = %d\n", client.id)
 				} else if err != nil {
 					log.Printf("LoopRead exit by ERROR (%s), clientId = %d\n", err, client.id)
-				} else if uint64(readCount) < dataSize {
+				} else if uint32(readCount) < dataSize {
 					log.Printf("LoopRead exit - read less %d bytes (%d bytes), clientId = %d\n", dataSize, readCount, client.id)
 				}
 				return
 			}
 
 			if readCount > 0 {
-				// Декодирование из Json в структуру
-				var state ClienState
-				err := json.Unmarshal(data, &state)
+				// Декодирование
+				state, err := NewClientState(data)
 
 				if (err == nil) && (state.ID > 0) {
 					// Сбновляем состояние данного клиента

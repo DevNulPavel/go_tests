@@ -8,7 +8,7 @@ import (
 
 type Server struct {
 	listener        *net.TCPListener
-	clients         map[int]*Client
+	clients         map[int32]*Client
 	needSendAllFlag bool
 	addChannel      chan *Client
 	deleteChannel   chan *Client
@@ -19,7 +19,7 @@ type Server struct {
 
 // Создание нового сервера
 func NewServer() *Server {
-	clients := make(map[int]*Client)
+	clients := make(map[int32]*Client)
 	addChannel := make(chan *Client)
 	deleteChannel := make(chan *Client)
 	sendAllChannel := make(chan bool)
