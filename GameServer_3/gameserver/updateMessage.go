@@ -28,7 +28,7 @@ func NewClientState(rawData []byte) (ClienState, error) {
 		return ClienState{}, err
 	}
 	// Y
-	err = binary.Read(reader, binary.BigEndian, &(newState.X))
+	err = binary.Read(reader, binary.BigEndian, &(newState.Y))
 	if err != nil {
 		return ClienState{}, err
 	}

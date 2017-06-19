@@ -122,7 +122,7 @@ func (client *Client) loopWrite() {
 			payloadDataBuffer := new(bytes.Buffer)
 
 			// Количество состояний
-			var statesCount int32 = int32(len(states))
+			var statesCount uint32 = uint32(len(states))
 			binary.Write(payloadDataBuffer, binary.BigEndian, statesCount)
 
 			// Данные
