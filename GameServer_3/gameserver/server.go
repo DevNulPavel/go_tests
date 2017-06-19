@@ -166,7 +166,9 @@ func (server *Server) exitAsyncSocketListener() {
 func (server *Server) mainQueueHandleFunction() {
 	const updatePeriodMS = 10 // 10 FPS
 	worldUpdateTime := time.Millisecond * updatePeriodMS
-	ticker := time.NewTicker(worldUpdateTime)
+	timer := time.NewTimer(worldUpdateTime)
+	timer.Stop()
+	timerActive := false
 	log.Printf("Server world update period = %dms\n", updatePeriodMS)
 
 	// Обработка каналов в главной горутине
@@ -190,9 +192,14 @@ func (server *Server) mainQueueHandleFunction() {
 		// Отправка сообщения всем клиентам
 		case <-server.sendAllChannel:
 			server.needSendAllFlag = true
+			if timerActive == false {
+				timerActive = true
+				timer.Reset(worldUpdateTime)
+			}
 
 			// Проверяем необходимость разослать всем новый статус
-		case <-ticker.C:
+		case <-timer.C:
+			timerActive = false
 			if server.needSendAllFlag {
 				server.sendAllNewState()
 				server.needSendAllFlag = false
@@ -200,7 +207,9 @@ func (server *Server) mainQueueHandleFunction() {
 
 		// Завершение работы
 		case <-server.exitChannel:
-			ticker.Stop()
+			if timerActive == true {
+				timer.Stop()
+			}
 			server.exitAsyncSocketListener()
 			return
 		}
