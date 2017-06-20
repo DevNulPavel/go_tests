@@ -21,9 +21,9 @@ type Client struct {
 	server            *Server
 	connection        *net.TCPConn
 	id                int32
-	state             ClienState
+	state             ClientState
 	mutex             sync.RWMutex
-	usersStateChannel chan []ClienState
+	usersStateChannel chan []ClientState
 	exitReadChannel   chan bool
 	exitWriteChannel  chan bool
 }
@@ -41,8 +41,8 @@ func NewClient(connection *net.TCPConn, server *Server) *Client {
 	maxID++
 
 	// Конструируем клиента и его каналы
-	clientState := ClienState{maxID, rand.Int31() % 100, rand.Int31() % 100, 0}
-	usersStateChannel := make(chan []ClienState, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
+	clientState := ClientState{maxID, rand.Int31() % 100, rand.Int31() % 100, 0}
+	usersStateChannel := make(chan []ClientState, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
 	exitReadChannel := make(chan bool, 1)
 	exitWriteChannel := make(chan bool, 1)
 
@@ -62,7 +62,7 @@ func (client *Client) Close() {
 	(*client.connection).Close()
 }
 
-func (client *Client) GetCurrentStateWithTimeReset() ClienState {
+func (client *Client) GetCurrentStateWithTimeReset() ClientState {
 	client.mutex.Lock()
 	stateCopy := client.state
 	client.state.Delta = 0.0
@@ -71,7 +71,7 @@ func (client *Client) GetCurrentStateWithTimeReset() ClienState {
 }
 
 // QueueSendAllStates ... Пишем сообщение клиенту
-func (client *Client) QueueSendAllStates(states []ClienState) {
+func (client *Client) QueueSendAllStates(states []ClientState) {
 	// Если очередь превышена - считаем, что юзер отвалился
 	if len(client.usersStateChannel)+1 > UPDATE_QUEUE_SIZE {
 		log.Printf("Queue full for client %d", client.id)
@@ -100,7 +100,7 @@ func (client *Client) QueueSendCurrentClientState() {
 		currentUserStateCopy := client.state
 		client.mutex.RUnlock()
 
-		currentUserStateArray := []ClienState{currentUserStateCopy}
+		currentUserStateArray := []ClientState{currentUserStateCopy}
 
 		client.usersStateChannel <- currentUserStateArray
 	}

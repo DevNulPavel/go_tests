@@ -6,41 +6,41 @@ import (
 )
 
 // ClienState ... Client state structure
-type ClienState struct {
+type ClientState struct {
 	ID    int32   `json:"id"`
 	X     int32   `json:"x"`
 	Y     int32   `json:"y"`
 	Delta float64 `json:"d"`
 }
 
-func NewClientState(rawData []byte) (ClienState, error) {
+func NewClientState(rawData []byte) (ClientState, error) {
 	reader := bytes.NewReader(rawData)
 
-	newState := ClienState{}
+	newState := ClientState{}
 	// ID
 	err := binary.Read(reader, binary.BigEndian, &(newState.ID))
 	if err != nil {
-		return ClienState{}, err
+		return ClientState{}, err
 	}
 	// X
 	err = binary.Read(reader, binary.BigEndian, &(newState.X))
 	if err != nil {
-		return ClienState{}, err
+		return ClientState{}, err
 	}
 	// Y
 	err = binary.Read(reader, binary.BigEndian, &(newState.Y))
 	if err != nil {
-		return ClienState{}, err
+		return ClientState{}, err
 	}
 	// Delta
 	err = binary.Read(reader, binary.BigEndian, &(newState.Delta))
 	if err != nil {
-		return ClienState{}, err
+		return ClientState{}, err
 	}
 	return newState, nil
 }
 
-func (client *ClienState) ConvertToBytes() ([]byte, error) {
+func (client *ClientState) ConvertToBytes() ([]byte, error) {
 	buffer := new(bytes.Buffer)
 	// ID
 	err := binary.Write(buffer, binary.BigEndian, client.ID)

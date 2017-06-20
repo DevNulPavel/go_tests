@@ -65,7 +65,7 @@ func (server *Server) StartSyncListen() {
 // Отправка состояния конкретному клиенту
 func (server *Server) sendStateToClient(c *Client) {
 	// Создать состояние текущее
-	clientStates := []ClienState{}
+	clientStates := []ClientState{}
 	for _, client := range server.clients {
 		state := client.GetCurrentStateWithTimeReset()
 		clientStates = append(clientStates, state)
@@ -78,7 +78,7 @@ func (server *Server) sendStateToClient(c *Client) {
 // Отправить всем сообщение
 func (server *Server) sendAllNewState() {
 	// Создать состояние текущее
-	clientStates := make([]ClienState, 0, len(server.clients))
+	clientStates := make([]ClientState, 0, len(server.clients))
 	for _, client := range server.clients {
 		state := client.GetCurrentStateWithTimeReset()
 		clientStates = append(clientStates, state)

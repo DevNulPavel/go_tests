@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+
+package gameserver;
+
+message ClientState {
+    int32 id = 1;
+    int32 x = 2;
+    int32 y = 3;
+    double delta = 4;
+}
+
+message ClientStatesArray {
+    repeated ClientState states = 1;
+}
