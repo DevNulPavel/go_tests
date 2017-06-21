@@ -19,7 +19,7 @@ var MAX_ID int32 = 0
 
 // Client ... Структура клиента
 type Client struct {
-	server            *Server
+	gameRoom          *GameRoom
 	connection        *net.TCPConn
 	id                int32
 	state             ClientState
@@ -30,11 +30,11 @@ type Client struct {
 }
 
 // NewClient ... Конструктор
-func NewClient(connection *net.TCPConn, server *Server) *Client {
+func NewClient(connection *net.TCPConn, gameRoom *GameRoom) *Client {
 	if connection == nil {
 		panic("No connection")
 	}
-	if server == nil {
+	if gameRoom == nil {
 		panic("No game server")
 	}
 
@@ -42,13 +42,13 @@ func NewClient(connection *net.TCPConn, server *Server) *Client {
 	curId := atomic.AddInt32(&MAX_ID, 1)
 
 	// Конструируем клиента и его каналы
-	clientState := ClientState{curId, rand.Int31() % 100, rand.Int31() % 100, 0}
+	clientState := ClientState{curId, rand.Int31() % 100, CLIENT_STATUS_NOT_IN_GAME }
 	usersStateChannel := make(chan []ClientState, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
 	exitReadChannel := make(chan bool, 1)
 	exitWriteChannel := make(chan bool, 1)
 
 	return &Client{
-		server:            server,
+		gameRoom:          gameRoom,
 		connection:        connection,
 		id:                curId,
 		state:             clientState,
@@ -60,7 +60,7 @@ func NewClient(connection *net.TCPConn, server *Server) *Client {
 }
 
 func (client *Client) Close() {
-	(*client.connection).Close()
+	client.connection.Close()
 }
 
 func (client *Client) GetCurrentStateWithTimeReset() ClientState {
@@ -151,7 +151,7 @@ func (client *Client) loopWrite() {
 			writenCount, err := (*client.connection).Write(sendData)
 			if (err != nil) || (writenCount < len(sendData)) {
 				client.Close()
-				client.server.DeleteClient(client)
+				client.gameRoom.DeleteClient(client)
 				client.exitReadChannel <- true // Выход из loopRead
 				if err != nil {
 					log.Printf("LoopWrite exit by ERROR (%s), clientId = %d\n", err, client.id)
@@ -191,7 +191,7 @@ func (client *Client) loopRead() {
 
 			// Ошибка чтения данных
 			if (err != nil) || (readCount < 4) {
-				client.server.DeleteClient(client)
+				client.gameRoom.DeleteClient(client)
 				client.Close()
 				client.exitWriteChannel <- true // для метода loopWrite, чтобы выйти из него
 
@@ -216,7 +216,7 @@ func (client *Client) loopRead() {
 
 			// Ошибка чтения данных
 			if (err != nil) || (uint32(readCount) < dataSize) {
-				client.server.DeleteClient(client)
+				client.gameRoom.DeleteClient(client)
 				client.Close()
 				client.exitWriteChannel <- true // для метода loopWrite, чтобы выйти из него
 
@@ -243,7 +243,7 @@ func (client *Client) loopRead() {
 					client.mutex.Unlock()
 
 					// Отправляем обновление состояния всем
-					client.server.SendAll()
+					client.gameRoom.ClientStateUpdated()
 				}
 			}
 		}

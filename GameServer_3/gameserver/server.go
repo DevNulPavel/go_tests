@@ -158,8 +158,8 @@ func (server *Server) startAsyncSocketAcceptListener() {
 
 // Выход из обработчика событий
 func (server *Server) exitAsyncSocketListener() {
-	server.listenerExitCh <- true
 	(*server.listener).Close()
+	server.listenerExitCh <- true
 }
 
 // Основная функция прослушивания
