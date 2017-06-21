@@ -17,14 +17,14 @@ var MAX_ID int32 = 0
 
 // Client ... Структура клиента
 type Client struct {
-	gameRoom        *GameRoom
-	connection      *net.TCPConn
-	id              int32
-	state           ClientState
-	mutex           sync.RWMutex
-	uploadDataCh     chan []byte
-	exitReadCh      chan bool
-	exitWriteCh     chan bool
+	gameRoom     *GameRoom
+	connection   *net.TCPConn
+	id           int32
+	state        ClientState
+	mutex        sync.RWMutex
+	uploadDataCh chan []byte
+	exitReadCh   chan bool
+	exitWriteCh  chan bool
 }
 
 // NewClient ... Конструктор
@@ -36,14 +36,14 @@ func NewClient(connection *net.TCPConn, clientType uint8, gameRoom *GameRoom) *C
 		panic("No game server")
 	}
 
-	// Увеличиваем id	
+	// Увеличиваем id
 	curId := atomic.AddInt32(&MAX_ID, 1)
 
 	// Конструируем клиента и его каналы
 	clientState := ClientState{
-		ID: curId, 
-		Type: clientType, 
-		Y: 100,
+		ID:     curId,
+		Type:   clientType,
+		Y:      100,
 		Height: 40,
 		Status: CLIENT_STATUS_IN_GAME,
 	}
@@ -52,14 +52,14 @@ func NewClient(connection *net.TCPConn, clientType uint8, gameRoom *GameRoom) *C
 	exitWriteCh := make(chan bool, 1)
 
 	return &Client{
-		gameRoom:      gameRoom,
-		connection:    connection,
-		id:            curId,
-		state:         clientState,
-		mutex:         sync.RWMutex{},
-		uploadDataCh:   uploadDataCh,
-		exitReadCh:    exitReadCh,
-		exitWriteCh:   exitWriteCh,
+		gameRoom:     gameRoom,
+		connection:   connection,
+		id:           curId,
+		state:        clientState,
+		mutex:        sync.RWMutex{},
+		uploadDataCh: uploadDataCh,
+		exitReadCh:   exitReadCh,
+		exitWriteCh:  exitWriteCh,
 	}
 }
 

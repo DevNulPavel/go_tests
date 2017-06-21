@@ -115,9 +115,9 @@ func (server *Server) mainLoopFunction() {
 				}
 				// Не нашли подходящей свободной комнаты
 				if roomFound == false {
-					newGameRoom := NewGameRoom(server)					
+					newGameRoom := NewGameRoom(server)
 					server.gameRooms[newGameRoom.roomId] = newGameRoom
-					
+
 					newGameRoom.StartLoop()
 
 					newGameRoom.AddClientForConnection(connection)

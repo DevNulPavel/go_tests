@@ -1,28 +1,28 @@
 package gameserver
 
 import (
-	"errors"
 	"bytes"
 	"encoding/binary"
+	"errors"
 )
 
-const CLIENT_STATE_MAGIC_NUMBER uint8 = 1 
+const CLIENT_STATE_MAGIC_NUMBER uint8 = 1
 
 const (
-	CLIENT_STATUS_IN_GAME     = 0
-	CLIENT_STATUS_FAIL        = 1
-	CLIENT_STATUS_WIN         = 2
+	CLIENT_STATUS_IN_GAME = 0
+	CLIENT_STATUS_FAIL    = 1
+	CLIENT_STATUS_WIN     = 2
 )
 
 const (
-	CLIENT_TYPE_LEFT = 0
-	CLIENT_TYPE_RIGHT     = 1
+	CLIENT_TYPE_LEFT  = 0
+	CLIENT_TYPE_RIGHT = 1
 )
 
 // ClienState ... Client state structure
 type ClientState struct {
 	ID     int32 `json:"id"`
-	Type   uint8  `json:"t"`
+	Type   uint8 `json:"t"`
 	Y      int16 `json:"y"`
 	Height int16 `json:"h"`
 	Status int8  `json:"st"`
