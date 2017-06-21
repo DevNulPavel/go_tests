@@ -21,11 +21,11 @@ const (
 
 // ClienState ... Client state structure
 type ClientState struct {
-	ID     int32 `json:"id"`
-	Type   uint8 `json:"t"`
-	Y      int16 `json:"y"`
-	Height int16 `json:"h"`
-	Status int8  `json:"st"`
+	ID     uint32 `json:"id"`
+	Type   uint8  `json:"t"`
+	Y      int16  `json:"y"`
+	Height int16  `json:"h"`
+	Status int8   `json:"st"`
 }
 
 func IsClientStateData(rawData []byte) bool {
@@ -72,6 +72,11 @@ func NewClientState(rawData []byte) (ClientState, error) {
 	if err != nil {
 		return ClientState{}, err
 	}
+	// Height
+	err = binary.Read(reader, binary.BigEndian, &(newState.Height))
+	if err != nil {
+		return ClientState{}, err
+	}
 	// Status
 	err = binary.Read(reader, binary.BigEndian, &(newState.Status))
 	if err != nil {
@@ -99,6 +104,11 @@ func (client *ClientState) ConvertToBytes() ([]byte, error) {
 	}
 	// Y
 	err = binary.Write(buffer, binary.BigEndian, client.Y)
+	if err != nil {
+		return []byte{}, err
+	}
+	// Height
+	err = binary.Write(buffer, binary.BigEndian, client.Height)
 	if err != nil {
 		return []byte{}, err
 	}

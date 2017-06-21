@@ -3,6 +3,7 @@ package gameserver
 import (
 	"bytes"
 	"encoding/binary"
+    "log"
 )
 
 const GAME_ROOM_STATE_MAGIC_NUMBER uint8 = 2
@@ -13,12 +14,12 @@ const (
 )
 
 type GameRoomState struct {
-	ID               int32
+	ID               uint32
 	Status           int8
 	Width            int16
 	Height           int16
-	BallPosX         int16
-	BallPosY         int16
+	BallPosX         float64
+	BallPosY         float64
 	BallSpeedX       float64
 	BallSpeedY       float64
 	clientLeftState  ClientState
@@ -53,12 +54,12 @@ func (state *GameRoomState) ConvertToBytes() ([]byte, error) {
 		return []byte{}, err
 	}
 	// BallPosX
-	err = binary.Write(buffer, binary.BigEndian, state.BallPosX)
+	err = binary.Write(buffer, binary.BigEndian, int16(state.BallPosX))
 	if err != nil {
 		return []byte{}, err
 	}
 	// BallPosY
-	err = binary.Write(buffer, binary.BigEndian, state.BallPosY)
+	err = binary.Write(buffer, binary.BigEndian, int16(state.BallPosY))
 	if err != nil {
 		return []byte{}, err
 	}
@@ -90,57 +91,58 @@ func (state *GameRoomState) WorldTick(delta float64) {
 	}
 
 	// Рассчет новой позиции
-	nextPosX := int16(float64(state.BallPosX) * state.BallSpeedX)
-	nextPosY := int16(float64(state.BallPosY) * state.BallSpeedY)
+	nextPosX := state.BallPosX + delta * state.BallSpeedX
+	nextPosY := state.BallPosY + delta * state.BallSpeedY
 
 	// Проверка по Y
-	if nextPosY < 0 {
+	if nextPosY < float64(0.0) {
 		state.BallSpeedY = -state.BallSpeedY
-		state.BallPosY = int16(float64(state.BallPosY) * state.BallSpeedY)
+        nextPosY = state.BallPosY + delta * state.BallSpeedY
 	}
-	if nextPosY > state.Height {
+	if nextPosY > float64(state.Height) {
 		state.BallSpeedY = -state.BallSpeedY
-		state.BallPosY = int16(float64(state.BallPosY) * state.BallSpeedY)
+        nextPosY = state.BallPosY + delta * state.BallSpeedY
 	}
 
 	// Проверка по X
-	const panelWidth int16 = 20
+	const panelWidth float64 = 20.0
 	leftBorder := panelWidth
-	rightborder := state.Width - panelWidth
+	rightborder := float64(state.Width) - panelWidth
 	// Слева
 	if nextPosX < leftBorder {
-		minY := state.clientLeftState.Y - state.clientLeftState.Height/2
-		maxY := state.clientLeftState.Y - state.clientLeftState.Height/2
+		minY := float64(state.clientLeftState.Y - state.clientLeftState.Height/2)
+		maxY := float64(state.clientLeftState.Y - state.clientLeftState.Height/2)
 
 		if (nextPosY > minY) && (nextPosY < maxY) {
 			state.BallSpeedX = -state.BallSpeedX
-			state.BallPosX = int16(float64(state.BallPosX) * state.BallSpeedX)
+            nextPosX = state.BallPosX + delta * state.BallSpeedX
 		} else {
 			state.Status = GAME_ROOM_STATUS_COMPLETED
 			state.clientLeftState.Status = CLIENT_STATUS_FAIL
 			state.clientRightState.Status = CLIENT_STATUS_WIN
-			state.BallPosX = nextPosX
-			state.BallPosX = nextPosY
 			state.BallSpeedX = 0.0
 			state.BallSpeedY = 0.0
 		}
 	}
 	// Справа
 	if nextPosX > rightborder {
-		minY := state.clientRightState.Y - state.clientRightState.Height/2
-		maxY := state.clientRightState.Y - state.clientRightState.Height/2
+		minY := float64(state.clientRightState.Y - state.clientRightState.Height/2)
+		maxY := float64(state.clientRightState.Y - state.clientRightState.Height/2)
 
 		if (nextPosY > minY) && (nextPosY < maxY) {
 			state.BallSpeedX = -state.BallSpeedX
-			state.BallPosX = int16(float64(state.BallPosX) * state.BallSpeedX)
+            nextPosX = state.BallPosX + delta * state.BallSpeedX
 		} else {
 			state.Status = GAME_ROOM_STATUS_COMPLETED
 			state.clientLeftState.Status = CLIENT_STATUS_WIN
 			state.clientRightState.Status = CLIENT_STATUS_FAIL
-			state.BallPosX = nextPosX
-			state.BallPosX = nextPosY
 			state.BallSpeedX = 0.0
 			state.BallSpeedY = 0.0
 		}
 	}
+
+    state.BallPosX = nextPosX
+    state.BallPosY = nextPosY
+
+    //log.Printf("delta=%f, x=%f, y=%f, sy=%f, sx=%f\n", delta, state.BallPosX, state.BallPosY, state.BallSpeedX, state.BallSpeedY)
 }

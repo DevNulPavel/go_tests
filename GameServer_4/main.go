@@ -3,6 +3,7 @@ package main
 import (
 	"./gameserver"
 	"log"
+	"fmt"
 )
 
 func main() {
@@ -13,6 +14,16 @@ func main() {
 	// Запуск сервера
 	server := gameserver.NewServer()
 	server.StartListen()
+
+	for {
+		var input string
+    	fmt.Scanln(&input)
+
+		if input == "exit"{
+			server.ExitServer()
+			break
+		}
+	}
 
 	//<-time.After(time.Second * 30)
 	//server.ExitServer()

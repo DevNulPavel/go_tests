@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-var LAST_ID int32 = 0
+var LAST_ID uint32 = 0
 
 type GameRoom struct {
-	roomId               int32
+	roomId               uint32
 	server               *Server
 	clientLeft           *Client
 	clientRight          *Client
@@ -22,7 +22,7 @@ type GameRoom struct {
 }
 
 func NewGameRoom(server *Server) *GameRoom {
-	newRoomId := atomic.AddInt32(&LAST_ID, 1)
+	newRoomId := atomic.AddUint32(&LAST_ID, 1)
 
 	const width = 600
 	const height = 400
@@ -53,6 +53,10 @@ func NewGameRoom(server *Server) *GameRoom {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+func (room *GameRoom) StartLoop(){
+	go room.mainLoop()
+}
 
 func (room *GameRoom) Exit() {
 	room.exitLoopCh <- true
@@ -99,13 +103,13 @@ func (room *GameRoom) worldTick(delta float64) {
 	room.gameRoomState.clientLeftState = room.clientLeft.state
 	room.gameRoomState.clientRightState = room.clientRight.state
 
-	room.worldTick(delta)
+	room.gameRoomState.WorldTick(delta)
 
 	room.sendAllNewState()
 }
 
-func (room *GameRoom) StartLoop() {
-	const updatePeriodMS = 20
+func (room *GameRoom) mainLoop() {
+	const updatePeriodMS = 30
 
 	worldUpdateTime := time.Millisecond * updatePeriodMS
 	timer := time.NewTimer(worldUpdateTime)
@@ -121,11 +125,11 @@ func (room *GameRoom) StartLoop() {
 			var client *Client = nil
 			clientAdded := false
 			if room.clientLeft == nil {
-				client := NewClient(connection, CLIENT_TYPE_LEFT, room)
+				client = NewClient(connection, CLIENT_TYPE_LEFT, room)
 				room.clientLeft = client
 				clientAdded = true
 			} else if room.clientRight == nil {
-				client := NewClient(connection, CLIENT_TYPE_RIGHT, room)
+				client = NewClient(connection, CLIENT_TYPE_RIGHT, room)
 				room.clientRight = client
 				clientAdded = true
 			}
@@ -141,8 +145,6 @@ func (room *GameRoom) StartLoop() {
 				timerActive = true
 				lastTickTime = time.Now()
 				timer.Reset(worldUpdateTime)
-
-				room.sendAllNewState()
 			}
 
 		// Канал удаления нового юзера

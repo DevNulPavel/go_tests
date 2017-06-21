@@ -13,13 +13,13 @@ import (
 const UPDATE_QUEUE_SIZE = 100
 
 // Variables
-var MAX_ID int32 = 0
+var MAX_ID uint32 = 0
 
 // Client ... Структура клиента
 type Client struct {
 	gameRoom     *GameRoom
 	connection   *net.TCPConn
-	id           int32
+	id           uint32
 	state        ClientState
 	mutex        sync.RWMutex
 	uploadDataCh chan []byte
@@ -37,7 +37,7 @@ func NewClient(connection *net.TCPConn, clientType uint8, gameRoom *GameRoom) *C
 	}
 
 	// Увеличиваем id
-	curId := atomic.AddInt32(&MAX_ID, 1)
+	curId := atomic.AddUint32(&MAX_ID, 1)
 
 	// Конструируем клиента и его каналы
 	clientState := ClientState{

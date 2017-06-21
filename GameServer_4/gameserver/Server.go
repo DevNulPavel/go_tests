@@ -9,7 +9,7 @@ type Server struct {
 	listener       *net.TCPListener
 	listenerExitCh chan bool
 	loopExitCh     chan bool
-	gameRooms      map[int32]*GameRoom
+	gameRooms      map[uint32]*GameRoom
 	removeRoomCh   chan *GameRoom
 	makeClientCh   chan *net.TCPConn
 }
@@ -20,7 +20,7 @@ func NewServer() *Server {
 		listener:       nil,
 		listenerExitCh: make(chan bool),
 		loopExitCh:     make(chan bool),
-		gameRooms:      make(map[int32]*GameRoom),
+		gameRooms:      make(map[uint32]*GameRoom),
 		removeRoomCh:   make(chan *GameRoom),
 		makeClientCh:   make(chan *net.TCPConn),
 	}
@@ -34,7 +34,7 @@ func (server *Server) ExitServer() {
 
 func (server *Server) StartListen() {
 	server.asyncSocketAcceptListener()
-	server.mainLoopFunction()
+	server.mainLoop()
 }
 
 func (server *Server) DeleteRoom(room *GameRoom) {
@@ -63,11 +63,10 @@ func (server *Server) asyncSocketAcceptListener() {
 
 	// Функция-цикл обработки входящих подключений
 	loopFunction := func() {
-		defer server.listener.Close()
-
 		for {
 			select {
 			case <-server.listenerExitCh:
+				server.listener.Close()
 				log.Print("Socket listener exit") // Наш лиснер закрылся и надо будет выйти из цикла
 				return
 
@@ -78,6 +77,8 @@ func (server *Server) asyncSocketAcceptListener() {
 					log.Printf("Accept error: %s\n", err) // Наш лиснер закрылся и надо будет выйти из цикла
 					continue
 				}
+
+				log.Printf("Connection accepted\n")
 				c.SetKeepAlive(true)
 				c.SetNoDelay(true)
 
@@ -99,12 +100,14 @@ func (server *Server) exitAsyncSocketListener() {
 }
 
 // Основная функция прослушивания
-func (server *Server) mainLoopFunction() {
+func (server *Server) mainLoop() {
 	loopFunction := func() {
 		for {
 			select {
 			// Обрабатываем новое подключение
 			case connection := <-server.makeClientCh:
+				log.Printf("Make client call\n")
+
 				roomFound := false
 				for _, gameRoom := range server.gameRooms {
 					if gameRoom.GetIsFull() == false {
@@ -129,7 +132,7 @@ func (server *Server) mainLoopFunction() {
 
 			// Завершение работы
 			case <-server.loopExitCh:
-				server.exitAsyncSocketListener()
+				log.Print("Main loop exit") // Наш лиснер закрылся и надо будет выйти из цикла
 				return
 			}
 		}
