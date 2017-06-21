@@ -108,9 +108,7 @@ func (server *Server) mainLoopFunction() {
 				roomFound := false
 				for _, gameRoom := range server.gameRooms {
 					if gameRoom.GetIsFull() == false {
-						// Создали клиента
-						newClient := NewClient(connection, gameRoom)
-						gameRoom.AddClient(newClient)
+						gameRoom.AddClientForConnection(connection)
 						roomFound = true
 						break
 					}
@@ -122,8 +120,7 @@ func (server *Server) mainLoopFunction() {
 					
 					newGameRoom.StartLoop()
 
-					newClient := NewClient(connection, newGameRoom)
-					newGameRoom.AddClient(newClient)
+					newGameRoom.AddClientForConnection(connection)
 				}
 
 			// Обработка удаления комнаты

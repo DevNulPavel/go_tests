@@ -1,6 +1,7 @@
 package gameserver
 
 import (
+	"net"
 	"sync/atomic"
 	"time"
 )
@@ -10,11 +11,11 @@ var LAST_ID int32 = 0
 type GameRoom struct {
 	roomId               int32
 	server               *Server
-	client1              *Client
-	client2              *Client
+	clientLeft           *Client
+	clientRight          *Client
 	gameRoomState        GameRoomState
 	isFullCh             chan (chan bool)
-	addClientCh          chan *Client
+	addClientByConnCh    chan *net.TCPConn
 	deleteClientCh       chan *Client
 	clientStateUpdatedCh chan bool
 	exitLoopCh           chan bool
@@ -26,24 +27,24 @@ func NewGameRoom(server *Server) *GameRoom {
 	const width = 600
 	const height = 400
 	roomState := GameRoomState{
-		ID:            newRoomId,
-		Status:        ROOM_STATUS_NOT_IN_GAME,
-		Width:         width,
-		Height:        height,
-		BallPosX:      width / 2,
-		BallPosY:      height / 2,
-		BallPosSpeedX: 4.0,
-		BallPosSpeedY: 4.0,
+		ID:         newRoomId,
+		Status:     GAME_ROOM_STATUS_ACTIVE,
+		Width:      width,
+		Height:     height,
+		BallPosX:   width / 2,
+		BallPosY:   height / 2,
+		BallSpeedX: 4.0,
+		BallSpeedY: 4.0,
 	}
 
 	room := GameRoom{
 		roomId:               newRoomId,
 		server:               server,
-		client1:              nil,
-		client2:              nil,
+		clientLeft:           nil,
+		clientRight:          nil,
 		gameRoomState:        roomState,
 		isFullCh:             make(chan (chan bool)),
-		addClientCh:          make(chan *Client),
+		addClientByConnCh:    make(chan *net.TCPConn),
 		deleteClientCh:       make(chan *Client),
 		clientStateUpdatedCh: make(chan bool),
 		exitLoopCh:           make(chan bool),
@@ -57,8 +58,8 @@ func (room *GameRoom) Exit() {
 	room.exitLoopCh <- true
 }
 
-func (room *GameRoom) AddClient(client *Client) {
-	room.addClientCh <- client
+func (room *GameRoom) AddClientForConnection(connection *net.TCPConn) {
+	room.addClientByConnCh <- connection
 }
 
 func (room *GameRoom) DeleteClient(client *Client) {
@@ -78,13 +79,30 @@ func (room *GameRoom) GetIsFull() bool {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (room *GameRoom) sendAllNewState() {
+	gameStateBytes, err := room.gameRoomState.ConvertToBytes()
+	if err != nil {
+		return
+	}
+
+	if room.clientLeft != nil {
+		room.clientLeft.QueueSendGameState(gameStateBytes)
+	}
+	if room.clientRight != nil {
+		room.clientRight.QueueSendGameState(gameStateBytes)
+	}
 }
 
 func (room *GameRoom) worldTick(delta float64) {
+	if (room.clientLeft == nil) || (room.clientRight == nil) {
+		return
+	}
+	room.gameRoomState.clientLeftState = room.clientLeft.state
+	room.gameRoomState.clientRightState = room.clientRight.state
+
+	room.worldTick(delta)
+
 	room.sendAllNewState()
 }
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (room *GameRoom) StartLoop() {
 	const updatePeriodMS = 20
@@ -99,40 +117,52 @@ func (room *GameRoom) StartLoop() {
 	for {
 		select {
 		// Канал добавления нового юзера
-		case client := <-room.addClientCh:
+		case connection := <-room.addClientByConnCh:
+			var client *Client = nil
 			clientAdded := false
-			if room.client1 == nil {
-				room.client1 = client
+			if room.clientLeft == nil {
+				client := NewClient(connection, CLIENT_TYPE_LEFT, room)
+				room.clientLeft = client
 				clientAdded = true
-			} else if room.client2 == nil {
-				room.client2 = client
+			} else if room.clientRight == nil {
+				client := NewClient(connection, CLIENT_TYPE_RIGHT, room)
+				room.clientRight = client
 				clientAdded = true
 			}
 
-			canStartGame := (room.client1 != nil) && (room.client2 != nil)
+			if client != nil {
+				client.StartLoop()
+				client.QueueSendCurrentClientState()
+			}
+
+			canStartGame := (room.clientLeft != nil) && (room.clientRight != nil)
 			if clientAdded && canStartGame && !timerActive {
 				// Запуск таймера
 				timerActive = true
 				lastTickTime = time.Now()
 				timer.Reset(worldUpdateTime)
+
+				room.sendAllNewState()
 			}
 
 		// Канал удаления нового юзера
 		case client := <-room.deleteClientCh:
 			deleted := false
-			if room.client1 == client {
-				room.client1.Close()
-				room.client1 = nil
+			if room.clientLeft == client {
+				room.clientLeft.Close()
+				room.clientLeft = nil
 				deleted = true
-			} else if room.client2 == client {
-				room.client2.Close()
-				room.client2 = nil
+			} else if room.clientRight == client {
+				room.clientRight.Close()
+				room.clientRight = nil
 				deleted = true
 			}
 
 			if timerActive && deleted {
 				timer.Stop()
 				timerActive = false
+
+				room.sendAllNewState()
 			}
 
 		// Канал таймера
@@ -146,7 +176,7 @@ func (room *GameRoom) StartLoop() {
 
 		// Канал проверки заполнения
 		case resultChannel := <-room.isFullCh:
-			if (room.client1 == nil) || (room.client2 == nil) {
+			if (room.clientLeft == nil) || (room.clientRight == nil) {
 				resultChannel <- false
 			} else {
 				resultChannel <- true
@@ -159,11 +189,11 @@ func (room *GameRoom) StartLoop() {
 				timer.Stop()
 			}
 			// Clients
-			if room.client1 != nil {
-				room.client1.Close()
+			if room.clientLeft != nil {
+				room.clientLeft.Close()
 			}
-			if room.client2 != nil {
-				room.client2.Close()
+			if room.clientRight != nil {
+				room.clientRight.Close()
 			}
 			// Server
 			room.server.DeleteRoom(room)
