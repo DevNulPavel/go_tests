@@ -109,7 +109,7 @@ func (room *GameRoom) worldTick(delta float64) {
 }
 
 func (room *GameRoom) mainLoop() {
-	const updatePeriodMS = 30
+	const updatePeriodMS = 50
 
 	worldUpdateTime := time.Millisecond * updatePeriodMS
 	timer := time.NewTimer(worldUpdateTime)
@@ -145,6 +145,12 @@ func (room *GameRoom) mainLoop() {
 				timerActive = true
 				lastTickTime = time.Now()
 				timer.Reset(worldUpdateTime)
+
+                // TODO: Reset
+                room.gameRoomState.BallSpeedY = -4.0
+                room.gameRoomState.BallSpeedX = -4.0
+                room.gameRoomState.BallPosY = float64(room.gameRoomState.Width/2)
+                room.gameRoomState.BallPosY = float64(room.gameRoomState.Height/2)
 			}
 
 		// Канал удаления нового юзера

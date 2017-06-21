@@ -3,7 +3,6 @@ package gameserver
 import (
 	"bytes"
 	"encoding/binary"
-    "log"
 )
 
 const GAME_ROOM_STATE_MAGIC_NUMBER uint8 = 2
