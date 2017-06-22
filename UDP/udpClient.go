@@ -1,20 +1,20 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"log"
 	"net"
 	"time"
-    "bytes"
-    "encoding/binary"
 )
 
 func rawClient() {
 	// Определяем адрес
-	address, err := net.ResolveUDPAddr("udp", "127.0.0.1:9002")
+	address, err := net.ResolveUDPAddr("udp", "devnulpavel.ddns.net:9999") // devnulpavel.ddns.net
 	if err != nil {
-        fmt.Println(err)
-        return
+		fmt.Println(err)
+		return
 	}
 
 	// Подключение к серверу
@@ -32,24 +32,26 @@ func rawClient() {
 		timeVal := time.Now().Add(5 * time.Minute)
 		c.SetDeadline(timeVal)
 
-		testData := []byte("Test message")
-		testDataSize := uint32(len(testData))
+		sendTime := uint64(time.Now().UnixNano())
+		testData := make([]byte, 8)
+		binary.BigEndian.PutUint64(testData, sendTime)
+		//testData := []byte("Test message")
+		//testDataSize := uint32(len(testData))
 
-        buffer := new(bytes.Buffer)
-        binary.Write(buffer, binary.BigEndian, testDataSize)
-        buffer.Write(testData)
+		buffer := new(bytes.Buffer)
+		//binary.Write(buffer, binary.BigEndian, testDataSize)
+		buffer.Write(testData)
 
-        uploadData := buffer.Bytes()
+		uploadData := buffer.Bytes()
 
-
-        // Пытаемся записать данные
+		// Пытаемся записать данные
 		writeSuccess := false
 		writtenBytes := 0
 		for {
 			currentWritten, err := c.Write(uploadData[writtenBytes:])
 			if err == nil {
 				writtenBytes += currentWritten
-				if writtenBytes == len(uploadData){
+				if writtenBytes == len(uploadData) {
 					writeSuccess = true
 					break
 				} else {
@@ -65,20 +67,26 @@ func rawClient() {
 			fmt.Println("Write success")
 
 			// Теперь очередь чтения
-			getData := make([]byte, 2)
+			getData := make([]byte, 8)
 			receivedCount, _, err := c.ReadFromUDP(getData)
 			if err != nil {
-                fmt.Println(err)
+				fmt.Println(err)
 				return
 			}
-            fmt.Printf("Received data size = %d\n", receivedCount)
+			fmt.Printf("Received data size = %d\n", receivedCount)
 
-            // Проверяем результат
-            if bytes.Equal(getData, []byte("ok")) {
-                fmt.Println("Response OK")
-            }else{
-                fmt.Println("Response FAIL")
-            }
+            sendTimeUint64 := binary.BigEndian.Uint64(getData)
+            sendTime := time.Unix(0, int64(sendTimeUint64))
+
+            ping := float64(time.Now().Sub(sendTime).Nanoseconds()) / 1000.0 / 1000.0
+            fmt.Printf("Ping = %fms\n", ping)
+
+			// Проверяем результат
+			/*if bytes.Equal(getData, []byte("ok")) {
+				fmt.Println("Response OK")
+			} else {
+				fmt.Println("Response FAIL")
+			}*/
 		} else {
 			fmt.Println("Write failed")
 			break
