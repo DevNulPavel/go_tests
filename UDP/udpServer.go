@@ -15,7 +15,7 @@ func HandleServerConnectionRaw(c *net.UDPConn, address *net.UDPAddr) {
 		c.SetDeadline(timeVal)
 
         udpBuffer := make([]byte, 8)
-
+        
         readCount, receiveAddress, err := c.ReadFromUDP(udpBuffer)
         if err != nil {
             fmt.Println(err)

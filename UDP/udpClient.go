@@ -11,7 +11,7 @@ import (
 
 func rawClient() {
 	// Определяем адрес
-	address, err := net.ResolveUDPAddr("udp", "devnulpavel.ddns.net:9999") // devnulpavel.ddns.net
+	address, err := net.ResolveUDPAddr("udp", "localhost:9999") // devnulpavel.ddns.net
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -68,7 +68,7 @@ func rawClient() {
 
 			// Теперь очередь чтения
 			getData := make([]byte, 8)
-			receivedCount, _, err := c.ReadFromUDP(getData)
+			receivedCount, err := c.Read(getData)
 			if err != nil {
 				fmt.Println(err)
 				return
