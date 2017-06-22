@@ -145,3 +145,11 @@ func (state *GameRoomState) WorldTick(delta float64) {
 
     //log.Printf("delta=%f, x=%f, y=%f, sy=%f, sx=%f\n", delta, state.BallPosX, state.BallPosY, state.BallSpeedX, state.BallSpeedY)
 }
+
+func (gameRoomState *GameRoomState) Reset (speedX, speedY float64)  {
+	gameRoomState.Status = GAME_ROOM_STATUS_ACTIVE
+	gameRoomState.BallSpeedY = speedX
+	gameRoomState.BallSpeedX = speedY
+	gameRoomState.BallPosX = float64(gameRoomState.Width/2)
+	gameRoomState.BallPosY = float64(gameRoomState.Height/2)
+}

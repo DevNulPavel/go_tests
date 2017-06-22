@@ -7,7 +7,7 @@ import (
 )
 
 const (
-    BALL_SPEED = 70.0
+    BALL_SPEED = 60.0
 )
 
 var LAST_ID uint32 = 0
@@ -143,19 +143,17 @@ func (room *GameRoom) mainLoop() {
 				client.QueueSendCurrentClientState()
 			}
 
-			canStartGame := (room.clientLeft != nil) && (room.clientRight != nil)
+            canStartGame := (room.clientLeft != nil) && (room.clientRight != nil)
+
+            if clientAdded && canStartGame {
+                room.gameRoomState.Reset(BALL_SPEED, -BALL_SPEED)
+            }
+
 			if clientAdded && canStartGame && !timerActive {
 				// Запуск таймера
 				timerActive = true
 				lastTickTime = time.Now()
 				timer.Reset(worldUpdateTime)
-
-                // TODO: Reset
-				room.gameRoomState.Status = GAME_ROOM_STATUS_ACTIVE
-                room.gameRoomState.BallSpeedY = BALL_SPEED
-                room.gameRoomState.BallSpeedX = BALL_SPEED
-                room.gameRoomState.BallPosY = float64(room.gameRoomState.Width/2)
-                room.gameRoomState.BallPosY = float64(room.gameRoomState.Height/2)
 			}
 
         // Канал обновления состояния юзера
