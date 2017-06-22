@@ -44,7 +44,7 @@ func NewClient(connection *net.TCPConn, clientType uint8, gameRoom *GameRoom) *C
 		ID:     curId,
 		Type:   clientType,
 		Y:      100,
-		Height: 40,
+		Height: 100,
 		Status: CLIENT_STATUS_IN_GAME,
 	}
 	uploadDataCh := make(chan []byte, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов

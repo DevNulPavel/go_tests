@@ -104,13 +104,13 @@ func (state *GameRoomState) WorldTick(delta float64) {
 	}
 
 	// Проверка по X
-	const panelWidth float64 = 20.0
+	const panelWidth float64 = 14.0
 	leftBorder := panelWidth
 	rightborder := float64(state.Width) - panelWidth
 	// Слева
 	if nextPosX < leftBorder {
-		minY := float64(state.clientLeftState.Y - state.clientLeftState.Height/2)
-		maxY := float64(state.clientLeftState.Y - state.clientLeftState.Height/2)
+		minY := float64(state.clientLeftState.Y) - float64(state.clientLeftState.Height)/2.0
+		maxY := float64(state.clientLeftState.Y) + float64(state.clientLeftState.Height)/2.0
 
 		if (nextPosY > minY) && (nextPosY < maxY) {
 			state.BallSpeedX = -state.BallSpeedX
@@ -125,8 +125,8 @@ func (state *GameRoomState) WorldTick(delta float64) {
 	}
 	// Справа
 	if nextPosX > rightborder {
-		minY := float64(state.clientRightState.Y - state.clientRightState.Height/2)
-		maxY := float64(state.clientRightState.Y - state.clientRightState.Height/2)
+		minY := float64(state.clientRightState.Y) - float64(state.clientRightState.Height)/2.0
+		maxY := float64(state.clientRightState.Y) + float64(state.clientRightState.Height)/2.0
 
 		if (nextPosY > minY) && (nextPosY < maxY) {
 			state.BallSpeedX = -state.BallSpeedX

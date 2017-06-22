@@ -53,7 +53,7 @@ func (server *Server) asyncSocketAcceptListener() {
 	// Создание листенера
 	createdListener, err := net.ListenTCP("tcp", address)
 	if err != nil {
-		log.Println("Server listener start error")
+		log.Printf("Server listener start error: %s\n", err)
 		server.ExitServer()
 		return
 	}

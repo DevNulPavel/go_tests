@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+const (
+    BALL_SPEED = 70.0
+)
+
 var LAST_ID uint32 = 0
 
 type GameRoom struct {
@@ -33,8 +37,8 @@ func NewGameRoom(server *Server) *GameRoom {
 		Height:     height,
 		BallPosX:   width / 2,
 		BallPosY:   height / 2,
-		BallSpeedX: 4.0,
-		BallSpeedY: 4.0,
+		BallSpeedX: BALL_SPEED,
+		BallSpeedY: BALL_SPEED,
 	}
 
 	room := GameRoom{
@@ -100,8 +104,8 @@ func (room *GameRoom) worldTick(delta float64) {
 	if (room.clientLeft == nil) || (room.clientRight == nil) {
 		return
 	}
-	room.gameRoomState.clientLeftState = room.clientLeft.state
-	room.gameRoomState.clientRightState = room.clientRight.state
+	room.gameRoomState.clientLeftState = room.clientLeft.GetCurrentState()
+	room.gameRoomState.clientRightState = room.clientRight.GetCurrentState()
 
 	room.gameRoomState.WorldTick(delta)
 
@@ -109,7 +113,7 @@ func (room *GameRoom) worldTick(delta float64) {
 }
 
 func (room *GameRoom) mainLoop() {
-	const updatePeriodMS = 50
+	const updatePeriodMS = 20
 
 	worldUpdateTime := time.Millisecond * updatePeriodMS
 	timer := time.NewTimer(worldUpdateTime)
@@ -147,11 +151,18 @@ func (room *GameRoom) mainLoop() {
 				timer.Reset(worldUpdateTime)
 
                 // TODO: Reset
-                room.gameRoomState.BallSpeedY = -4.0
-                room.gameRoomState.BallSpeedX = -4.0
+				room.gameRoomState.Status = GAME_ROOM_STATUS_ACTIVE
+                room.gameRoomState.BallSpeedY = BALL_SPEED
+                room.gameRoomState.BallSpeedX = BALL_SPEED
                 room.gameRoomState.BallPosY = float64(room.gameRoomState.Width/2)
                 room.gameRoomState.BallPosY = float64(room.gameRoomState.Height/2)
 			}
+
+        // Канал обновления состояния юзера
+        case <-room.clientStateUpdatedCh:
+            if timerActive == false {
+                room.sendAllNewState()
+            }
 
 		// Канал удаления нового юзера
 		case client := <-room.deleteClientCh:
