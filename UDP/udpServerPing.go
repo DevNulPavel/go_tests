@@ -4,40 +4,37 @@ import (
 	"fmt"
 	"net"
 	"time"
-    //"encoding/binary"
 )
 
 func HandleServerConnectionRaw(c *net.UDPConn, address *net.UDPAddr) {
 	defer c.Close()
 
+    const dataSize = 16
+    udpBuffer := make([]byte, dataSize)
+
 	for {
 		timeVal := time.Now().Add(5 * time.Minute)
 		c.SetDeadline(timeVal)
 
-        udpBuffer := make([]byte, 8)
-        
         readCount, receiveAddress, err := c.ReadFromUDP(udpBuffer)
         if err != nil {
             fmt.Println(err)
             return
-        }
-        if readCount == 0{
+        } else if readCount == 0 {
+            fmt.Println("Disconnected")
+            return
+        } else if readCount < dataSize {
+            fmt.Printf("Read less bytes - %d\n", readCount)
             return
         }
 
-        /*dataSize := binary.BigEndian.Uint32(udpBuffer[0:4])
-
-        fmt.Printf("Data size: %d\n", dataSize)
-
-        receiveData := udpBuffer[4:dataSize+4]
-
-        fmt.Printf("Received: %s\n", string(receiveData))*/
-
-        // Теперь очередь ответной записи??
-        //writeBytes := []byte("ok")
-        _, err = c.WriteToUDP(udpBuffer, receiveAddress)
+        // Теперь очередь ответной записи
+        writtenCount, err := c.WriteToUDP(udpBuffer, receiveAddress)
         if err != nil {
             fmt.Println(err)
+            return
+        }else if writtenCount < dataSize {
+            fmt.Printf("Written less bytes - %d\n", writtenCount)
             return
         }
 	}
