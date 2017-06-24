@@ -9,7 +9,7 @@ import (
 func HandleServerConnectionRaw(c *net.UDPConn, address *net.UDPAddr) {
 	defer c.Close()
 
-	const dataSize = 16
+	const dataSize = 400
 	udpBuffer := make([]byte, dataSize)
 
 	for {

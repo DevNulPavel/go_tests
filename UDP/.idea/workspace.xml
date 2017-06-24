@@ -2,6 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dd69da3a-04e7-43aa-8e76-4e69f2cf0fb0" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/../TCP/.idea/libraries/Go_SDK.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/libraries/Go_SDK.xml" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../GameServer_3/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../GameServer_3/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../TCP/.idea/TCP.iml" afterPath="$PROJECT_DIR$/../TCP/.idea/TCP.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../TCP/.idea/libraries/GOPATH__TCP_.xml" afterPath="$PROJECT_DIR$/../TCP/.idea/libraries/GOPATH__TCP_.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../TCP/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../TCP/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../TCP/scripts/uploadToPi.sh" afterPath="$PROJECT_DIR$/../TCP/scripts/uploadToPi.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../TCP/tcpClientPing.go" afterPath="$PROJECT_DIR$/../TCP/tcpClientPing.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../TCP/tcpServerPing.go" afterPath="$PROJECT_DIR$/../TCP/tcpServerPing.go" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/TCP.iml" afterPath="$PROJECT_DIR$/.idea/TCP.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/libraries/GOPATH__TCP_.xml" afterPath="$PROJECT_DIR$/.idea/libraries/GOPATH__TCP_.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/uploadToPi.sh" afterPath="$PROJECT_DIR$/scripts/uploadToPi.sh" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/udpClientPing.go" afterPath="$PROJECT_DIR$/udpClientPing.go" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/udpServerPing.go" afterPath="$PROJECT_DIR$/udpServerPing.go" />
     </list>
@@ -18,8 +31,8 @@
       <file leaf-file-name="udpServerPing.go" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/udpServerPing.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="361">
-              <caret line="25" column="40" lean-forward="true" selection-start-line="25" selection-start-column="40" selection-end-line="25" selection-end-column="40" />
+            <state relative-caret-position="105">
+              <caret line="11" column="24" lean-forward="false" selection-start-line="11" selection-start-column="24" selection-end-line="11" selection-end-column="24" />
               <folding />
             </state>
           </provider>
@@ -28,8 +41,38 @@
       <file leaf-file-name="udpClientPing.go" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/udpClientPing.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-156">
-              <caret line="17" column="0" lean-forward="true" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+            <state relative-caret-position="192">
+              <caret line="31" column="0" lean-forward="true" selection-start-line="31" selection-start-column="0" selection-end-line="31" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="net.go" pinned="false" current-in-tab="false">
+        <entry file="file:///usr/local/Cellar/go/1.8.3/libexec/src/net/net.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="298">
+              <caret line="192" column="22" lean-forward="false" selection-start-line="192" selection-start-column="22" selection-end-line="192" selection-end-column="22" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="fd_unix.go" pinned="false" current-in-tab="false">
+        <entry file="file:///usr/local/Cellar/go/1.8.3/libexec/src/net/fd_unix.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="430">
+              <caret line="317" column="17" lean-forward="false" selection-start-line="317" selection-start-column="17" selection-end-line="317" selection-end-column="17" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="uploadToPi.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/scripts/uploadToPi.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="105">
+              <caret line="7" column="24" lean-forward="true" selection-start-line="7" selection-start-column="24" selection-end-line="7" selection-end-column="24" />
               <folding />
             </state>
           </provider>
@@ -54,8 +97,9 @@
         <option value="$PROJECT_DIR$/request/request.go" />
         <option value="$PROJECT_DIR$/udpClient.go" />
         <option value="$PROJECT_DIR$/udpServer.go" />
-        <option value="$PROJECT_DIR$/udpServerPing.go" />
+        <option value="$PROJECT_DIR$/scripts/uploadToPi.sh" />
         <option value="$PROJECT_DIR$/udpClientPing.go" />
+        <option value="$PROJECT_DIR$/udpServerPing.go" />
       </list>
     </option>
   </component>
@@ -66,10 +110,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="214" />
-    <option name="y" value="23" />
-    <option name="width" value="1650" />
-    <option name="height" value="1057" />
+    <option name="x" value="1048" />
+    <option name="y" value="235" />
+    <option name="width" value="1338" />
+    <option name="height" value="1136" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -99,10 +143,24 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="UDP" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="UDP" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scripts" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -203,14 +261,14 @@
     <option name="remove_strategy" value="false" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="214" y="23" width="1650" height="1057" extended-state="0" />
+    <frame x="1048" y="235" width="1338" height="1136" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19818182" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1980568" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.26819128" sideWeight="0.50545454" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.28586277" sideWeight="0.49484536" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.28530258" sideWeight="0.49484536" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -238,6 +296,22 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/udpServerPing.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="25" column="40" lean-forward="true" selection-start-line="25" selection-start-column="40" selection-end-line="25" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/udpClientPing.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="17" column="0" lean-forward="true" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/udpServerPing.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -333,66 +407,50 @@
     <entry file="file://$PROJECT_DIR$/request.go" />
     <entry file="file:///usr/local/Cellar/go/1.8.3/libexec/src/runtime/panic.go" />
     <entry file="file:///usr/local/Cellar/go/1.8.3/libexec/src/encoding/json/stream.go" />
-    <entry file="file:///usr/local/Cellar/go/1.8.3/libexec/src/net/net.go" />
     <entry file="file:///usr/local/Cellar/go/1.8.3/libexec/src/runtime/asm_amd64.s" />
-    <entry file="file://$USER_HOME$/GoV1.8.3/src/runtime/asm_amd64.s">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="172">
-          <caret line="2197" column="0" lean-forward="false" selection-start-line="2197" selection-start-column="0" selection-end-line="2197" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/GoV1.8.3/src/log/log.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="223">
-          <caret line="296" column="0" lean-forward="false" selection-start-line="296" selection-start-column="0" selection-end-line="296" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/GoV1.8.3/src/net/udpsock.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="705">
-          <caret line="104" column="18" lean-forward="false" selection-start-line="104" selection-start-column="18" selection-end-line="104" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/GoV1.8.3/src/runtime/asm_amd64.s" />
+    <entry file="file://$USER_HOME$/GoV1.8.3/src/log/log.go" />
+    <entry file="file://$USER_HOME$/GoV1.8.3/src/net/udpsock.go" />
     <entry file="file://$PROJECT_DIR$/request/request.go" />
-    <entry file="file://$USER_HOME$/GoV1.8.3/src/runtime/panic.go">
+    <entry file="file://$USER_HOME$/GoV1.8.3/src/runtime/panic.go" />
+    <entry file="file://$USER_HOME$/GoV1.8.3/src/net/net.go" />
+    <entry file="file://$USER_HOME$/GoV1.8.3/src/encoding/binary/binary.go" />
+    <entry file="file://$PROJECT_DIR$/scripts/uploadToPi.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="164">
-          <caret line="567" column="0" lean-forward="false" selection-start-line="567" selection-start-column="0" selection-end-line="567" selection-end-column="0" />
+        <state relative-caret-position="105">
+          <caret line="7" column="24" lean-forward="true" selection-start-line="7" selection-start-column="24" selection-end-line="7" selection-end-column="24" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/GoV1.8.3/src/net/net.go">
+    <entry file="file:///usr/local/Cellar/go/1.8.3/libexec/src/net/net.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="236">
-          <caret line="204" column="0" lean-forward="false" selection-start-line="204" selection-start-column="0" selection-end-line="204" selection-end-column="0" />
+        <state relative-caret-position="298">
+          <caret line="192" column="22" lean-forward="false" selection-start-line="192" selection-start-column="22" selection-end-line="192" selection-end-column="22" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/GoV1.8.3/src/encoding/binary/binary.go">
+    <entry file="file:///usr/local/Cellar/go/1.8.3/libexec/src/net/fd_unix.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="164">
-          <caret line="128" column="17" lean-forward="false" selection-start-line="128" selection-start-column="17" selection-end-line="128" selection-end-column="17" />
+        <state relative-caret-position="430">
+          <caret line="317" column="17" lean-forward="false" selection-start-line="317" selection-start-column="17" selection-end-line="317" selection-end-column="17" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/udpServerPing.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="361">
-          <caret line="25" column="40" lean-forward="true" selection-start-line="25" selection-start-column="40" selection-end-line="25" selection-end-column="40" />
+        <state relative-caret-position="105">
+          <caret line="11" column="24" lean-forward="false" selection-start-line="11" selection-start-column="24" selection-end-line="11" selection-end-column="24" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/udpClientPing.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-156">
-          <caret line="17" column="0" lean-forward="true" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+        <state relative-caret-position="192">
+          <caret line="31" column="0" lean-forward="true" selection-start-line="31" selection-start-column="0" selection-end-line="31" selection-end-column="0" />
           <folding />
         </state>
       </provider>

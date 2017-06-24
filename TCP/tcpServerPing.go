@@ -9,7 +9,7 @@ import (
 func handleServerConnectionRaw(c net.Conn) {
 	defer c.Close()
 
-    const dataSize = 8
+    const dataSize = 400
     dataBytes := make([]byte, dataSize)
 
 	for {

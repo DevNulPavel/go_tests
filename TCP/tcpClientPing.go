@@ -9,7 +9,7 @@ import (
 )
 
 func rawClientPing() {
-    address, err := net.ResolveTCPAddr("tcp", "devnulpavel.ddns.net:9999")
+    address, err := net.ResolveTCPAddr("tcp", "192.168.1.3:9999") // devnulpavel.ddns.net
     if err != nil {
         fmt.Println(err)
         return
@@ -31,7 +31,7 @@ func rawClientPing() {
 
 	// TODO: в одном блоке данных могут быть получены сразу 2 сообщения
 
-	const testDataSize = 8
+	const testDataSize = 400
 	testData := make([]byte, testDataSize)
 
 	// Бесконечный цикл записи
@@ -41,7 +41,7 @@ func rawClientPing() {
 
 		nowTime := uint64(time.Now().UnixNano())
 
-		binary.BigEndian.PutUint64(testData, nowTime)
+		binary.BigEndian.PutUint64(testData[0:8], nowTime)
 
 		writeSuccess := false
 		writtenBytes := 0
@@ -72,7 +72,7 @@ func rawClientPing() {
 				return
 			}
 
-			sendTimeUint := binary.BigEndian.Uint64(testData)
+			sendTimeUint := binary.BigEndian.Uint64(testData[0:8])
 			sendTime := time.Unix(0, int64(sendTimeUint))
 
 			pingValue := float64(time.Now().Sub(sendTime).Nanoseconds()) / 1000 / 1000
@@ -83,7 +83,7 @@ func rawClientPing() {
 			break
 		}
 
-        time.Sleep(500 * time.Millisecond)
+        //time.Sleep(500 * time.Millisecond)
 	}
 }
 
