@@ -9,7 +9,7 @@ import (
 
 func rawClient() {
 	// Определяем адрес
-	address, err := net.ResolveUDPAddr("udp", "192.168.1.3:9999") // devnulpavel.ddns.net
+	address, err := net.ResolveUDPAddr("udp", "devnulpavel.ddns.net:9999") // devnulpavel.ddns.net 	192.168.1.3
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -26,15 +26,18 @@ func rawClient() {
 
 	readErrorCounter := 0
 
-	const dataSize = 400
-	data := make([]byte, dataSize)
+	const dataSize = 4096
+    const timeBegin = 0;
+    const counterBegin = 100;
+    data := make([]byte, dataSize)
 	var counter uint64 = 0
 
 	// Бесконечный цикл записи
 	for {
 		sendTime := uint64(time.Now().UnixNano())
-		binary.BigEndian.PutUint64(data[0:8], sendTime)
-		binary.BigEndian.PutUint64(data[300:(300+8)], counter)
+		binary.BigEndian.PutUint64(data[timeBegin:timeBegin+8], sendTime)
+		binary.BigEndian.PutUint64(data[counterBegin:counterBegin+8], counter)
+		//binary.BigEndian.PutUint64(data[300:(300+8)], counter)
 
 		// Пытаемся записать данные
 		c.SetWriteDeadline(time.Now().Add(500 * time.Millisecond))
@@ -79,8 +82,8 @@ func rawClient() {
 		// Reset read counter error
 		readErrorCounter = 0
 
-		receivedSendTimeUint64 := binary.BigEndian.Uint64(data[0:8])
-		receivedCounterUint64 := binary.BigEndian.Uint64(data[300:(300+8)])
+		receivedSendTimeUint64 := binary.BigEndian.Uint64(data[timeBegin:timeBegin+8])
+		receivedCounterUint64 := binary.BigEndian.Uint64(data[counterBegin:counterBegin+8])
 
 		if receivedCounterUint64 != counter {
 			fmt.Println("Receive counter error")

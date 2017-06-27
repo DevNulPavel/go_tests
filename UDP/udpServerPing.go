@@ -9,7 +9,7 @@ import (
 func HandleServerConnectionRaw(c *net.UDPConn, address *net.UDPAddr) {
 	defer c.Close()
 
-	const dataSize = 400
+	const dataSize = 1024*64
 	udpBuffer := make([]byte, dataSize)
 
 	for {
@@ -23,18 +23,15 @@ func HandleServerConnectionRaw(c *net.UDPConn, address *net.UDPAddr) {
 		} else if readCount == 0 {
 			fmt.Println("Disconnected")
 			return
-		} else if readCount < dataSize {
-			fmt.Printf("Read less bytes - %d\n", readCount)
-			return
 		}
 
 		// Теперь очередь ответной записи
-		writtenCount, err := c.WriteToUDP(udpBuffer, receiveAddress)
+		writtenCount, err := c.WriteToUDP(udpBuffer[0:readCount], receiveAddress)
 		if err != nil {
 			fmt.Println(err)
 			return
-		} else if writtenCount < dataSize {
-			fmt.Printf("Written less bytes - %d\n", writtenCount)
+		} else if writtenCount < readCount {
+			fmt.Printf("Written less bytes - %d from \n", writtenCount, readCount)
 			return
 		}
 	}
@@ -55,6 +52,7 @@ func server() {
 		return
 	}
 
+	fmt.Print("Server started")
 	HandleServerConnectionRaw(connection, address)
 }
 

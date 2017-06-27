@@ -2,8 +2,8 @@
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-#HOST="pi@devnulpavel.ddns.net"
-HOST="pi@192.168.1.3"
+HOST="pi@devnulpavel.ddns.net"
+#HOST="pi@192.168.1.3"
 TARGET_DIR="/home/pi/Projects/GoTests/UDP"
 SRC_DIR="$SCRIPT_DIR/.."
 
