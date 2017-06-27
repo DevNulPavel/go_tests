@@ -125,20 +125,18 @@ func rawClient()  {
         testDataSize := len(testData)
 
         writeSuccess := false
-        writtenBytes := 0
-        for {
+        totalWrittenBytes := 0
+        for totalWrittenBytes < testDataSize {
             currentWritten, err := c.Write(testData[writtenBytes:])
-            if err == nil {
-                writtenBytes += currentWritten
-                if writtenBytes == testDataSize {
-                    writeSuccess = true
-                    break
-                }else{
-                    writtenBytes--
-                }
-            }else{
+            if err != nil {
                 log.Println(err)
                 break;
+            }
+
+            totalWrittenBytes += currentWritten
+            if totalWrittenBytes == testDataSize {
+                writeSuccess = true
+                break
             }
         }
 

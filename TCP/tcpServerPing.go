@@ -9,8 +9,8 @@ import (
 func handleServerConnectionRaw(c net.Conn) {
 	defer c.Close()
 
-    const dataSize = 400
-    dataBytes := make([]byte, dataSize)
+	const dataSize = 1024 * 64
+	dataBytes := make([]byte, dataSize)
 
 	for {
 		timeVal := time.Now().Add(5 * time.Minute)
@@ -18,34 +18,38 @@ func handleServerConnectionRaw(c net.Conn) {
 
 		readCount, err := c.Read(dataBytes)
 		if err != nil {
-			fmt.Println(err)
+            fmt.Printf("Ping server read error: %s\n", err)
 			return
 		} else if readCount == 0 {
 			fmt.Println("Disconnected")
 			return
-		} else if readCount < dataSize {
-			fmt.Println("Read size error")
+		}
+
+        //fmt.Printf("Read size: %d\n", readCount)
+        time.Sleep(1000 * time.Millisecond)
+
+		// Теперь очередь ответной записи??
+		writeCount, err := c.Write(dataBytes[0:readCount])
+		if err != nil {
+			fmt.Printf("Ping server write error: %s\n", err)
+			return
+		} else if writeCount < readCount {
+			fmt.Printf("Write size error: %d from %d\n", writeCount, readCount)
 			return
 		}
 
-		// Теперь очередь ответной записи??
-		writeCount, err := c.Write(dataBytes)
-		if err != nil {
-			fmt.Println(err)
-			return
-		} else if writeCount < dataSize {
-			fmt.Println("Write size error")
-			return
-		}
+        //fmt.Printf("Write size: %d\n", writeCount)
 	}
 }
 
 func pingServer() {
-    address, err := net.ResolveTCPAddr("tcp", ":9999")
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
+	fmt.Print("Ping server started\n")
+
+	address, err := net.ResolveTCPAddr("tcp", ":9999")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	// Прослушивание сервера
 	ln, err := net.ListenTCP("tcp", address)
@@ -60,11 +64,11 @@ func pingServer() {
 			fmt.Println(err)
 			continue
 		}
-        err = c.SetNoDelay(true)
-        if err != nil {
-            fmt.Println(err)
-            return
-        }
+		err = c.SetNoDelay(true)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 
 		// Запуск горутины
 		go handleServerConnectionRaw(c)

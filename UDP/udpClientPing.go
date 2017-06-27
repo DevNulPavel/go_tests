@@ -26,9 +26,9 @@ func rawClient() {
 
 	readErrorCounter := 0
 
-	const dataSize = 4096
+	const dataSize = 1024
     const timeBegin = 0;
-    const counterBegin = 100;
+    const counterBegin = 200;
     data := make([]byte, dataSize)
 	var counter uint64 = 0
 
@@ -57,7 +57,7 @@ func rawClient() {
 		}
 
 		// теперь читаем
-		c.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
+		c.SetReadDeadline(time.Now().Add(5000 * time.Millisecond))
 		receivedCount, senderAddress, err := c.ReadFromUDP(data)
 		if err != nil {
 			if err, ok := err.(net.Error); ok && err.Timeout() {
@@ -97,7 +97,7 @@ func rawClient() {
 		ping := float64(time.Now().Sub(receivedSendTime).Nanoseconds()) / 1000.0 / 1000.0
 		fmt.Printf("Ping = %fms, from adress: %s\n", ping, senderAddress)
 
-		//time.Sleep(10 * time.Millisecond)
+		//time.Sleep(1000 * time.Millisecond)
 	}
 }
 
