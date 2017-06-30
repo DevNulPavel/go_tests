@@ -27,8 +27,8 @@ func rawClient() {
 	readErrorCounter := 0
 
 	const dataSize = 1024
-    const timeBegin = 0;
-    const counterBegin = 200;
+    const timeBegin = 0
+    const counterBegin = 200
     data := make([]byte, dataSize)
 	var counter uint64 = 0
 
@@ -37,7 +37,6 @@ func rawClient() {
 		sendTime := uint64(time.Now().UnixNano())
 		binary.BigEndian.PutUint64(data[timeBegin:timeBegin+8], sendTime)
 		binary.BigEndian.PutUint64(data[counterBegin:counterBegin+8], counter)
-		//binary.BigEndian.PutUint64(data[300:(300+8)], counter)
 
 		// Пытаемся записать данные
 		c.SetWriteDeadline(time.Now().Add(500 * time.Millisecond))
