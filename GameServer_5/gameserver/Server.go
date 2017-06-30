@@ -108,6 +108,8 @@ func (server *Server) asyncConnectionhandler() bool {
 					continue // TODO: ???
 				}
 
+                log.Printf("Message received\n")
+
 				message := ServerMessage{address: address, data: dataBuffer[0:readCount]}
 				server.connReadDataCh <- message
 			}
@@ -128,6 +130,8 @@ func (server *Server) asyncConnectionhandler() bool {
 				} else if writtenCount < len(writeMessage.data) {
 					fmt.Printf("UDP writeen less bytes: %d from %d\n", writtenCount, len(writeMessage.data)) // TODO: ???
 				}
+
+                log.Printf("Message sent\n")
 			}
 		}
 	}
@@ -155,8 +159,6 @@ func (server *Server) mainLoop() {
 			// Обрабатываем входищие сообщения
 			case message := <-server.connReadDataCh:
 
-				log.Printf("Message received\n")
-
 				room, roomFound := server.gameRooms[message.address]
 				if roomFound {
 					// Обрабатываем сообщение
@@ -183,7 +185,7 @@ func (server *Server) mainLoop() {
 						newGameRoom.StartLoop()
 
 						// Обрабатываем сообщение
-						room.HandleMessage(message)
+                        newGameRoom.HandleMessage(message)
 					}
 				}
 

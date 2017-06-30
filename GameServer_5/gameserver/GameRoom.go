@@ -136,10 +136,10 @@ func (room *GameRoom) mainLoop() {
 			// Определяем, для какого клиента это сообщение
 			var foundClient *Client = nil
 			clientFound := false
-			if room.clientLeft.address == message.address { // TODO: ???
+			if (room.clientLeft != nil) && (room.clientLeft.address == message.address) { // TODO: ???
 				clientFound = true
 				foundClient = room.clientLeft
-			} else if room.clientRight.address == message.address { // TODO: ???
+			} else if (room.clientRight != nil) && (room.clientRight.address == message.address) { // TODO: ???
 				clientFound = true
 				foundClient = room.clientRight
 			}
