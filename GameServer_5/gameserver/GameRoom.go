@@ -129,7 +129,7 @@ func (room *GameRoom) worldTick(delta float64) {
 }
 
 func (room *GameRoom) mainLoop() {
-	const updatePeriodMS = 30
+	const updatePeriodMS = 15
 
 	worldUpdateTime := time.Millisecond * updatePeriodMS
 	timer := time.NewTimer(worldUpdateTime)
