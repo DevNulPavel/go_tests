@@ -140,7 +140,7 @@ func (client *Client) loopWrite() {
 	//log.Println("StartSyncListenLoop write to client:", client.id)
 
     // Специальный таймер, который запускает повторную инициализацию клиенту пока не придет инициализационный ответ
-    const checkPeriodMS = 250
+    const checkPeriodMS = 1000
     checkTime := time.Millisecond * checkPeriodMS
     timer := time.NewTimer(checkTime)
     timer.Stop()
@@ -157,12 +157,16 @@ func (client *Client) loopWrite() {
             if client.IsReady() == false  {
                 initSendCount++
                 timer.Reset(checkTime)
+            }else {
+                timer.Stop()
             }
 
         // таймер проверки инициализации
         case <-timer.C:
             if client.IsReady() == false {
                 if initSendCount < 5 {
+                    client.QueueSendCurrentClientState()
+
                     initSendCount++
                     timer.Reset(checkTime)
                 }else{
@@ -170,6 +174,8 @@ func (client *Client) loopWrite() {
                     log.Println("LoopWrite exit by init timeout, clientId =", client.id)
                     return
                 }
+            }else{
+                timer.Stop()
             }
 
 		// Получение флага выхода из функции

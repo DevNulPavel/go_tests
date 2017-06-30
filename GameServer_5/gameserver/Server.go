@@ -21,7 +21,7 @@ type Server struct {
 	// Main loop
 	mainLoopExitCh chan bool
 	// Logic
-	gameRooms    map[*net.UDPAddr]*GameRoom
+	gameRooms    map[string]*GameRoom
 	removeRoomCh chan *net.UDPAddr
 }
 
@@ -40,7 +40,7 @@ func NewServer() *Server {
 		// Main loop
 		mainLoopExitCh: make(chan bool),
 		// Logic
-		gameRooms:    make(map[*net.UDPAddr]*GameRoom),
+		gameRooms:    make(map[string]*GameRoom),
 		removeRoomCh: make(chan *net.UDPAddr),
 	}
 	return &server
@@ -159,7 +159,7 @@ func (server *Server) mainLoop() {
 			// Обрабатываем входищие сообщения
 			case message := <-server.connReadDataCh:
 
-				room, roomFound := server.gameRooms[message.address]
+				room, roomFound := server.gameRooms[message.address.String()]
 				if roomFound {
 					// Обрабатываем сообщение
 					room.HandleMessage(message)
@@ -168,7 +168,7 @@ func (server *Server) mainLoop() {
 					for _, room := range server.gameRooms {
 						if room.GetIsFull() == false {
 							// Задаем соответствие комнаты и адреса
-							server.gameRooms[message.address] = room
+							server.gameRooms[message.address.String()] = room
 
 							// Обрабатываем сообщение
 							room.HandleMessage(message)
@@ -181,7 +181,7 @@ func (server *Server) mainLoop() {
 
 					if freeRoomFound == false {
 						newGameRoom := NewGameRoom(server)
-						server.gameRooms[message.address] = newGameRoom
+						server.gameRooms[message.address.String()] = newGameRoom
 						newGameRoom.StartLoop()
 
 						// Обрабатываем сообщение
@@ -191,7 +191,7 @@ func (server *Server) mainLoop() {
 
 			// Обработка удаления комнаты
 			case address := <-server.removeRoomCh:
-				delete(server.gameRooms, address)
+				delete(server.gameRooms, address.String())
 
 			// Завершение работы
 			case <-server.mainLoopExitCh:
