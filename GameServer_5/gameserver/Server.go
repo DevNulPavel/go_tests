@@ -55,7 +55,10 @@ func (server *Server) StartServer() {
 	connectionStarted := server.asyncConnectionhandler()
 	if connectionStarted {
 		server.mainLoop()
-	}
+        log.Println("Server started");
+	}else {
+        log.Println("Server NOT started");
+    }
 }
 
 func (server *Server) SendMessage(message ServerMessage) {
@@ -95,7 +98,7 @@ func (server *Server) asyncConnectionhandler() bool {
 				return
 
 			default:
-				dataBuffer := make([]byte, 64)
+				dataBuffer := make([]byte, 128)
 				readCount, address, err := server.conn.ReadFromUDP(dataBuffer)
 				if err != nil {
 					fmt.Printf("UDP read error: %s\n", err)

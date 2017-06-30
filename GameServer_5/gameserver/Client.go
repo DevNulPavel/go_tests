@@ -138,6 +138,14 @@ func (client *Client) StopLoop() {
 // Ожидание записи
 func (client *Client) loopWrite() {
 	//log.Println("StartSyncListenLoop write to client:", client.id)
+
+    // Специальный таймер, который запускает повторную инициализацию клиенту пока не придет инициализационный ответ
+    const checkPeriodMS = 250
+    checkTime := time.Millisecond * checkPeriodMS
+    timer := time.NewTimer(checkTime)
+    timer.Stop()
+    initSendCount := 0
+
 	for {
 		select {
 		// Отправка записи клиенту
@@ -146,8 +154,27 @@ func (client *Client) loopWrite() {
 			message := ServerMessage{address: client.address, data: payloadData}
 			client.gameRoom.server.SendMessage(message)
 
+            if client.IsReady() == false  {
+                initSendCount++
+                timer.Reset(checkTime)
+            }
+
+        // таймер проверки инициализации
+        case <-timer.C:
+            if client.IsReady() == false {
+                if initSendCount < 5 {
+                    initSendCount++
+                    timer.Reset(checkTime)
+                }else{
+                    timer.Stop()
+                    log.Println("LoopWrite exit by init timeout, clientId =", client.id)
+                    return
+                }
+            }
+
 		// Получение флага выхода из функции
 		case <-client.exitWriteCh:
+            timer.Stop()
 			log.Println("LoopWrite exit, clientId =", client.id)
 			return
 		}
