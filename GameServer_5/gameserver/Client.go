@@ -164,13 +164,15 @@ func (client *Client) loopWrite() {
         // таймер проверки инициализации
         case <-timer.C:
             if client.IsReady() == false {
-                if initSendCount < 5 {
+                if initSendCount < 20 {
                     client.QueueSendCurrentClientState()
 
                     initSendCount++
                     timer.Reset(checkTime)
                 }else{
                     timer.Stop()
+					client.exitReadCh <- true
+                    client.gameRoom.DeleteClient(client)
                     log.Println("LoopWrite exit by init timeout, clientId =", client.id)
                     return
                 }
@@ -193,7 +195,7 @@ func (client *Client) loopRead() {
 
 	// Специальный таймер, который отслеживает долгое отсутствие входящих данных,
 	// если данные долго не приходят - считаем клиента отвалившимся
-	const checkPeriodMS = 4000
+	const checkPeriodMS = 5000
 	checkTime := time.Millisecond * checkPeriodMS
 	timer := time.NewTimer(checkTime)
 	timer.Stop()
@@ -225,6 +227,7 @@ func (client *Client) loopRead() {
 		case <-timer.C:
 			timer.Stop()
 			client.exitWriteCh <- true
+            client.gameRoom.DeleteClient(client)
 			log.Println("LoopRead exit by timeout, clientId =", client.id)
 			return
 

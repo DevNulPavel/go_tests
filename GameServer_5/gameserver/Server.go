@@ -108,7 +108,7 @@ func (server *Server) asyncConnectionhandler() bool {
 					continue // TODO: ???
 				}
 
-                log.Printf("Message received\n")
+                log.Printf("Message received: %s\n", address)
 
 				message := ServerMessage{address: address, data: dataBuffer[0:readCount]}
 				server.connReadDataCh <- message
@@ -131,7 +131,7 @@ func (server *Server) asyncConnectionhandler() bool {
 					fmt.Printf("UDP writeen less bytes: %d from %d\n", writtenCount, len(writeMessage.data)) // TODO: ???
 				}
 
-                log.Printf("Message sent\n")
+                log.Printf("Message sent: %s\n", writeMessage.address)
 			}
 		}
 	}

@@ -91,36 +91,45 @@ func (room *GameRoom) GetIsFull() bool {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (room *GameRoom) sendAllNewState() {
-	gameStateBytes, err := room.gameRoomState.ConvertToBytes()
-	if err != nil {
-		return
-	}
-
-	if room.clientLeft != nil {
-		room.clientLeft.QueueSendGameState(gameStateBytes)
-	}
-	if room.clientRight != nil {
-		room.clientRight.QueueSendGameState(gameStateBytes)
-	}
+    clientsExists := (room.clientLeft != nil) && (room.clientRight != nil)
+    if clientsExists {
+        gameStateBytes, err := room.gameRoomState.ConvertToBytes()
+        if err != nil {
+            return
+        }
+        room.clientLeft.QueueSendGameState(gameStateBytes)
+        room.clientRight.QueueSendGameState(gameStateBytes)
+    }else{
+        if room.clientLeft != nil {
+            room.clientLeft.QueueSendCurrentClientState()
+        }
+        if room.clientRight != nil {
+            room.clientRight.QueueSendCurrentClientState()
+        }
+    }
 }
 
 func (room *GameRoom) worldTick(delta float64) {
-	if (room.clientLeft == nil) || (room.clientRight == nil) {
-		return
-	}
-
-    if room.clientLeft.IsReady() && room.clientRight.IsReady() {
+	clientsExists := (room.clientLeft != nil) && (room.clientRight != nil)
+    if clientsExists && room.clientLeft.IsReady() && room.clientRight.IsReady() {
         room.gameRoomState.clientLeftState = room.clientLeft.GetCurrentState()
         room.gameRoomState.clientRightState = room.clientRight.GetCurrentState()
 
         room.gameRoomState.WorldTick(delta)
 
         room.sendAllNewState()
+    }else{
+        if room.clientLeft != nil {
+            room.clientLeft.QueueSendCurrentClientState()
+        }
+        if room.clientRight != nil {
+            room.clientRight.QueueSendCurrentClientState()
+        }
     }
 }
 
 func (room *GameRoom) mainLoop() {
-	const updatePeriodMS = 20
+	const updatePeriodMS = 30
 
 	worldUpdateTime := time.Millisecond * updatePeriodMS
 	timer := time.NewTimer(worldUpdateTime)
@@ -136,10 +145,11 @@ func (room *GameRoom) mainLoop() {
 			// Определяем, для какого клиента это сообщение
 			var foundClient *Client = nil
 			clientFound := false
-			if (room.clientLeft != nil) && (room.clientLeft.address.IP.Equal(message.address.IP)) { // TODO: ???
+            messageAddressStr := message.address.String()
+			if (room.clientLeft != nil) && (room.clientLeft.address.String() == messageAddressStr) { // TODO: ???
 				clientFound = true
 				foundClient = room.clientLeft
-			} else if (room.clientRight != nil) && (room.clientRight.address.IP.Equal(message.address.IP)) { // TODO: ???
+			} else if (room.clientRight != nil) && (room.clientRight.address.String() == messageAddressStr) { // TODO: ???
 				clientFound = true
 				foundClient = room.clientRight
 			}
