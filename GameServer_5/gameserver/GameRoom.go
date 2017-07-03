@@ -129,7 +129,7 @@ func (room *GameRoom) worldTick(delta float64) {
 }
 
 func (room *GameRoom) mainLoop() {
-	const updatePeriodMS = 15
+	const updatePeriodMS = 20
 
 	worldUpdateTime := time.Millisecond * updatePeriodMS
 	timer := time.NewTimer(worldUpdateTime)
@@ -145,11 +145,10 @@ func (room *GameRoom) mainLoop() {
 			// Определяем, для какого клиента это сообщение
 			var foundClient *Client = nil
 			clientFound := false
-            messageAddressStr := message.address.String()
-			if (room.clientLeft != nil) && (room.clientLeft.address.String() == messageAddressStr) { // TODO: ???
+			if (room.clientLeft != nil) && EqAddressesUDP(room.clientLeft.address, message.address) {
 				clientFound = true
 				foundClient = room.clientLeft
-			} else if (room.clientRight != nil) && (room.clientRight.address.String() == messageAddressStr) { // TODO: ???
+			} else if (room.clientRight != nil) && EqAddressesUDP(room.clientRight.address, message.address) {
 				clientFound = true
 				foundClient = room.clientRight
 			}

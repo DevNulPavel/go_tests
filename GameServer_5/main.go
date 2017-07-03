@@ -4,10 +4,11 @@ import (
 	"./gameserver"
 	"fmt"
 	"log"
+    "github.com/pkg/profile"
 )
 
 func main() {
-	//defer profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook).Stop()
+	defer profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook).Stop()
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
 

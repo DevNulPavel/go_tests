@@ -159,7 +159,8 @@ func (server *Server) mainLoop() {
 			// Обрабатываем входищие сообщения
 			case message := <-server.connReadDataCh:
 
-				room, roomFound := server.gameRooms[message.address.String()]
+				messageAddressString := message.address.String()
+				room, roomFound := server.gameRooms[messageAddressString]
 				if roomFound {
 					// Обрабатываем сообщение
 					room.HandleMessage(message)
@@ -168,7 +169,7 @@ func (server *Server) mainLoop() {
 					for _, room := range server.gameRooms {
 						if room.GetIsFull() == false {
 							// Задаем соответствие комнаты и адреса
-							server.gameRooms[message.address.String()] = room
+							server.gameRooms[messageAddressString] = room
 
 							// Обрабатываем сообщение
 							room.HandleMessage(message)
@@ -181,7 +182,7 @@ func (server *Server) mainLoop() {
 
 					if freeRoomFound == false {
 						newGameRoom := NewGameRoom(server)
-						server.gameRooms[message.address.String()] = newGameRoom
+						server.gameRooms[messageAddressString] = newGameRoom
 						newGameRoom.StartLoop()
 
 						// Обрабатываем сообщение
