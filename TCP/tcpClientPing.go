@@ -38,8 +38,9 @@ func rawClientPing() {
 
     lastReadTime := time.Now()
 
-	// Бесконечный цикл записи
-	for {
+    const requestsCount = 100
+    startTime := time.Now()
+	for i := 0; i < requestsCount; i++ {
 		timeVal := time.Now().Add(5 * time.Minute)
 		c.SetDeadline(timeVal)
 
@@ -94,6 +95,12 @@ func rawClientPing() {
         netPingValue := float64(time.Now().Sub(sendTime).Nanoseconds()) / 1000.0 / 1000.0
         fmt.Printf("Readings delay = %fmsec, NetPing = %fmsec, writeTryCount = %d, readTryCount = %d\n", delayBetweenReadings, netPingValue, writeTryCount, readTryCount)
 	}
+
+    endTime := time.Now()
+    duration := endTime.Sub(startTime).Seconds()
+
+    requestsPerSec := requestsCount/duration
+    fmt.Printf("Requests per sec value: %f", requestsPerSec)
 }
 
 func main() {

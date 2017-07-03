@@ -32,8 +32,9 @@ func rawClient() {
     data := make([]byte, dataSize)
 	var counter uint64 = 0
 
-	// Бесконечный цикл записи
-	for {
+	const requestsCount = 100
+	startTime := time.Now()
+	for i := 0; i < requestsCount; i++ {
 		sendTime := uint64(time.Now().UnixNano())
 		binary.BigEndian.PutUint64(data[timeBegin:timeBegin+8], sendTime)
 		binary.BigEndian.PutUint64(data[counterBegin:counterBegin+8], counter)
@@ -98,6 +99,12 @@ func rawClient() {
 
 		//time.Sleep(1000 * time.Millisecond)
 	}
+
+    endTime := time.Now()
+    duration := endTime.Sub(startTime).Seconds()
+
+    requestsPerSec := requestsCount/duration
+    fmt.Printf("Requests per sec value: %f", requestsPerSec)
 }
 
 func main() {

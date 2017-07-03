@@ -25,8 +25,6 @@ func HandleServerConnectionRaw(c *net.UDPConn, address *net.UDPAddr) {
 			return
 		}
 
-        time.Sleep(1000 * time.Millisecond)
-
 		// Теперь очередь ответной записи
 		writtenCount, err := c.WriteToUDP(udpBuffer[0:readCount], receiveAddress)
 		if err != nil {

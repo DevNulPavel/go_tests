@@ -26,7 +26,6 @@ func handleServerConnectionRaw(c net.Conn) {
 		}
 
         //fmt.Printf("Read size: %d\n", readCount)
-        time.Sleep(1000 * time.Millisecond)
 
 		// Теперь очередь ответной записи??
 		writeCount, err := c.Write(dataBytes[0:readCount])
