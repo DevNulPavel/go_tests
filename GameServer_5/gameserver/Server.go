@@ -52,7 +52,7 @@ func (server *Server) ExitServer() {
 }
 
 func (server *Server) StartServer() {
-	connectionStarted := server.asyncConnectionhandler()
+	connectionStarted := server.asyncConnectionHandler()
 	if connectionStarted {
 		server.mainLoop()
         log.Println("Server started");
@@ -70,7 +70,7 @@ func (server *Server) DeleteRoomForAddress(address *net.UDPAddr) {
 }
 
 // Обработка входящих подключений
-func (server *Server) asyncConnectionhandler() bool {
+func (server *Server) asyncConnectionHandler() bool {
 	// Определяем адрес
 	address, err := net.ResolveUDPAddr("udp", ":9999")
 	if err != nil {

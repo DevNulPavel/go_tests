@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7e4c1c70-2512-4f8b-aa98-dfbbbf015b07" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../GameServer_5/gameserver/Helpers.go" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../GameServer_5/gameserver/GameRoom.go" afterPath="$PROJECT_DIR$/../GameServer_5/gameserver/GameRoom.go" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../GameServer_5/gameserver/Server.go" afterPath="$PROJECT_DIR$/../GameServer_5/gameserver/Server.go" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../GameServer_5/main.go" afterPath="$PROJECT_DIR$/../GameServer_5/main.go" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -30,7 +27,7 @@
       <file leaf-file-name="Server.go" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gameserver/Server.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-324">
+            <state relative-caret-position="624">
               <caret line="39" column="36" lean-forward="false" selection-start-line="39" selection-start-column="36" selection-end-line="39" selection-end-column="36" />
               <folding />
             </state>
@@ -40,8 +37,8 @@
       <file leaf-file-name="GameRoom.go" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/gameserver/GameRoom.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="18">
-              <caret line="156" column="13" lean-forward="true" selection-start-line="156" selection-start-column="13" selection-end-line="156" selection-end-column="13" />
+            <state relative-caret-position="1220">
+              <caret line="165" column="25" lean-forward="false" selection-start-line="165" selection-start-column="25" selection-end-line="165" selection-end-column="25" />
               <folding />
             </state>
           </provider>
@@ -50,7 +47,7 @@
       <file leaf-file-name="Client.go" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gameserver/Client.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-2408">
+            <state relative-caret-position="736">
               <caret line="46" column="19" lean-forward="false" selection-start-line="46" selection-start-column="19" selection-end-line="46" selection-end-column="19" />
               <folding />
             </state>
@@ -485,7 +482,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/gameserver/Server.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-324">
+        <state relative-caret-position="624">
           <caret line="39" column="36" lean-forward="false" selection-start-line="39" selection-start-column="36" selection-end-line="39" selection-end-column="36" />
           <folding />
         </state>
@@ -493,7 +490,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/gameserver/Client.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2408">
+        <state relative-caret-position="736">
           <caret line="46" column="19" lean-forward="false" selection-start-line="46" selection-start-column="19" selection-end-line="46" selection-end-column="19" />
           <folding />
         </state>
@@ -501,8 +498,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/gameserver/GameRoom.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18">
-          <caret line="156" column="13" lean-forward="true" selection-start-line="156" selection-start-column="13" selection-end-line="156" selection-end-column="13" />
+        <state relative-caret-position="1220">
+          <caret line="165" column="25" lean-forward="false" selection-start-line="165" selection-start-column="25" selection-end-line="165" selection-end-column="25" />
           <folding />
         </state>
       </provider>
