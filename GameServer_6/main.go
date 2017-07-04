@@ -2,11 +2,11 @@ package main
 
 import (
 	"./gameserver"
-	"log"
 	"fmt"
+	"log"
 	//"runtime/trace"
 	//"os"
-    //"github.com/pkg/profile"
+	//"github.com/pkg/profile"
 )
 
 func main() {
@@ -14,17 +14,17 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
 
-    /*f, err := os.Create("trace.out")
-    if err != nil {
-		panic(err)
-    }
-    defer f.Close()
+	/*f, err := os.Create("trace.out")
+	    if err != nil {
+			panic(err)
+	    }
+	    defer f.Close()
 
-    err = trace.Start(f)
-    if err != nil {
-        panic(err)
-    }
-    defer trace.Stop()*/
+	    err = trace.Start(f)
+	    if err != nil {
+	        panic(err)
+	    }
+	    defer trace.Stop()*/
 
 	// Запуск сервера
 	server := gameserver.NewServer()
@@ -32,9 +32,9 @@ func main() {
 
 	for {
 		var input string
-    	fmt.Scanln(&input)
+		fmt.Scanln(&input)
 
-		if input == "exit"{
+		if input == "exit" {
 			server.ExitServer()
 			break
 		}

@@ -124,69 +124,69 @@ func (server *Server) exitAsyncSocketListener() {
 }
 
 func (server *Server) sendAllGameState() {
-    sendBytes := make([]byte, 0)
-    // World Info
-    worldInfoBytes, err := server.worldInfo.ConvertToBytes()
-    if err != nil {
-        log.Printf("World info marshal error\n")
-        return
-    }
-    sendBytes = append(sendBytes, worldInfoBytes...)
     // Clients data
+    clientsData := make([]byte, 0)
     for _, client := range server.clients {
         state := client.GetCurrentState()
         stateCopyBytes, err := state.ConvertToBytes()
-        if err != nil{
+        if err != nil {
             log.Printf("Client state marshal error\n")
             continue
         }
-        sendBytes = append(sendBytes, stateCopyBytes...)
+        clientsData = append(clientsData, stateCopyBytes...)
     }
 
-    // Send all
-    for _, client := range server.clients{
-        client.QueueSendGameState(sendBytes)
-    }
+    // World Info
+	worldInfoBytes, err := server.worldInfo.ConvertToBytes(clientsData)
+	if err != nil {
+		log.Printf("World info marshal error\n")
+		return
+	}
+
+	// Send all
+	for _, client := range server.clients {
+		client.QueueSendGameState(worldInfoBytes)
+	}
 }
 
 func (server *Server) worldTick(delta float64) {
-    needSendUpdate := false
+	needSendUpdate := false
 
-    updateResults := []ClientShootUpdateResult{}
-    for _, client := range server.clients{
-        result := client.UpdateCurrentState(delta, server.worldInfo.SizeX, server.worldInfo.SizeY)
-        updateResults = append(updateResults, result...)
-        needSendUpdate = true
-    }
+	updateResults := []ClientShootUpdateResult{}
+	for _, client := range server.clients {
+		result := client.UpdateCurrentState(delta, server.worldInfo.SizeX, server.worldInfo.SizeY)
+		updateResults = append(updateResults, result...)
+		needSendUpdate = true
+	}
 
-    for i := 0; i < len(updateResults); i++ {
-        shooter := updateResults[i]
+	for i := 0; i < len(updateResults); i++ {
+		shooter := updateResults[i]
 
-        for j := 0; j < len(updateResults); j++ {
-            receiver := updateResults[j]
-            if shooter.id == receiver.id {
-                continue
-            }
+		for j := 0; j < len(updateResults); j++ {
+			receiver := updateResults[j]
+			if shooter.id == receiver.id {
+				continue
+			}
 
-            bul := &shooter.bullet
+			bul := &shooter.bullet
 
-            halfSize := int16(receiver.size / 2)
-            minX := float64(receiver.x - halfSize)
-            maxX := float64(receiver.x + halfSize)
-            minY := float64(receiver.y - halfSize)
-            maxY := float64(receiver.y + halfSize)
+			halfSize := int16(receiver.size / 2)
+			minX := float64(receiver.x - halfSize)
+			maxX := float64(receiver.x + halfSize)
+			minY := float64(receiver.y - halfSize)
+			maxY := float64(receiver.y + halfSize)
 
-            if (bul.X > minX) && (bul.X < maxX) && (bul.Y > minY) && (bul.Y < maxY) {
-                shooter.client.IncreaseFrag()
-                receiver.client.SetFailStatus()
-                needSendUpdate = true
-            }
-        }
-    }
+			if (bul.X > minX) && (bul.X < maxX) && (bul.Y > minY) && (bul.Y < maxY) {
+				shooter.client.IncreaseFrag()
+				receiver.client.SetFailStatus()
+				needSendUpdate = true
+			}
+		}
+	}
 
-    if needSendUpdate {
-        atomic.StoreUint32(&server.needSendAll, 1)
-    }
+	if needSendUpdate {
+		atomic.StoreUint32(&server.needSendAll, 1)
+	}
 }
 
 // Основная функция прослушивания
@@ -204,7 +204,7 @@ func (server *Server) mainLoop() {
 
 				newClient := NewClient(connection, server)
 				server.clients[newClient.id] = newClient
-                server.worldInfo.ClientsCount = uint16(len(server.clients))
+				server.worldInfo.ClientsCount = uint16(len(server.clients))
 
 				newClient.StartLoop()
 				newClient.QueueSendCurrentClientState()
@@ -213,10 +213,10 @@ func (server *Server) mainLoop() {
 
 			// Обработка удаления клиентов
 			case client := <-server.removeClientCh:
-                log.Printf("Delete client call\n")
+				log.Printf("Delete client call\n")
 
 				delete(server.clients, client.id)
-                server.worldInfo.ClientsCount = uint16(len(server.clients))
+				server.worldInfo.ClientsCount = uint16(len(server.clients))
 
 				server.sendAllGameState()
 

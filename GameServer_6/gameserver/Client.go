@@ -9,6 +9,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+    "math/rand"
 )
 
 const UPDATE_QUEUE_SIZE = 100
@@ -50,7 +51,7 @@ func NewClient(connection *net.TCPConn, server *Server) *Client {
 	curId := atomic.AddUint32(&MAX_ID, 1)
 
 	// Состояние для отгрузки клиенту
-	clientState := NewState(curId, 100, 100)
+	clientState := NewState(curId, int16(rand.Int() % 200 + 100), int16(rand.Int() % 200 + 100))
 
 	// Конструируем клиента и его каналы
 	uploadDataCh := make(chan []byte, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
