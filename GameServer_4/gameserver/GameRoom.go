@@ -7,7 +7,7 @@ import (
 )
 
 const (
-    BALL_SPEED = 60.0
+    BALL_SPEED = 50.0
 )
 
 var LAST_ID uint32 = 0

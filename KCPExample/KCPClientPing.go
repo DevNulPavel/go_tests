@@ -15,8 +15,8 @@ func main() {
     }
 
     //kcpconn.SetACKNoDelay(true)
-    //kcpconn.SetNoDelay(1, 10, 2, 1)
-    //kcpconn.SetStreamMode(true)
+    kcpconn.SetNoDelay(1, 10, 2, 1)
+    kcpconn.SetStreamMode(true)
 
     const dataSize = 8
     data := make([]byte, dataSize)
