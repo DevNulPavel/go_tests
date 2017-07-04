@@ -3,14 +3,15 @@ package gameserver
 import (
 	"log"
 	"net"
+	"sync/atomic"
 	"time"
-    "sync/atomic"
 )
 
 type Server struct {
 	listener       *net.TCPListener
 	listenerExitCh chan bool
 	loopExitCh     chan bool
+	worldInfo      WorldInfo
 	clients        map[uint32]*Client
 	makeClientCh   chan *net.TCPConn
 	removeClientCh chan *Client
@@ -23,6 +24,7 @@ func NewServer() *Server {
 		listener:       nil,
 		listenerExitCh: make(chan bool),
 		loopExitCh:     make(chan bool),
+		worldInfo:      NewWorldInfo(),
 		clients:        make(map[uint32]*Client),
 		makeClientCh:   make(chan *net.TCPConn),
 		removeClientCh: make(chan *Client),
@@ -42,11 +44,11 @@ func (server *Server) ExitServer() {
 }
 
 func (server *Server) DeleteClient(client *Client) {
-    server.removeClientCh <- client
+	server.removeClientCh <- client
 }
 
 func (server *Server) QueueSendAllNewState() {
-    atomic.StoreUint32(&server.needSendAll, 1)
+	atomic.StoreUint32(&server.needSendAll, 1)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,10 +124,69 @@ func (server *Server) exitAsyncSocketListener() {
 }
 
 func (server *Server) sendAllGameState() {
+    sendBytes := make([]byte, 0)
+    // World Info
+    worldInfoBytes, err := server.worldInfo.ConvertToBytes()
+    if err != nil {
+        log.Printf("World info marshal error\n")
+        return
+    }
+    sendBytes = append(sendBytes, worldInfoBytes...)
+    // Clients data
+    for _, client := range server.clients {
+        state := client.GetCurrentState()
+        stateCopyBytes, err := state.ConvertToBytes()
+        if err != nil{
+            log.Printf("Client state marshal error\n")
+            continue
+        }
+        sendBytes = append(sendBytes, stateCopyBytes...)
+    }
+
+    // Send all
+    for _, client := range server.clients{
+        client.QueueSendGameState(sendBytes)
+    }
 }
 
 func (server *Server) worldTick(delta float64) {
+    needSendUpdate := false
 
+    updateResults := []ClientShootUpdateResult{}
+    for _, client := range server.clients{
+        result := client.UpdateCurrentState(delta, server.worldInfo.SizeX, server.worldInfo.SizeY)
+        updateResults = append(updateResults, result...)
+        needSendUpdate = true
+    }
+
+    for i := 0; i < len(updateResults); i++ {
+        shooter := updateResults[i]
+
+        for j := 0; j < len(updateResults); j++ {
+            receiver := updateResults[j]
+            if shooter.id == receiver.id {
+                continue
+            }
+
+            bul := &shooter.bullet
+
+            halfSize := int16(receiver.size / 2)
+            minX := float64(receiver.x - halfSize)
+            maxX := float64(receiver.x + halfSize)
+            minY := float64(receiver.y - halfSize)
+            maxY := float64(receiver.y + halfSize)
+
+            if (bul.X > minX) && (bul.X < maxX) && (bul.Y > minY) && (bul.Y < maxY) {
+                shooter.client.IncreaseFrag()
+                receiver.client.SetFailStatus()
+                needSendUpdate = true
+            }
+        }
+    }
+
+    if needSendUpdate {
+        atomic.StoreUint32(&server.needSendAll, 1)
+    }
 }
 
 // Основная функция прослушивания
@@ -143,6 +204,7 @@ func (server *Server) mainLoop() {
 
 				newClient := NewClient(connection, server)
 				server.clients[newClient.id] = newClient
+                server.worldInfo.ClientsCount = uint16(len(server.clients))
 
 				newClient.StartLoop()
 				newClient.QueueSendCurrentClientState()
@@ -151,7 +213,11 @@ func (server *Server) mainLoop() {
 
 			// Обработка удаления клиентов
 			case client := <-server.removeClientCh:
+                log.Printf("Delete client call\n")
+
 				delete(server.clients, client.id)
+                server.worldInfo.ClientsCount = uint16(len(server.clients))
+
 				server.sendAllGameState()
 
 			// Основной серверный таймер, который обновляет серверный мир

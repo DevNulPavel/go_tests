@@ -15,7 +15,8 @@ const (
 
 // Client state structure
 type ClientState struct {
-	ID      uint32
+    ID      uint32
+    Size uint8
 	X       int16
 	Y       int16
 	Angle   float32
@@ -25,8 +26,11 @@ type ClientState struct {
 }
 
 func NewState(id uint32, x, y int16) ClientState {
+    const clientSize = 20
+
 	state := ClientState{
 		ID:      id,
+        Size: clientSize,
 		X:       x,
 		Y:       y,
 		Angle:   0.0,
@@ -49,6 +53,11 @@ func (state *ClientState) ConvertToBytes() ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
+    // Size
+    err = binary.Write(buffer, binary.BigEndian, state.Size)
+    if err != nil {
+        return []byte{}, err
+    }
 	// X
 	err = binary.Write(buffer, binary.BigEndian, state.X)
 	if err != nil {
@@ -84,10 +93,12 @@ func (state *ClientState) ConvertToBytes() ([]byte, error) {
 	bulletsBytes := make([]byte, 0, state.Bullets.Len()*8)
     it := state.Bullets.Front()
 	for i := 0; i < state.Bullets.Len(); i++ {
-		bulletData, err := it.Value.(Bullet).ConvertToBytes()
+        bullet := it.Value.(Bullet)
+		bulletData, err := bullet.ConvertToBytes()
 		if err == nil {
 			bulletsBytes = append(bulletsBytes, bulletData...)
 		}
+        it = it.Next()
 	}
 	buffer.Write(bulletsBytes)
 

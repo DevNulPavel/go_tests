@@ -6,6 +6,8 @@ import (
     "math"
 )
 
+const BULLE_MAGIC_NUMBER uint8 = 4
+
 type Bullet struct {
     X float64
     Y float64
@@ -32,8 +34,13 @@ func (bullet *Bullet) WorldTick(delta float64) {
 
 func (bullet *Bullet) ConvertToBytes() ([]byte, error) {
     buffer := new(bytes.Buffer)
+    // MagicNumber
+    err := binary.Write(buffer, binary.BigEndian, BULLE_MAGIC_NUMBER)
+    if err != nil {
+        return []byte{}, err
+    }
     // X
-    err := binary.Write(buffer, binary.BigEndian, int16(bullet.X))
+    err = binary.Write(buffer, binary.BigEndian, int16(bullet.X))
     if err != nil {
         return []byte{}, err
     }

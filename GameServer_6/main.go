@@ -28,7 +28,7 @@ func main() {
 
 	// Запуск сервера
 	server := gameserver.NewServer()
-	server.StartListen()
+	server.StartServer()
 
 	for {
 		var input string

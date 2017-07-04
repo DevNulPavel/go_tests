@@ -1,6 +1,7 @@
 package gameserver
 
 import (
+	"container/list"
 	"encoding/binary"
 	"io"
 	"log"
@@ -15,7 +16,16 @@ const UPDATE_QUEUE_SIZE = 100
 // Variables
 var MAX_ID uint32 = 0
 
-// Client ... Структура клиента
+type ClientShootUpdateResult struct {
+	id     uint32
+	x      int16
+	y      int16
+	size   uint8
+	bullet Bullet
+	client *Client
+}
+
+// Структура клиента
 type Client struct {
 	server       *Server
 	connection   *net.TCPConn
@@ -48,7 +58,7 @@ func NewClient(connection *net.TCPConn, server *Server) *Client {
 	exitWriteCh := make(chan bool, 1)
 
 	return &Client{
-		server:     server,
+		server:       server,
 		connection:   connection,
 		id:           curId,
 		state:        clientState,
@@ -65,13 +75,67 @@ func (client *Client) Close() {
 }
 
 func (client *Client) GetCurrentState() ClientState {
-	client.mutex.Lock()
+	client.mutex.RLock()
 	stateCopy := client.state
-	client.mutex.Unlock()
+	client.mutex.RUnlock()
 	return stateCopy
 }
 
-// QueueSendAllStates ... Пишем сообщение клиенту
+func (client *Client) UpdateCurrentState(delta float64, worldSizeX, worldSizeY uint16) []ClientShootUpdateResult {
+	maxX := float64(worldSizeX)
+	maxY := float64(worldSizeY)
+
+	bullets := []ClientShootUpdateResult{}
+	deleteBullets := []*list.Element{}
+
+	client.mutex.Lock()
+	if client.state.Status != CLIENT_STATUS_FAIL {
+		// обновление позиций пуль с удалением старых
+		it := client.state.Bullets.Front()
+		for i := 0; i < client.state.Bullets.Len(); i++ {
+
+			bul := it.Value.(Bullet)
+			bul.WorldTick(delta)
+
+			// Проверяем пулю на выход из карты
+			if (bul.X > 0) && (bul.X < maxX) && (bul.Y > 0) && (bul.Y < maxY) {
+				clientBulletPair := ClientShootUpdateResult{
+					id:     client.state.ID,
+					x:      client.state.X,
+					y:      client.state.Y,
+					size:   client.state.Size,
+					client: client,
+					bullet: bul,
+				}
+				bullets = append(bullets, clientBulletPair)
+			} else {
+				deleteBullets = append(deleteBullets, it)
+			}
+
+			it = it.Next()
+		}
+		// Удаление старых
+		for _, it := range deleteBullets {
+			client.state.Bullets.Remove(it)
+		}
+	}
+	client.mutex.Unlock()
+	return bullets
+}
+
+func (client *Client) IncreaseFrag() {
+	client.mutex.Lock()
+	client.state.Frags++
+	client.mutex.Unlock()
+}
+
+func (client *Client) SetFailStatus() {
+	client.mutex.Lock()
+	client.state.Status = CLIENT_STATUS_FAIL
+	client.mutex.Unlock()
+}
+
+// Пишем сообщение клиенту
 func (client *Client) QueueSendGameState(gameState []byte) {
 	// Если очередь превышена - считаем, что юзер отвалился
 	if len(client.uploadDataCh)+1 > UPDATE_QUEUE_SIZE {
@@ -82,7 +146,7 @@ func (client *Client) QueueSendGameState(gameState []byte) {
 	}
 }
 
-// QueueSendCurrentClientState ... Пишем сообщение клиенту только с его состоянием
+// Пишем сообщение клиенту только с его состоянием
 func (client *Client) QueueSendCurrentClientState() {
 	// Если очередь превышена - считаем, что юзер отвалился
 	if len(client.uploadDataCh)+1 > UPDATE_QUEUE_SIZE {
@@ -136,7 +200,7 @@ func (client *Client) loopWrite() {
 			writenCount, err := client.connection.Write(sendData)
 			if (err != nil) || (writenCount < len(sendData)) {
 				client.server.DeleteClient(client)
-                client.Close()
+				client.Close()
 				client.exitReadCh <- true // Выход из loopRead
 
 				if err != nil {
@@ -198,78 +262,78 @@ func (client *Client) loopRead() {
 
 			// Данные
 			data := make([]byte, dataSize)
-            dataOffset := 0
-            readingSuccess := false
-            for {
-                readCount, err = client.connection.Read(data[dataOffset:])
-                dataOffset += readCount
+			dataOffset := 0
+			readingSuccess := false
+			for {
+				readCount, err = client.connection.Read(data[dataOffset:])
+				dataOffset += readCount
 
-                // Ошибка чтения данных
-                if err != nil {
-                    client.server.DeleteClient(client)
-                    client.Close()
-                    client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
+				// Ошибка чтения данных
+				if err != nil {
+					client.server.DeleteClient(client)
+					client.Close()
+					client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
 
-                    if err == io.EOF {
-                        log.Printf("LoopRead exit by disconnect, clientId = %d\n", client.id)
-                    } else if err != nil {
-                        log.Printf("LoopRead exit by ERROR (%s), clientId = %d\n", err, client.id)
-                    }
-                    return
-                } else if readCount == 0 {
-                    client.server.DeleteClient(client)
-                    client.Close()
-                    client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
+					if err == io.EOF {
+						log.Printf("LoopRead exit by disconnect, clientId = %d\n", client.id)
+					} else if err != nil {
+						log.Printf("LoopRead exit by ERROR (%s), clientId = %d\n", err, client.id)
+					}
+					return
+				} else if readCount == 0 {
+					client.server.DeleteClient(client)
+					client.Close()
+					client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
 
-                    log.Printf("LoopRead exit by disconnect (read 0 bytes), clientId = %d\n", client.id)
+					log.Printf("LoopRead exit by disconnect (read 0 bytes), clientId = %d\n", client.id)
 
-                }else if dataOffset == dataSize {
-                    readingSuccess = true
-                    break
-                }
-            }
+				} else if dataOffset == dataSize {
+					readingSuccess = true
+					break
+				}
+			}
 
-            if readingSuccess {
-                if IsClientCommandData(data) {
-                    // Декодирование
-                    command, err := NewClientCommand(data)
+			if readingSuccess {
+				if IsClientCommandData(data) {
+					// Декодирование
+					command, err := NewClientCommand(data)
 
-                    if (err == nil) && (command.ID == client.id) {
-                        // Обновление состояния
-                        client.mutex.Lock()
-                        {
-                            client.state.X = command.X
-                            client.state.Y = command.Y
-                            client.state.Angle = command.Angle
-                            // Дополнительные действия
-                            switch command.Type {
-                            case CLIENT_COMMAND_TYPE_MOVE:
-                                break
-                            case CLIENT_COMMAND_TYPE_SHOOT:
-                                bullet := NewBullet(client.state.X, client.state.Y, client.state.Angle)
-                                client.state.Bullets.PushBack(bullet)
-                                break
-                            }
-                        }
-                        client.mutex.Unlock()
+					if (err == nil) && (command.ID == client.id) {
+						// Обновление состояния
+						client.mutex.Lock()
+						{
+							client.state.X = command.X
+							client.state.Y = command.Y
+							client.state.Angle = command.Angle
+							// Дополнительные действия
+							switch command.Type {
+							case CLIENT_COMMAND_TYPE_MOVE:
+								break
+							case CLIENT_COMMAND_TYPE_SHOOT:
+								bullet := NewBullet(client.state.X, client.state.Y, client.state.Angle)
+								client.state.Bullets.PushBack(bullet)
+								break
+							}
+						}
+						client.mutex.Unlock()
 
-                        // Запрашиваем отправку обновления состояния всем
-                        client.server.QueueSendAllNewState()
-                    }else{
-                        client.server.DeleteClient(client)
-                        client.Close()
-                        client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
+						// Запрашиваем отправку обновления состояния всем
+						client.server.QueueSendAllNewState()
+					} else {
+						client.server.DeleteClient(client)
+						client.Close()
+						client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
 
-                        log.Printf("Wrong command data, clientId = %d, %v\n", client.id, command)
-                    }
-                }else{
-                    client.server.DeleteClient(client)
-                    client.Close()
-                    client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
+						log.Printf("Wrong command data, clientId = %d, %v\n", client.id, command)
+					}
+				} else {
+					client.server.DeleteClient(client)
+					client.Close()
+					client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
 
-                    log.Printf("Is not client command data, clientId = %d\n", client.id)
-                }
-            }
+					log.Printf("Is not client command data, clientId = %d\n", client.id)
+				}
+			}
 		}
 	}
 }
