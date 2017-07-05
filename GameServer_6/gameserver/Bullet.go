@@ -20,18 +20,19 @@ type Bullet struct {
 	SY float64
 }
 
-func NewBullet(x, y int16, angle float32) Bullet {
+func NewBullet(x, y, radius int16, angle float32) *Bullet {
 	const BULLET_INITIAL_SPEED float64 = 120.0
 
     // Увеличиваем id
     curId := atomic.AddUint32(&BULLET_ID, 1)
+	angleRad := float64(angle)/180.0*math.Pi + math.Pi/2.0
 
-	bullet := Bullet{
+	bullet := &Bullet{
         ID: curId,
-		X:  float64(x),
-		Y:  float64(y),
-		SX: math.Sin(float64(angle)) * BULLET_INITIAL_SPEED,
-		SY: math.Cos(float64(angle)) * BULLET_INITIAL_SPEED,
+		X:  float64(x) + math.Cos(angleRad) * float64(radius),
+		Y:  float64(y) + math.Sin(angleRad) * float64(radius),
+		SX: math.Cos(angleRad) * BULLET_INITIAL_SPEED,
+		SY: math.Sin(angleRad) * BULLET_INITIAL_SPEED,
 	}
 	return bullet
 }

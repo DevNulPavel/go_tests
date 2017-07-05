@@ -34,46 +34,46 @@ func IsClientCommandData(data []byte) bool {
 	return true
 }
 
-func NewClientCommand(data []byte) (ClientCommand, error) {
+func NewClientCommand(data []byte) (*ClientCommand, error) {
 	reader := bytes.NewReader(data)
 
 	// MagicNumber
 	var magicNumber uint8 = 0
 	err := binary.Read(reader, binary.BigEndian, &(magicNumber))
 	if err != nil {
-		return ClientCommand{}, err
+		return &ClientCommand{}, err
 	}
 	if magicNumber != CLIENT_COMMAND_MAGIC_NUMBER {
-		return ClientCommand{}, errors.New("Wrong magic number for client command")
+		return &ClientCommand{}, errors.New("Wrong magic number for client command")
 	}
 
 	// State object
-	command := ClientCommand{}
+	command := &ClientCommand{}
 
 	// ID
 	err = binary.Read(reader, binary.BigEndian, &(command.ID))
 	if err != nil {
-		return ClientCommand{}, err
+		return &ClientCommand{}, err
 	}
 	// X
 	err = binary.Read(reader, binary.BigEndian, &(command.X))
 	if err != nil {
-		return ClientCommand{}, err
+		return &ClientCommand{}, err
 	}
 	// Y
 	err = binary.Read(reader, binary.BigEndian, &(command.Y))
 	if err != nil {
-		return ClientCommand{}, err
+		return &ClientCommand{}, err
 	}
 	// Angle
 	err = binary.Read(reader, binary.BigEndian, &(command.Angle))
 	if err != nil {
-		return ClientCommand{}, err
+		return &ClientCommand{}, err
 	}
 	// Type
 	err = binary.Read(reader, binary.BigEndian, &(command.Type))
 	if err != nil {
-		return ClientCommand{}, err
+		return &ClientCommand{}, err
 	}
 
 	return command, nil

@@ -11,7 +11,7 @@ type Server struct {
 	listener       *net.TCPListener
 	listenerExitCh chan bool
 	loopExitCh     chan bool
-	worldInfo      WorldInfo
+	worldInfo      *WorldInfo
 	clients        map[uint32]*Client
 	makeClientCh   chan *net.TCPConn
 	removeClientCh chan *Client
@@ -127,8 +127,7 @@ func (server *Server) sendAllGameState() {
     // Clients data
     clientsData := make([]byte, 0)
     for _, client := range server.clients {
-        state := client.GetCurrentState()
-        stateCopyBytes, err := state.ConvertToBytes()
+		stateCopyBytes, err := client.GetCurrentStateData()
         if err != nil {
             log.Printf("Client state marshal error\n")
             continue
@@ -153,22 +152,31 @@ func (server *Server) worldTick(delta float64) {
 	needSendUpdate := false
 
 	updateResults := []ClientShootUpdateResult{}
+    clientsPositions := make([]ClientPositionInfo, 0, len(server.clients))
 	for _, client := range server.clients {
-		result := client.UpdateCurrentState(delta, server.worldInfo.SizeX, server.worldInfo.SizeY)
-		updateResults = append(updateResults, result...)
-		needSendUpdate = true
+        // Calling update
+		bulletsResult, positionInfo := client.UpdateCurrentState(delta, server.worldInfo.SizeX, server.worldInfo.SizeY)
+
+        // Clients positions
+        clientsPositions = append(clientsPositions, positionInfo)
+
+        // Bullets results
+        if len(bulletsResult) > 0 {
+            updateResults = append(updateResults, bulletsResult...)
+            needSendUpdate = true
+        }
 	}
 
 	for i := 0; i < len(updateResults); i++ {
-		shooter := updateResults[i]
+		bulletInfo := updateResults[i]
 
-		for j := 0; j < len(updateResults); j++ {
-			receiver := updateResults[j]
-			if shooter.id == receiver.id {
+		for j := 0; j < len(clientsPositions); j++ {
+			receiver := clientsPositions[j]
+			if bulletInfo.clientID == receiver.clientID {
 				continue
 			}
 
-			bul := &shooter.bullet
+			bul := bulletInfo.bullet
 
 			halfSize := int16(receiver.size / 2)
 			minX := float64(receiver.x - halfSize)
@@ -177,7 +185,8 @@ func (server *Server) worldTick(delta float64) {
 			maxY := float64(receiver.y + halfSize)
 
 			if (bul.X > minX) && (bul.X < maxX) && (bul.Y > minY) && (bul.Y < maxY) {
-				shooter.client.IncreaseFrag()
+                log.Printf("Kill client\n")
+                bulletInfo.client.IncreaseFrag(bulletInfo.bullet)
 				receiver.client.SetFailStatus()
 				needSendUpdate = true
 			}
@@ -222,6 +231,7 @@ func (server *Server) mainLoop() {
 
 			// Основной серверный таймер, который обновляет серверный мир
 			case <-timer.C:
+                timer.Reset(updatePeriodMS)
 				delta := time.Now().Sub(lastTickTime).Seconds()
 				lastTickTime = time.Now()
 

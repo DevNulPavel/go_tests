@@ -13,11 +13,11 @@ type WorldInfo struct {
 	ClientsCount uint16
 }
 
-func NewWorldInfo() WorldInfo {
+func NewWorldInfo() *WorldInfo {
 	const worldSizeX = 400
 	const worldSizeY = 400
 
-	info := WorldInfo{
+	info := &WorldInfo{
 		SizeX:        worldSizeX,
 		SizeY:        worldSizeY,
 		ClientsCount: 0,

@@ -25,10 +25,10 @@ type ClientState struct {
 	Bullets *list.List
 }
 
-func NewState(id uint32, x, y int16) ClientState {
-	const clientSize = 20
+func NewState(id uint32, x, y int16) *ClientState {
+	const clientSize = 32
 
-	state := ClientState{
+	state := &ClientState{
 		ID:      id,
 		Size:    clientSize,
 		X:       x,
@@ -93,7 +93,7 @@ func (state *ClientState) ConvertToBytes() ([]byte, error) {
 	bulletsBytes := make([]byte, 0, state.Bullets.Len()*8)
 	it := state.Bullets.Front()
 	for i := 0; i < state.Bullets.Len(); i++ {
-		bullet := it.Value.(Bullet)
+		bullet := it.Value.(*Bullet)
 		bulletData, err := bullet.ConvertToBytes()
 		if err == nil {
 			bulletsBytes = append(bulletsBytes, bulletData...)

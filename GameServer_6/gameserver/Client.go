@@ -5,11 +5,11 @@ import (
 	"encoding/binary"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 	"sync"
 	"sync/atomic"
 	"time"
-    "math/rand"
 )
 
 const UPDATE_QUEUE_SIZE = 100
@@ -18,12 +18,17 @@ const UPDATE_QUEUE_SIZE = 100
 var MAX_ID uint32 = 0
 
 type ClientShootUpdateResult struct {
-	id     uint32
-	x      int16
-	y      int16
-	size   uint8
-	bullet Bullet
-	client *Client
+	clientID uint32
+	bullet   *Bullet
+	client   *Client
+}
+
+type ClientPositionInfo struct {
+	clientID uint32
+	x        int16
+	y        int16
+	size     uint8
+	client   *Client
 }
 
 // Структура клиента
@@ -31,7 +36,7 @@ type Client struct {
 	server       *Server
 	connection   *net.TCPConn
 	id           uint32
-	state        ClientState
+	state        *ClientState
 	mutex        sync.RWMutex
 	uploadDataCh chan []byte
 	exitReadCh   chan bool
@@ -51,7 +56,7 @@ func NewClient(connection *net.TCPConn, server *Server) *Client {
 	curId := atomic.AddUint32(&MAX_ID, 1)
 
 	// Состояние для отгрузки клиенту
-	clientState := NewState(curId, int16(rand.Int() % 200 + 100), int16(rand.Int() % 200 + 100))
+	clientState := NewState(curId, int16(rand.Int()%200+100), int16(rand.Int()%200+100))
 
 	// Конструируем клиента и его каналы
 	uploadDataCh := make(chan []byte, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
@@ -75,14 +80,14 @@ func (client *Client) Close() {
 	log.Printf("Connection closed for state %d", client.id)
 }
 
-func (client *Client) GetCurrentState() ClientState {
+func (client *Client) GetCurrentStateData() ([]byte, error) {
 	client.mutex.RLock()
-	stateCopy := client.state
+	stateData, err := client.state.ConvertToBytes()
 	client.mutex.RUnlock()
-	return stateCopy
+	return stateData, err
 }
 
-func (client *Client) UpdateCurrentState(delta float64, worldSizeX, worldSizeY uint16) []ClientShootUpdateResult {
+func (client *Client) UpdateCurrentState(delta float64, worldSizeX, worldSizeY uint16) ([]ClientShootUpdateResult, ClientPositionInfo) {
 	maxX := float64(worldSizeX)
 	maxY := float64(worldSizeY)
 
@@ -90,21 +95,28 @@ func (client *Client) UpdateCurrentState(delta float64, worldSizeX, worldSizeY u
 	deleteBullets := []*list.Element{}
 
 	client.mutex.Lock()
+	// Position info
+	positionInfo := ClientPositionInfo{
+        clientID: client.id,
+		x:      client.state.X,
+		y:      client.state.Y,
+		size:   client.state.Size,
+		client: client,
+	}
+
+	// Bullets
 	if client.state.Status != CLIENT_STATUS_FAIL {
 		// обновление позиций пуль с удалением старых
 		it := client.state.Bullets.Front()
 		for i := 0; i < client.state.Bullets.Len(); i++ {
 
-			bul := it.Value.(Bullet)
+			bul := it.Value.(*Bullet)
 			bul.WorldTick(delta)
 
 			// Проверяем пулю на выход из карты
 			if (bul.X > 0) && (bul.X < maxX) && (bul.Y > 0) && (bul.Y < maxY) {
 				clientBulletPair := ClientShootUpdateResult{
-					id:     client.state.ID,
-					x:      client.state.X,
-					y:      client.state.Y,
-					size:   client.state.Size,
+                    clientID: client.id,
 					client: client,
 					bullet: bul,
 				}
@@ -121,12 +133,23 @@ func (client *Client) UpdateCurrentState(delta float64, worldSizeX, worldSizeY u
 		}
 	}
 	client.mutex.Unlock()
-	return bullets
+	return bullets, positionInfo
 }
 
-func (client *Client) IncreaseFrag() {
+func (client *Client) IncreaseFrag(bullet *Bullet) {
 	client.mutex.Lock()
+    // Frag increase
 	client.state.Frags++
+    // Delete bullet
+    it := client.state.Bullets.Front()
+    for i := 0; i < client.state.Bullets.Len(); i++ {
+        bul := it.Value.(*Bullet)
+        if bul.ID == bullet.ID {
+            client.state.Bullets.Remove(it)
+            break
+        }
+        it = it.Next()
+    }
 	client.mutex.Unlock()
 }
 
@@ -155,10 +178,9 @@ func (client *Client) QueueSendCurrentClientState() {
 		return
 	} else {
 		client.mutex.RLock()
-		currentUserStateCopy := client.state
+		data, err := client.state.ConvertToBytes()
 		client.mutex.RUnlock()
 
-		data, err := currentUserStateCopy.ConvertToBytes()
 		if err != nil {
 			log.Printf("State upload error for state %d: %s\n", client.id, err)
 		}
@@ -311,7 +333,7 @@ func (client *Client) loopRead() {
 							case CLIENT_COMMAND_TYPE_MOVE:
 								break
 							case CLIENT_COMMAND_TYPE_SHOOT:
-								bullet := NewBullet(client.state.X, client.state.Y, client.state.Angle)
+								bullet := NewBullet(client.state.X, client.state.Y, int16(client.state.Size)/2, client.state.Angle)
 								client.state.Bullets.PushBack(bullet)
 								break
 							}
