@@ -185,7 +185,7 @@ func (server *Server) worldTick(delta float64) {
 			maxY := float64(receiver.y + halfSize)
 
 			if (bul.X > minX) && (bul.X < maxX) && (bul.Y > minY) && (bul.Y < maxY) {
-                log.Printf("Kill client\n")
+                log.Printf("Kill client %d\n", receiver.clientID)
                 bulletInfo.client.IncreaseFrag(bulletInfo.bullet)
 				receiver.client.SetFailStatus()
 				needSendUpdate = true
