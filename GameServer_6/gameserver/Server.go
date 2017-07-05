@@ -155,13 +155,13 @@ func (server *Server) worldTick(delta float64) {
     clientsPositions := make([]ClientPositionInfo, 0, len(server.clients))
 	for _, client := range server.clients {
         // Calling update
-		bulletsResult, positionInfo := client.UpdateCurrentState(delta, server.worldInfo.SizeX, server.worldInfo.SizeY)
+		hasNews, bulletsResult, positionInfo := client.UpdateCurrentState(delta, server.worldInfo.SizeX, server.worldInfo.SizeY)
 
         // Clients positions
         clientsPositions = append(clientsPositions, positionInfo)
 
         // Bullets results
-        if len(bulletsResult) > 0 {
+        if hasNews {
             updateResults = append(updateResults, bulletsResult...)
             needSendUpdate = true
         }

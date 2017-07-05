@@ -87,14 +87,16 @@ func (client *Client) GetCurrentStateData() ([]byte, error) {
 	return stateData, err
 }
 
-func (client *Client) UpdateCurrentState(delta float64, worldSizeX, worldSizeY uint16) ([]ClientShootUpdateResult, ClientPositionInfo) {
+func (client *Client) UpdateCurrentState(delta float64, worldSizeX, worldSizeY uint16) (bool, []ClientShootUpdateResult, ClientPositionInfo) {
 	maxX := float64(worldSizeX)
 	maxY := float64(worldSizeY)
 
+    hasNews := false
 	bullets := []ClientShootUpdateResult{}
 	deleteBullets := []*list.Element{}
 
 	client.mutex.Lock()
+
 	// Position info
 	positionInfo := ClientPositionInfo{
         clientID: client.id,
@@ -121,8 +123,10 @@ func (client *Client) UpdateCurrentState(delta float64, worldSizeX, worldSizeY u
 					bullet: bul,
 				}
 				bullets = append(bullets, clientBulletPair)
+                hasNews = true
 			} else {
 				deleteBullets = append(deleteBullets, it)
+                hasNews = true
 			}
 
 			it = it.Next()
@@ -133,7 +137,7 @@ func (client *Client) UpdateCurrentState(delta float64, worldSizeX, worldSizeY u
 		}
 	}
 	client.mutex.Unlock()
-	return bullets, positionInfo
+	return hasNews, bullets, positionInfo
 }
 
 func (client *Client) IncreaseFrag(bullet *Bullet) {
