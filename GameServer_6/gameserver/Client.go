@@ -75,11 +75,6 @@ func NewClient(connection *net.TCPConn, server *Server) *Client {
 	}
 }
 
-func (client *Client) Close() {
-	client.connection.Close()
-	log.Printf("Connection closed for state %d", client.id)
-}
-
 func (client *Client) GetCurrentStateData() ([]byte, error) {
 	client.mutex.RLock()
 	stateData, err := client.state.ConvertToBytes()
@@ -142,17 +137,19 @@ func (client *Client) UpdateCurrentState(delta float64, worldSizeX, worldSizeY u
 
 func (client *Client) IncreaseFrag(bullet *Bullet) {
 	client.mutex.Lock()
-    // Frag increase
-	client.state.Frags++
-    // Delete bullet
-    it := client.state.Bullets.Front()
-    for i := 0; i < client.state.Bullets.Len(); i++ {
-        bul := it.Value.(*Bullet)
-        if bul.ID == bullet.ID {
-            client.state.Bullets.Remove(it)
-            break
+    {
+        // Frag increase
+        client.state.Frags++
+        // Delete bullet
+        it := client.state.Bullets.Front()
+        for i := 0; i < client.state.Bullets.Len(); i++ {
+            bul := it.Value.(*Bullet)
+            if bul.ID == bullet.ID {
+                client.state.Bullets.Remove(it)
+                break
+            }
+            it = it.Next()
         }
-        it = it.Next()
     }
 	client.mutex.Unlock()
 }
@@ -202,7 +199,7 @@ func (client *Client) StartLoop() {
 func (client *Client) StopLoop() {
 	client.exitWriteCh <- true
 	client.exitReadCh <- true
-	client.Close()
+    client.connection.Close()
 }
 
 // Ожидание записи
@@ -227,7 +224,7 @@ func (client *Client) loopWrite() {
 			writenCount, err := client.connection.Write(sendData)
 			if (err != nil) || (writenCount < len(sendData)) {
 				client.server.DeleteClient(client)
-				client.Close()
+                client.connection.Close()
 				client.exitReadCh <- true // Выход из loopRead
 
 				if err != nil {
@@ -269,7 +266,7 @@ func (client *Client) loopRead() {
 			// Ошибка чтения данных
 			if (err != nil) || (readCount < 4) {
 				client.server.DeleteClient(client)
-				client.Close()
+                client.connection.Close()
 				client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
 
 				if err == io.EOF {
@@ -298,7 +295,7 @@ func (client *Client) loopRead() {
 				// Ошибка чтения данных
 				if err != nil {
 					client.server.DeleteClient(client)
-					client.Close()
+                    client.connection.Close()
 					client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
 
 					if err == io.EOF {
@@ -309,7 +306,7 @@ func (client *Client) loopRead() {
 					return
 				} else if readCount == 0 {
 					client.server.DeleteClient(client)
-					client.Close()
+                    client.connection.Close()
 					client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
 
 					log.Printf("LoopRead exit by disconnect (read 0 bytes), clientId = %d\n", client.id)
@@ -348,14 +345,14 @@ func (client *Client) loopRead() {
 						client.server.QueueSendAllNewState()
 					} else {
 						client.server.DeleteClient(client)
-						client.Close()
+                        client.connection.Close()
 						client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
 
 						log.Printf("Wrong command data, clientId = %d, %v\n", client.id, command)
 					}
 				} else {
 					client.server.DeleteClient(client)
-					client.Close()
+                    client.connection.Close()
 					client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
 
 					log.Printf("Is not client command data, clientId = %d\n", client.id)
