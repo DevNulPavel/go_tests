@@ -11,7 +11,8 @@ ADD . /GameServer_6
 RUN cd /GameServer_6; go build
 
 # Run the outyet command by default when the container starts.
-ENTRYPOINT /GameServer_6/GameServer_6
+#ENTRYPOINT /GameServer_6/GameServer_6
+CMD /GameServer_6/GameServer_6
 
 # Document that the service listens on port 8080.
 EXPOSE 9999
