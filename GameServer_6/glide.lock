@@ -1,0 +1,6 @@
+hash: 39beeddc7c2184ff75a463ed591c761b6b6bae637cfd47148021e34ddcfd60e9
+updated: 2017-07-07T18:04:57.908376961+03:00
+imports:
+- name: github.com/pkg/profile
+  version: 5b67d428864e92711fcbd2f8629456121a56d91f
+testImports: []
