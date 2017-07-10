@@ -1,0 +1,1185 @@
+{
+    "nsk": {  
+        "skinnedMesh": "nsk",
+        "leftHand": false,
+        "scalex": 16.0,
+        "scaley": -16.0,
+        "scalez": 16.0,
+        "rotatex": -90,
+        "x": 0,
+        "y": 0
+    },
+    "nskCroco": {  
+        "skinnedMesh": "nskCroco",
+        "leftHand": false,
+        "scalex": 16.0,
+        "scaley": 16.0,
+        "scalez": 16.0,
+        "rotatex": -90,
+        "rotatey": 180,
+        "x": 0,
+        "y": 0
+    },
+    "egyptRat": {  
+        "skinnedMesh": "egyptRat",
+        "leftHand": false,
+        "scalex": 16.0,
+        "scaley": 16.0,
+        "scalez": 16.0,
+        "rotatex": -90,
+        "rotatey": 180,
+        "x": 0,
+        "y": 0
+    },
+    "egyptRat2": {  
+        "skinnedMesh": "egyptRat2",
+        "leftHand": false,
+        "scalex": 18.0,
+        "scaley": 18.0,
+        "scalez": 18.0,
+        "rotatex": -90,
+        "rotatey": 180,
+        "x": 0,
+        "y": 0
+    },
+    "egyptCroco": {  
+        "skinnedMesh": "egyptCroco",
+        "leftHand": false,
+        "scalex": 16.0,
+        "scaley": 16.0,
+        "scalez": 16.0,
+        "rotatex": -90,
+        "rotatey": 180,
+        "x": 0,
+        "y": 0
+    },
+    "nskRat": {  
+        "skinnedMesh": "nskRat",
+        "leftHand": false,
+        "scalex": 16.0,
+        "scaley": 16.0,
+        "scalez": 16.0,
+        "rotatex": -90,
+        "rotatey": 180,
+        "x": 0,
+        "y": 0
+    },
+    "startSword": {  
+        "skinnedMesh": "startSword",
+        "leftHand": false,
+        "cullmode": 2,
+        "scalex": 0.85,
+        "scaley": 0.85,
+        "scalez": 0.85,
+    },
+    "startSwordRat": {  
+        "skinnedMesh": "startSword",
+        "leftHand": false,
+        "cullmode": 2,
+        "scalex": 0.5,
+        "scaley": 0.5,
+        "scalez": 0.5,
+    },
+    "startHelm": {  
+        "skinnedMesh": "startHelm",
+        "leftHand": false,
+        "cullmode": 0,
+        "x": 0.0,
+        "y": 1.505,
+        "z": -0.12
+    },
+    "bridge_S": { 
+        "leftHand": true,
+        "scalex": 1.0,
+        "scaley": 1.0,
+        "scalez": 1.0,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "bridge_L": { 
+        "leftHand": true,
+        "scalex": 1.0,
+        "scaley": 1.0,
+        "scalez": 1.0,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "bridge_1x1": { 
+        "leftHand": true,
+        "scalex": 1.0,
+        "scaley": 1.0,
+        "scalez": 1.0,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "bridge_1x2": { 
+        "leftHand": true,
+        "scalex": 1.0,
+        "scaley": 1.0,
+        "scalez": 1.0,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "bridge_1x3": { 
+        "leftHand": true,
+        "scalex": 1.0,
+        "scaley": 1.0,
+        "scalez": 1.0,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform_void": { 
+        "leftHand": true,
+        "scalex": 1.0,
+        "scaley": 1.0,
+        "scalez": 1.0,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform1big_nsk": { 
+        "skinnedMesh": "platform1big_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform2big_nsk": { 
+        "skinnedMesh": "platform2big_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform3big_nsk": { 
+        "skinnedMesh": "platform3big_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform4big_nsk": { 
+        "skinnedMesh": "platform4big_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform1small_nsk": { 
+        "skinnedMesh": "platform1small_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform2small_nsk": { 
+        "skinnedMesh": "platform2small_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform3small_nsk": { 
+        "skinnedMesh": "platform3small_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform4small_nsk": { 
+        "skinnedMesh": "platform4small_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform5small_nsk": { 
+        "skinnedMesh": "platform5small_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform6small_nsk": { 
+        "skinnedMesh": "platform6small_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform1special_nsk": { 
+        "skinnedMesh": "platform1special_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform1special_egypt": { 
+        "skinnedMesh": "platform1special_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform1plank_nsk": { 
+        "skinnedMesh": "platform1plank_nsk",
+        "leftHand": true,
+        "scalex": 3.0,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform2plank_nsk": { 
+        "skinnedMesh": "platform2plank_nsk",
+        "leftHand": true,
+        "scalex": 3.0,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "platform3plank_nsk": { 
+        "skinnedMesh": "platform3plank_nsk",
+        "leftHand": true,
+        "scalex": 3.0,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "rotatex": 0.0,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "wall0_nsk": {  
+        "skinnedMesh": "wall0_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "wall1_nsk": {  
+        "skinnedMesh": "wall1_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "wall2_nsk": {  
+        "skinnedMesh": "wall2_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "wall3_nsk": {  
+        "skinnedMesh": "wall3_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "wall4_nsk": {  
+        "skinnedMesh": "wall4_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "wall5_nsk": {  
+        "skinnedMesh": "wall5_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "wall6_nsk": {  
+        "skinnedMesh": "wall6_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "wall7_nsk": {  
+        "skinnedMesh": "wall7_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "wall8_nsk": {  
+        "skinnedMesh": "wall8_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "wall9_nsk": {  
+        "skinnedMesh": "wall9_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "wall10_nsk": {  
+        "skinnedMesh": "wall10_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+
+    "wall0_egypt": {  
+        "skinnedMesh": "wall0_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0,
+        "children": [
+            {  
+                "element": "candle_effect",
+                "x": 2.5,
+                "y": 5.2,
+                "z": 2.5,
+                "scalex": 1.1,
+                "scaley": 0.4, 
+                "scalez": 1.1,               
+            }
+        ]
+    },
+    "wall1_egypt": {  
+        "skinnedMesh": "wall1_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "wall2_egypt": {  
+        "skinnedMesh": "wall2_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "wall3_egypt": {  
+        "skinnedMesh": "wall3_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "wall4_egypt": {  
+        "skinnedMesh": "wall4_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+
+    "arch0_nsk": {  
+        "skinnedMesh": "arch0_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "arch1_nsk": {  
+        "skinnedMesh": "arch1_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "arch2_nsk": {  
+        "skinnedMesh": "arch2_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "arch3_nsk": {  
+        "skinnedMesh": "arch3_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "arch4_nsk": {  
+        "skinnedMesh": "arch4_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+
+    "arch0_egypt": {  
+        "skinnedMesh": "arch0_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "arch1_egypt": {  
+        "skinnedMesh": "arch1_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "arch2_egypt": {  
+        "skinnedMesh": "arch2_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0,
+        "children": [
+            {  
+                "element": "candle_effect",
+                "x": 4.6,
+                "y": 4.25,
+                "z": 12.6,
+                "scalex": 0.4,
+                "scaley": 0.2, 
+                "scalez": 0.4               
+            },
+            {  
+                "element": "candle_effect",
+                "x": 4.6,
+                "y": 4.25,
+                "z": 2.6,
+                "scalex": 0.4,
+                "scaley": 0.2, 
+                "scalez": 0.4               
+            }
+        ]
+    },
+    "arch3_egypt": {  
+        "skinnedMesh": "arch3_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "arch4_egypt": {  
+        "skinnedMesh": "arch4_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+
+    "corner0_nsk": {  
+        "skinnedMesh": "corner0_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "corner1_nsk": {  
+        "skinnedMesh": "corner1_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "candle_effect": {    
+        "eparticles": "Dream_Candle",
+        "file": "res/particles/candle.effect.json",
+        "loop": true,
+        "free": false,
+        "useCopy" : true,
+        "scalex": 0.35,
+        "scaley": 0.35,
+        "scalez": 0.35,
+        "rotatey": 0,
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "children": [
+            {  
+                "sprite": "res/images/world/54.png",
+                "billboard": true,
+                "layer": 1,
+                "usezbuffer": false,
+                "blendmode": "screen",
+                "color": "#fea04e",
+                "opacity": 0.0,
+                "scalex": 0.25,
+                "scaley": 0.25,
+                "scalez": 0.25,
+                "rotatey": 0,
+                "anchorx": 0.5,
+                "anchory": 0.5,
+                "x": 0.0,
+                "y": 2.0,
+                "z": 0.0,
+                "actions": [
+                    {
+                        "type": "scaleTo",
+                        "scalex": 0.225,
+                        "scaley": 0.225,
+                        "scalez": 0.225,
+                        "duration": 0.75
+                    },
+                    {
+                        "type": "scaleTo",
+                        "scalex": 0.25,
+                        "scaley": 0.25,
+                        "scalez": 0.25,
+                        "duration": 0.75
+                    }
+                ]
+            }
+        ]
+    },
+    "pillar0_nsk": {  
+        "skinnedMesh": "pillar0_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "pillar1_nsk": {  
+        "skinnedMesh": "pillar1_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "pillar2_nsk": {  
+        "skinnedMesh": "pillar2_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "pillar3_nsk": {  
+        "skinnedMesh": "pillar3_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "pillar4_nsk": {  
+        "skinnedMesh": "pillar4_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "pillar5_nsk": {  
+        "skinnedMesh": "pillar5_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "pillar6_nsk": {  
+        "skinnedMesh": "pillar6_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0,
+    },
+
+    "pillar0_egypt": {  
+        "skinnedMesh": "pillar0_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0,
+        "children": [
+            {  
+                "element": "candle_effect",
+                "x": 2.5,
+                "y": 5.2,
+                "z": 2.5,
+                "scalex": 1.1,
+                "scaley": 0.4, 
+                "scalez": 1.1,               
+            }
+        ]
+    },
+    "pillar1_egypt": {  
+        "skinnedMesh": "pillar1_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0,
+        "children": [
+            {  
+                "element": "candle_effect",
+                "x": 2.5,
+                "y": 8.5,
+                "z": 2.5,
+                "scalex": 0.8,
+                "scaley": 0.4, 
+                "scalez": 0.8,               
+            }
+        ]
+    },
+    "pillar2_egypt": {  
+        "skinnedMesh": "pillar2_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "pillar3_egypt": {  
+        "skinnedMesh": "pillar3_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "pillar4_egypt": {  
+        "skinnedMesh": "pillar4_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "pillar5_egypt": {  
+        "skinnedMesh": "pillar5_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "pillar6_egypt": {  
+        "skinnedMesh": "pillar6_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0,
+    },
+
+    "coffin0_nsk": {  
+        "skinnedMesh": "coffin0_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 5,
+        "x": 0.0,
+        "y": 0.0,
+    },
+    "coffin1_nsk": {  
+        "skinnedMesh": "coffin1_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 5,
+        "x": 0.0,
+        "y": 0.0,
+    },
+    "coffin2_nsk": {  
+        "skinnedMesh": "coffin2_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 5,
+        "x": 0.0,
+        "y": 0.0,
+    },
+    "coffin3_nsk": {  
+        "skinnedMesh": "coffin3_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 5,
+        "x": 0.0,
+        "y": 0.0,
+    },
+
+    "chest0_egypt": {  
+        "skinnedMesh": "chest0_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 5,
+        "x": 0.0,
+        "y": 0.0,
+    },
+    "chest1_egypt": {  
+        "skinnedMesh": "chest1_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 5,
+        "x": 0.0,
+        "y": 0.0,
+    },
+    "chest2_egypt": {  
+        "skinnedMesh": "chest2_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 5,
+        "x": 0.0,
+        "y": 0.0,
+    },
+    "chest3_egypt": {  
+        "skinnedMesh": "chest3_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 5,
+        "x": 0.0,
+        "y": 0.0,
+    },
+    "chest4_egypt": {  
+        "skinnedMesh": "chest4_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "x": 0.0,
+        "y": 0.0,
+    },
+    "chest5_egypt": {  
+        "skinnedMesh": "chest5_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "x": 0.0,
+        "y": 0.0,
+    },
+
+    "sarcophagus0_egypt": {  
+        "skinnedMesh": "sarcophagus0_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "x": 0.0,
+        "y": 0.0,
+    },
+    "sarcophagus1_egypt": {  
+        "skinnedMesh": "sarcophagus1_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "x": 0.0,
+        "y": 0.0,
+    },
+    "sarcophagus2_egypt": {  
+        "skinnedMesh": "sarcophagus2_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "rotatey": 0,
+        "x": 0.0,
+        "y": 0.0,
+    },
+
+    "plinth_nsk": {  
+        "skinnedMesh": "plinth_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0,
+    },
+
+    "plinth_egypt": {  
+        "skinnedMesh": "plinth_egypt",
+        "leftHand": true,
+        "yUp": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0,
+    },
+
+    "carpet_nsk": {  
+        "skinnedMesh": "carpet_nsk",
+        "rotatey": 315,
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 30.0,
+        "z": 5.0,
+    },
+    "brazier_nsk": {  
+        "skinnedMesh": "brazier_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0,
+        "children": [
+            {  
+                "element": "candle_effect",
+                "x": 2.0,
+                "y": 2.0,
+                "z": 2.0,
+                "scalex": 0.8,
+                "scaley": 0.4, 
+                "scalez": 0.8,               
+            },
+        ]
+    },
+    "candle0_nsk": {  
+        "skinnedMesh": "candle0_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "candle1_nsk": {  
+        "skinnedMesh": "candle1_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 5.0,
+        "y": 0.0,
+        "z": 7.5,
+        "children": [
+            {    
+                "element": "candle_effect",
+                "x": 1.9,
+                "y": 1.6,
+                "z": 1.9
+            },
+            {    
+                "element": "candle_effect",
+                "x": 0.7,
+                "y": 1.6,
+                "z": 1.9
+            },
+            {    
+                "element": "candle_effect",
+                "x": 1.4,
+                "y": 1.6,
+                "z": 0.7
+            }
+        ]
+    },
+    "candle2_nsk": {  
+        "skinnedMesh": "candle2_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "candle3_nsk": {  
+        "skinnedMesh": "candle3_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "candle4_nsk": {  
+        "skinnedMesh": "candle4_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+    "candle5_nsk": {  
+        "skinnedMesh": "candle5_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 10.0,
+        "y": 0.0,
+        "z": 10.0,
+        "children": [
+            {  
+                "element": "candle_effect",
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+            }
+        ]
+    },
+    "candle6_nsk": {  
+        "skinnedMesh": "candle6_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 3.0,
+        "y": 0.0,
+        "z": 7.5,
+        "children": [
+            {    
+                "element": "candle_effect",
+                "x": 1.0,
+                "y": 1.0,
+                "z": 0.9
+            },
+            {    
+                "element": "candle_effect",
+                "x": 3.0,
+                "y": 1.0,
+                "z": 1.1
+            }
+        ]
+    },
+    "candle7_nsk": {  
+        "skinnedMesh": "candle7_nsk",
+        "leftHand": true,
+        "scalex": 5.90551181102,
+        "scaley": 5.90551181102,
+        "scalez": 5.90551181102,
+        "x": 0.0,
+        "y": 0.0
+    },
+
+    "dreamMainHero" :{
+        "skinnedMesh": "dreamMainHero",
+        "leftHand": false,
+        "rotatex": -90.0,
+        "scalex": 1.25,
+        "scaley": 1.25,
+        "scalez": 1.25
+    },
+    "dreamBaseSword" :{
+        "skinnedMesh": "dreamBaseSword",
+        "leftHand": false
+    },
+    "dreamBaseHair" :{
+        "skinnedMesh": "dreamBaseHair",
+        "leftHand": false,
+        "x": -0.165,
+        "y": -1.15,
+        "z": -2.0
+    },
+    "dreamBaseErokez" :{
+        "skinnedMesh": "dreamBaseErokez",
+        "leftHand": false,
+        "order": 3
+    },
+    "dreamBaseArmor" :{
+        "skinnedMesh": "dreamBaseArmor",
+        "leftHand": false
+    },
+    "dreamBaseWrap" :{
+        "skinnedMesh": "dreamBaseWrap",
+        "leftHand": false
+    },
+    "dreamBaseHoop" :{
+        "skinnedMesh": "dreamBaseHoop",
+        "leftHand": false,
+        "x": -0.165,
+        "y": -1.15,
+        "z": -2.0
+    },
+    "dreamBaseBuckle" :{
+        "skinnedMesh": "dreamBaseBuckle",
+        "leftHand": false,
+        "x": 0.0,
+        "y": -3.25,
+        "z": 0.0
+    },
+    "dreamBaseBag" :{
+        "skinnedMesh": "dreamBaseBag",
+        "leftHand": false,
+        "x": -3.5,
+        "y": 0.0,
+        "z": 0.0
+    },
+}

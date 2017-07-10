@@ -1,0 +1,61 @@
+{
+	"startSwordTail": {
+		"sx": 0.0,
+		"sy": 0.0,
+		"sz": 2.1,
+
+		"fx": 0.0,
+		"fy": 0.0,
+		"fz": 0.0,
+
+		"color1": 4294967295,
+		"color2": 4294967295,
+
+		"timeToAdd": 0.001,
+		"vertexLifeTime": 1.0,
+
+		"maxSz": 160,
+		"maxUx": 0.002,
+		"maxUy": 1.0,
+		"minUx": 0.45,
+
+		"gravity": 0,
+		"state": 2,
+
+		"errorStep": 1.5,
+		"blendMode": 5,
+
+		"texture": "res/images/world/77.png",
+		"foreground" : true
+	},
+
+	"dreamBaseSwordTail": {
+		"sx": 0.0,
+		"sy": 0.0,
+		"sz": -23.0,
+
+		"fx": 0.0,
+		"fy": 0.0,
+		"fz": 0.0,
+
+		"color1": 4294967295,
+		"color2": 4294967295,
+
+		"timeToAdd": 0.001,
+		"vertexLifeTime": 1.0,
+
+		"maxSz": 160,
+		"maxUx": 0.002,
+		"maxUy": 1.0,
+		"minUx": 0.45,
+
+		"gravity": 0,
+		"state": 2,
+
+		"errorStep": 1.5,
+		"blendMode": 5,
+
+		"texture": "res/images/world/77.png",
+		"foreground" : true
+	}
+}

@@ -1,0 +1,18 @@
+{
+	"default": {
+		"bottom_name" : "bar_bg.png",
+		"fill_name" : "bar_enemy.png",
+		"top_name" : "",
+		"def_offset_x": 0.0,
+		"def_offset_y": 35.0,
+		"def_offset_z" : 0.0
+	},
+	"hero": {
+		"bottom_name" : "bar_bg.png",
+		"fill_name" : "bar_hero.png",
+		"top_name" : "",
+		"def_offset_x": 0.0,
+		"def_offset_y": 35.0,
+		"def_offset_z" : 0.0
+	}
+}

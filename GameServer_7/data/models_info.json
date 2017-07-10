@@ -1,0 +1,306 @@
+{
+	"hero": {
+		"idle_anim_name" : "hit_right",
+		"idle_anim_speed" : 1.0,
+		"move_anim_name" : "run",
+		"move_anim_speed" : 1.2,
+		"attack_anim_name" : "hit_left",
+		"attack_anim_speed" : 1.0,
+		"death_anim_name" : "death",
+		"death_anim_speed" : 1.0,
+
+		"hit_Anims":{
+				"hit_left" : [24]
+			},
+			
+		"attackStartAnims":{"hit_left" : 0},
+
+		"tail_start_frame" : 15,
+		"tail_stop_frame" : 28,
+	},
+
+	"enemy": {
+		"idle_anim_name" : "idle",
+		"idle_anim_speed" : 1.0,
+		"move_anim_name" : "run",
+		"move_anim_speed" : 1.0,
+		"attack_anim_name" : "hit_left",
+		"attack_anim_speed" : 1.8,
+		"_death_anim_name" : "death",
+		"_death_anim_name" : "-",
+		"death_anim_speed" : 1.0,
+
+		"hit_Anims":{
+				"hit_left" : [20],
+			},
+
+		"attackStartAnims":{"hit_left" : 0},
+
+		"bones":{
+			"1":{
+				"name" : "Enemy_LArmPalm",
+				"x" : 25.0,
+				"y" : 48.0,
+				"z" : 10.0,
+				"rx" : 20.0,
+				"ry" : 90.0,
+				"rz" : 60.0
+			}
+		}
+	},
+
+	"orc": {
+		"idle_anim_name" : "idle1",
+		"idle_anim_speed" : 1.0,
+		"move_anim_name" : "run",
+		"move_anim_speed" : 1.2,
+		"attack_anim_name" : "attack1",
+		"attack_anim_speed" : 1.5,
+		"death_anim_name" : "die1",
+		"death_anim_speed" : 1.0,
+
+		"hit_Anims":{
+				"attack1" : [12, 24],
+			},
+		"attackStartAnims":{"attack1" : 0}
+	},
+
+	"nsk": {
+		"idle_anim_name" : "Idle",
+		"idle_anim_speed" : 1.0,
+		"move_anim_name" : "Run",
+		"move_anim_speed" : 1.5,
+		"attack_anim_name" : "Attack1",
+		"attack_anim_speed" : 1.8,
+		"death_anim_name" : "Death",
+		"death_anim_speed" : 1.0,
+
+		"bones":{
+			"1":{
+				"name" : "Lowerhand_Right",
+		        "x": -0.59,
+		        "y": 0.52,
+		        "z": -0.29,
+		        "rx": 200,
+		        "ry": -5.0,
+		        "rz": -45.0,
+		        "sx": 1.0,
+		        "sy": 1.0,
+		        "sz": 1.0,
+			},
+			"3":{
+				"name" : "Head",
+		        "x": 0.0,
+		        "y": 1.505,
+		        "z": -0.12,
+			},			
+		},
+
+		"hit_Anims":{
+				"Attack1" : [7],
+				"Attack2" : [7],
+				"Attack3" : [7],
+				"Attack4" : [7]
+			},
+
+		"attackStartAnims":{
+		 	"Attack1" : 0,
+		 	"Attack2" : 0,
+		 	"Attack3" : 0,
+		 	"Attack4" : 0
+		 }
+	},
+
+	"nskCroco": {
+		"idle_anim_name" : "AttackMelee1",
+		"idle_anim_speed" : 1.0,
+		"move_anim_name" : "Run",
+		"move_anim_speed" : 1.0,
+		"attack_anim_name" : "AttackMelee1",
+		"attack_anim_speed" : 1.0,
+		"death_anim_name" : "-",
+		"death_anim_speed" : 1.0,
+
+		"hit_Anims":{
+				"AttackMelee1" : [10]
+			},
+
+		"attackStartAnims":{"AttackMelee1" : 0}
+	},
+
+	"egyptCroco": {
+		"idle_anim_name" : "AttackMelee1",
+		"idle_anim_speed" : 1.0,
+		"move_anim_name" : "Run",
+		"move_anim_speed" : 1.0,
+		"attack_anim_name" : "AttackMelee1",
+		"attack_anim_speed" : 1.0,
+		"death_anim_name" : "-",
+		"death_anim_speed" : 1.0,
+
+		"hit_Anims":{
+				"AttackMelee1" : [10]
+			},
+
+		"attackStartAnims":{"AttackMelee1" : 0}
+	},
+
+	"nskRat": {
+		"idle_anim_name" : "AttackMelee1",
+		"idle_anim_speed" : 1.0,
+		"move_anim_name" : "Run",
+		"move_anim_speed" : 1.0,
+		"attack_anim_name" : "AttackMelee1",
+		"attack_anim_speed" : 1.0,
+		"death_anim_name" : "-",
+		"death_anim_speed" : 1.0,
+
+		"bones":{
+			"1":{
+				"name" : "deformer_Hand_R",
+		        "x": -0.54,
+		        "y": 0.0,
+		        "z": 0.3,
+		        "rx": 90,
+		        "ry": 90.0,
+		        "rz": 180.0,
+		        "sx": 1.0,
+		        "sy": 1.0,
+		        "sz": 1.0,
+			}
+		},
+
+		"hit_Anims":{
+				"AttackMelee1" : [10],
+				"AttackMelee2" : [10]
+		},
+
+		"attackStartAnims":{"AttackMelee1" : 0}
+	},
+
+	"egyptRat": {
+		"idle_anim_name" : "AttackMelee1",
+		"idle_anim_speed" : 1.0,
+		"move_anim_name" : "Run",
+		"move_anim_speed" : 1.0,
+		"attack_anim_name" : "AttackMelee1",
+		"attack_anim_speed" : 1.0,
+		"death_anim_name" : "-",
+		"death_anim_speed" : 1.0,
+
+		"bones":{
+			"1":{
+				"name" : "deformer_Hand_R",
+		        "x": -0.54,
+		        "y": 0.0,
+		        "z": 0.3,
+		        "rx": 90,
+		        "ry": 90.0,
+		        "rz": 180.0,
+		        "sx": 1.0,
+		        "sy": 1.0,
+		        "sz": 1.0,
+			}
+		},
+
+		"hit_Anims":{
+				"AttackMelee1" : [10],
+				"AttackMelee2" : [10]
+		},
+
+		"attackStartAnims":{"AttackMelee1" : 0}
+	},
+	
+	"egyptRat2": {
+		"idle_anim_name" : "AttackMelee1",
+		"idle_anim_speed" : 1.0,
+		"move_anim_name" : "Run",
+		"move_anim_speed" : 1.0,
+		"attack_anim_name" : "AttackMelee1",
+		"attack_anim_speed" : 1.0,
+		"death_anim_name" : "-",
+		"death_anim_speed" : 1.0,
+
+		"bones":{
+			"1":{
+				"name" : "deformer_Hand_R",
+		        "x": -0.54,
+		        "y": 0.0,
+		        "z": 0.3,
+		        "rx": 90,
+		        "ry": 90.0,
+		        "rz": 180.0,
+		        "sx": 1.0,
+		        "sy": 1.0,
+		        "sz": 1.0,
+			}
+		},
+
+		"hit_Anims":{
+				"AttackMelee1" : [10],
+				"AttackMelee2" : [10]
+		},
+
+		"attackStartAnims":{"AttackMelee1" : 0}
+	},
+
+	"dreamMainHero": {
+		"idle_anim_name" : "idle",
+		"idle_anim_speed" : 1.0,
+		"move_anim_name" : "run",
+		"move_anim_speed" : 1.2,
+		"attack_anim_name" : "attack1",
+		"attack_anim_speed" : 1.5,
+		"death_anim_name" : "death",
+		"death_anim_speed" : 1.0,
+
+		"bones":{
+			"1":{
+				"name" : "Base HumanRPalm",
+		        "x": -10.0,
+		        "y": 0.0,
+		        "z": 8.05,
+
+		        "rx": -104.0,  
+		        "ry": -56.75,
+		        "rz": 2.0,
+
+		        "sx": 1.0,
+		        "sy": 1.0,
+		        "sz": 1.0
+			},
+			"2":{
+				"name" : "Base HumanSpine2",
+				"x": 0.0,  
+		        "y": -0.2,
+		        "z": 18.0
+			},
+			"3":{
+				"name" : "Base HumanHead",
+		        "x": 0.0,  
+		        "y": 0.0,
+		        "z": 25.0
+			},
+			"4":{
+				"name" : "Base HumanPelvis",
+		        "x": 0.0,  
+		        "y": 0.0,
+		        "z": 11.5
+			}			
+		},
+
+		"hit_Anims":{
+				"attack1" : [10],
+				"attack2" : [10],
+				"attack3" : [10],
+				"attack4" : [10]
+			},
+
+		"attackStartAnims":{
+		 	"attack1" : 0,
+		 	"attack2" : 0,
+		 	"attack3" : 0,
+		 	"attack4" : 0
+		 }
+	},
+}

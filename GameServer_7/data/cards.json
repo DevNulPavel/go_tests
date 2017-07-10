@@ -1,0 +1,70 @@
+{
+	"card_whirl": {
+		"icon": "card_whirl.png",
+		"rarity": "normal"
+	},
+	"card_slam": {
+		"icon": "card_slam.png",
+		"rarity": "normal"
+	},
+	"card_shield": {
+		"icon": "card_shield.png",
+		"rarity": "normal"
+	},
+	"card_whirlwind": {
+		"icon": "card_whirlwind.png",
+		"rarity": "normal"
+	},
+	"card_splash_strike": {
+		"icon": "card_splash_strike.png",
+		"rarity": "normal"
+	},
+	"card_sector_strike": {
+		"icon": "card_sector_strike.png",
+		"rarity": "normal"
+	},
+	"card_chain_strike": {
+		"icon": "card_chain_strike.png",
+		"rarity": "normal"
+	},
+	"card_vacuum": {
+		"icon": "card_vacuum.png",
+		"rarity": "normal"
+	},
+	"card_burning_shield": {
+		"icon": "card_burning_shield.png",
+		"rarity": "normal"
+	},
+	"card_thorn_shield": {
+		"icon": "card_thorn_shield.png",
+		"rarity": "normal"
+	},
+	"card_burst_shield": {
+		"icon": "card_burst_shield.png",
+		"rarity": "normal"
+	},
+	"card_heal": {
+		"icon": "card_heal.png",
+		"rarity": "normal"
+	},
+	"card_buff_1": {
+		"icon": "card_buff_1.png",
+		"rarity": "normal"
+	},
+	"card_jump_forward": {
+		"icon": "card_jump_forward.png",
+		"rarity": "normal"
+	},
+	"card_dash": {
+		"icon": "card_dash.png",
+		"rarity": "normal"
+	},
+	"card_blink": {
+		"icon": "card_blink.png",
+		"rarity": "normal"
+	},
+	"card_backstab": {
+		"icon": "card_backstab.png",
+		"rarity": "normal"
+	}
+}

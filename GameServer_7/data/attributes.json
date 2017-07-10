@@ -1,0 +1,23 @@
+{
+	"player": {
+		"level": {
+			"type": "NonNegativeAttribute",
+			"start_value": 1
+		},
+		"money_1": {
+			"type": "NonNegativeAttribute",
+			"start_value": 2500
+		},
+		"money_2": {
+			"type": "NonNegativeAttribute",
+			"start_value": 500
+		}
+	}, 
+	"map": {
+		"points": {
+			"type": "NonNegativeAttribute",
+			"start_value": 0
+			}
+	}
+	
+}

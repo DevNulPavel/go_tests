@@ -1,0 +1,41 @@
+{
+	"type1": {
+		"name" : "fast",
+		"hpMult" : 1.5,
+		"regenMult" : 1.5,
+		"powerMult" : 1.5,
+		"defMult" : 1.5,
+
+		"accelMult" : 1.5,
+		"rotateSpeedMult" : 1.0,
+		"moveSpeedMult" : 2.0,
+
+		"attackSpeedMult" : 1.5,
+
+		"bonus" : "bonus_drop_1",
+		"bonusMult" : 4.0,
+
+		"skills":[
+			"whirl"
+		]
+	},
+
+	"type2": {
+		"name" : "fat",
+		"hpMult" : 3.5,
+		"regenMult" : 1.0,
+		"powerMult" : 1.15,
+		"defMult" : 1.0,
+
+		"accelMult" : 1.0,
+		"rotateSpeedMult" : 1.0,
+		"moveSpeedMult" : 1.0,
+
+		"attackSpeedMult" : 1.0,
+		"bonusMult" : 2.0,
+
+		"skills":[
+			"shield"
+		]
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"mvp_dungeon": {
+		"amplification_factor": 1.1,
+		"kills_for_improve": 15,
+		"timer": 120,
+		"level": "nsk",
+		"platforms": ["platform_void", "bridge_1x1", "bridge_1x2", "bridge_1x3", "bridge_S"]
+	},
+	"mvp_dungeon_time": {
+		"amplification_factor": 1.05,
+		"kills_for_improve": 15,
+		"timer": 3000,
+		"time_for_kill":1,
+		"level": "egypt3",
+		"platforms": ["platform_void_egypt", "bridge_1x1", "bridge_1x2", "bridge_1x3", "bridge_S"]
+	}
+}

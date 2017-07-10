@@ -1,0 +1,7 @@
+{
+	"default_death":{
+		"path" : "res/particles/bone_explosion.effect.json",
+		"name" : "bone_explosion",
+		"scale" : 1
+	}
+}

@@ -1,0 +1,16 @@
+[{
+	"range_min": 30,
+	"reward": "bonus_tier_1"
+}, {
+	"range_min": 151,
+	"reward": "bonus_tier_2"
+}, {
+	"range_min": 276,
+	"reward": "bonus_tier_3"
+}, {
+	"range_min": 401,
+	"reward": "bonus_tier_4"
+}, {
+	"range_min": 501,
+	"reward": "bonus_tier_5"
+}]

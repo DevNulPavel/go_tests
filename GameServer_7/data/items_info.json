@@ -1,0 +1,87 @@
+{
+	"startSword": {
+		"id": 1,
+		"name": "start sword",
+		"slot": 1,
+		"symbol": "startSword",
+		"selfSkinning" : false,
+		"tails" :[
+			"startSwordTail"
+		]
+	},
+	"startSwordRat": {
+		"id": 1,
+		"name": "start sword rat",
+		"slot": 1,
+		"selfSkinning" : false,
+		"symbol": "startSwordRat"
+	},
+	"startHelm": {
+		"id": 2,
+		"name": "start helm",
+		"slot": 3,
+		"selfSkinning" : false,
+		"symbol": "startHelm",
+	},	
+
+	"dreamBaseSword": {
+		"id": 1,
+		"name": "base sword",
+		"slot": 1,
+		"symbol": "dreamBaseSword",
+		"selfSkinning" : false,
+		"tails" :[
+			"dreamBaseSwordTail"
+		]
+	},
+	"dreamBaseHair": {
+		"id": 2,
+		"name": "base helm",
+		"slot": 3,
+		"symbol": "dreamBaseHair",
+		"selfSkinning" : false
+	},
+	"dreamBaseErokez": {
+		"id": 2,
+		"name": "base helm",
+		"slot": 3,
+		"symbol": "dreamBaseErokez",
+		"selfSkinning" : false
+	},
+	"dreamBaseArmor": {
+		"id": 3,
+		"name": "base armor",
+		"slot": 0,
+		"symbol": "dreamBaseArmor",
+		"selfSkinning" : true
+	},
+	"dreamBaseWrap":{
+		"id": 4,
+		"name": "base armor",
+		"slot": 2,
+		"symbol": "dreamBaseWrap",
+		"selfSkinning" : false
+	},
+
+	"dreamBaseHoop": {
+		"id": 2,
+		"name": "base hoop",
+		"slot": 3,
+		"symbol": "dreamBaseHoop",
+		"selfSkinning" : false
+	},
+	"dreamBaseBuckle": {
+		"id": 2,
+		"name": "base buckle",
+		"slot": 4,
+		"symbol": "dreamBaseBuckle",
+		"selfSkinning" : false
+	},
+	"dreamBaseBag": {
+		"id": 2,
+		"name": "base bag",
+		"slot": 4,
+		"symbol": "dreamBaseBag",
+		"selfSkinning" : false
+	}
+}

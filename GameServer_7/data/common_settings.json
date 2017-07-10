@@ -1,0 +1,10 @@
+{
+	"player_model": "player",
+	"mob_spawn_row_offset": 2,
+	"mob_spawn_cell_offset": 3,
+	"mob_spawn_distance": 20,
+	"mob_aggro_distance": 10,
+	"splash_damage": 0.3,
+	"damage_range_min": 0.8,
+	"damage_range_max": 1.0
+}

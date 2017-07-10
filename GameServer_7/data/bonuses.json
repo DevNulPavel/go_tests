@@ -1,0 +1,162 @@
+{
+  "bonus_tier_1": {
+    "items": [
+      {
+        "type": "resource",
+        "value": "chest_1_1",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 72,
+        "ord": 1
+      },
+      {
+        "type": "resource",
+        "value": "chest_2_1",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 24,
+        "ord": 2
+      },
+      {
+        "type": "resource",
+        "value": "chest_3_1",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 4,
+        "ord": 3
+      }
+    ]
+  },
+  "bonus_tier_2": {
+    "items": [
+      {
+        "type": "resource",
+        "value": "chest_1_2",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 72,
+        "ord": 1
+      },
+      {
+        "type": "resource",
+        "value": "chest_2_2",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 24,
+        "ord": 2
+      },
+      {
+        "type": "resource",
+        "value": "chest_3_2",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 4,
+        "ord": 3
+      }
+    ]
+  },
+  "bonus_tier_3": {
+    "items": [
+      {
+        "type": "resource",
+        "value": "chest_1_3",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 72,
+        "ord": 1
+      },
+      {
+        "type": "resource",
+        "value": "chest_2_3",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 24,
+        "ord": 2
+      },
+      {
+        "type": "resource",
+        "value": "chest_3_3",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 4,
+        "ord": 3
+      }
+    ]
+  },
+  "bonus_tier_4": {
+    "items": [
+      {
+        "type": "resource",
+        "value": "chest_1_4",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 72,
+        "ord": 1
+      },
+      {
+        "type": "resource",
+        "value": "chest_2_4",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 24,
+        "ord": 2
+      },
+      {
+        "type": "resource",
+        "value": "chest_3_4",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 4,
+        "ord": 3
+      }
+    ]
+  },
+  "bonus_tier_5": {
+    "items": [
+      {
+        "type": "resource",
+        "value": "chest_1_5",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 72,
+        "ord": 1
+      },
+      {
+        "type": "resource",
+        "value": "chest_2_5",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 24,
+        "ord": 2
+      },
+      {
+        "type": "resource",
+        "value": "chest_3_5",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 4,
+        "ord": 3
+      }
+    ]
+  },
+  "bonus_drop_1": {
+    "items": [
+      {
+        "type": "attribute",
+        "value": "money_1",
+        "mincount": 3,
+        "maxcount": 5,
+        "weight": 0,
+        "ord": 1
+      },
+      {
+        "type": "attribute",
+        "value": "points",
+        "mincount": 1,
+        "maxcount": 1,
+        "weight": 0,
+        "ord": 2
+      }
+    ]
+  }
+}

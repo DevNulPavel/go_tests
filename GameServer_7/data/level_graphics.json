@@ -1,0 +1,69 @@
+{
+	"nsk": {
+		"texturesPath" : "res/models/meshes/nsk_level_textures/",
+		"fogTexture" : "res/images/world/24.png",
+		"levelColor" : {"r": 0.9852941, "g": 0.652032852, "b": 0.9071501, "a": 1.0},
+		"omniColor" : {"r": 0.183823526, "g": 0.7298177, "b": 1.0, "a": 0.0},
+		"bgColor" : {"r": 0.32, "g": 0.70, "b": 0.77, "a": 1.0},
+		"fogColor" : {"r": 0.32, "g": 0.70, "b": 0.77, "a": 1.0},
+		"fogNodeColor" : {"r": 0.8666, "g": 0.9294, "b": 0.9294, "a": 0.4000},
+		"fogNodeFogBrightness" : 2.5,
+		"fogNodeHeight" : 40.0,
+		"fogNodeTcScale": 1.0,
+		"fogNodeSize" : 1024.0,
+		"omniMult": 1.8,
+		"lightMult": 1.26,
+		"platforms": ["platform_void", "bridge_1x1", "bridge_1x2", "bridge_1x3", "bridge_S"]
+	},
+
+	"egypt": {
+		"texturesPath" : "res/models/meshes/egypt_level_textures/",
+		"fogTexture" : "res/images/world/24.png",
+		"levelColor" : {"r": 0.75, "g": 0.75, "b": 0.75, "a": 1.0},
+		"omniColor" : {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.0},
+		"bgColor" : {"r": 0.32, "g": 0.70, "b": 0.77, "a": 1.0},
+		"fogColor" : {"r": 0.32, "g": 0.70, "b": 0.77, "a": 1.0},
+		"fogNodeColor" : {"r": 0.8666, "g": 0.9294, "b": 0.9294, "a": 0.4000},
+		"fogNodeFogBrightness" : 2.5,
+		"fogNodeHeight" : 40.0,
+		"fogNodeTcScale": 1.0,
+		"fogNodeSize" : 1024.0,
+		"omniMult": 1.05,
+		"lightMult": 0.9,
+		"platforms": ["platform_void_egypt", "bridge_1x1", "bridge_1x2", "bridge_1x3", "bridge_S"]
+	},
+
+	"egypt2": {
+		"texturesPath" : "res/models/meshes/egypt_level_textures2/",
+		"fogTexture" : "res/images/world/24.png",
+		"levelColor" : {"r": 0.75, "g": 0.75, "b": 0.75, "a": 1.0},
+		"omniColor" : {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.0},
+		"bgColor" : {"r": 0.32, "g": 0.70, "b": 0.77, "a": 1.0},
+		"fogColor" : {"r": 0.32, "g": 0.70, "b": 0.77, "a": 1.0},
+		"fogNodeColor" : {"r": 0.8666, "g": 0.9294, "b": 0.9294, "a": 0.4000},
+		"fogNodeFogBrightness" : 2.5,
+		"fogNodeHeight" : 40.0,
+		"fogNodeTcScale": 1.0,
+		"fogNodeSize" : 1024.0,
+		"omniMult": 1.05,
+		"lightMult": 0.9,
+		"platforms": ["platform_void_egypt", "bridge_1x1", "bridge_1x2", "bridge_1x3", "bridge_S"]
+	},
+
+	"egypt3": {
+		"texturesPath" : "res/models/meshes/egypt_level_textures3/",
+		"fogTexture" : "res/images/world/24.png",
+		"levelColor" : {"r": 0.75, "g": 0.75, "b": 0.75, "a": 1.0},
+		"omniColor" : {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.0},
+		"bgColor" : {"r": 1.05, "g": 0.75, "b": 0.0, "a": 1.0},
+		"fogColor" : {"r": 1.05, "g": 0.75, "b": 0.0, "a": 1.0},
+		"fogNodeColor" : {"r": 0.9, "g": 0.9, "b": 0.9, "a": 0.4000},
+		"fogNodeFogBrightness" : 2.5,
+		"fogNodeHeight" : 40.0,
+		"fogNodeTcScale": 1.0,
+		"fogNodeSize" : 1024.0,
+		"omniMult": 1.35,
+		"lightMult": 0.25,
+		"platforms": ["platform_void_egypt", "bridge_1x1", "bridge_1x2", "bridge_1x3", "bridge_S"]
+	}
+}

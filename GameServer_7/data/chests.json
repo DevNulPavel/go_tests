@@ -1,0 +1,20 @@
+{
+	"chest_1_1": {"icon": "chest_1.png", "timer": 3600, "min_money1": 15, "max_money1": 25, "min_card": 1, "max_card": 2, "min_card_count": 2, "max_card_count": 2},
+	"chest_1_2": {"icon": "chest_1.png", "timer": 3600, "min_money1": 20, "max_money1": 30, "min_card": 1, "max_card": 2, "min_card_count": 3, "max_card_count": 3},
+	"chest_1_3": {"icon": "chest_1.png", "timer": 3600, "min_money1": 25, "max_money1": 35, "min_card": 1, "max_card": 2, "min_card_count": 4, "max_card_count": 4},
+	"chest_1_4": {"icon": "chest_1.png", "timer": 3600, "min_money1": 30, "max_money1": 40, "min_card": 2, "max_card": 3, "min_card_count": 5, "max_card_count": 5},
+	"chest_1_5": {"icon": "chest_1.png", "timer": 3600,	"min_money1": 35, "max_money1": 45, "min_card": 2, "max_card": 3, "min_card_count": 6, "max_card_count": 7},
+	"chest_2_1": {"icon": "chest_2.png", "timer": 10800, "min_money1": 55, "max_money1": 65, "min_card": 3, "max_card": 5, "min_card_count": 8, "max_card_count": 10},
+	"chest_2_2": {"icon": "chest_2.png", "timer": 10800, "min_money1": 70, "max_money1": 80, "min_card": 3, "max_card": 5, "min_card_count": 12, "max_card_count": 15},
+	"chest_2_3": {"icon": "chest_2.png", "timer": 10800, "min_money1": 85, "max_money1": 95, "min_card": 3, "max_card": 5, "min_card_count": 16, "max_card_count": 20},
+	"chest_2_4": {"icon": "chest_2.png", "timer": 10800, "min_money1": 100, "max_money1": 110, "min_card": 3, "max_card": 5, "min_card_count": 20, "max_card_count": 25},
+	"chest_2_5": {"icon": "chest_2.png", "timer": 10800, "min_money1": 115, "max_money1": 125, "min_card": 3, "max_card": 5, "min_card_count": 30, "max_card_count": 35},
+	"chest_3_1": {"icon": "chest_3.png", "timer": 28800, "min_money1": 150, "max_money1": 170, "min_card": 4, "max_card": 6, "min_card_count": 35, "max_card_count": 40},
+	"chest_3_2": {"icon": "chest_3.png", "timer": 28800, "min_money1": 190, "max_money1": 210, "min_card": 4, "max_card": 6, "min_card_count": 55, "max_card_count": 60},
+	"chest_3_3": {"icon": "chest_3.png", "timer": 28800, "min_money1": 230, "max_money1": 250, "min_card": 4, "max_card": 6, "min_card_count": 70, "max_card_count": 80},
+	"chest_3_4": {"icon": "chest_3.png", "timer": 28800, "min_money1": 270, "max_money1": 290, "min_card": 4, "max_card": 6, "min_card_count": 85, "max_card_count": 100},
+	"chest_3_5": {"icon": "chest_3.png", "timer": 28800, "min_money1": 310, "max_money1": 330, "min_card": 5, "max_card": 7, "min_card_count": 120, "max_card_count": 140},
+	"m1_pack1000": {"icon": "money1_2.png", "timer": 0, "min_money1": 1000, "max_money1": 1000},
+	"m1_pack10000": {"icon": "money1_3.png", "timer": 0, "min_money1": 10000, "max_money1": 10000},
+	"m2_pack100": {"icon": "money2_3.png", "timer": 0, "min_money2": 100, "max_money2": 100}
+}
