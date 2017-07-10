@@ -44,6 +44,7 @@ type Platform struct {
 	Monsters []PlatformMonster // TODO: ???
 	Objects  []PlatformObject  // TODO: ???
 	Blocks   []PlatformObject  // TODO: ???
+    HaveDecor bool
 }
 
 func NewPlatform(info *PlatformInfo, posX, posY int16, exits [4]int16) *Platform {
@@ -77,25 +78,25 @@ func NewPlatform(info *PlatformInfo, posX, posY int16, exits [4]int16) *Platform
 	return platform
 }
 
-func getPortalCoord(dir PlatformDir, exit [4]int16) Point {
+func getPortalCoord(dir PlatformDir, exit [4]int16) Point16 {
 	switch {
 	case (dir == DIR_NORTH) && (exit[DIR_NORTH] != -1):
-		return Point{exit[DIR_NORTH], 0}
+		return Point16{exit[DIR_NORTH], 0}
 
 	case (dir == DIR_EAST) && (exit[DIR_EAST] != -1):
-		return Point{PLATFORM_SIDE_SIZE - 1, exit[DIR_EAST]}
+		return Point16{PLATFORM_SIDE_SIZE - 1, exit[DIR_EAST]}
 
 	case (dir == DIR_SOUTH) && (exit[DIR_SOUTH] != -1):
-		return Point{exit[DIR_SOUTH], PLATFORM_SIDE_SIZE - 1}
+		return Point16{exit[DIR_SOUTH], PLATFORM_SIDE_SIZE - 1}
 
 	case (dir == DIR_WEST) && (exit[DIR_WEST] != -1):
-		return Point{0, exit[DIR_WEST]}
+		return Point16{0, exit[DIR_WEST]}
 
 	default:
-		return Point{-1, -1}
+		return Point16{-1, -1}
 	}
 
-	return Point{-1, -1}
+	return Point16{-1, -1}
 }
 
 func createCells(platform *Platform) {
@@ -164,7 +165,7 @@ func makeBridgeCells(platform *Platform) {
 }
 
 func makeBattleCells(platform *Platform) {
-    endPoints := make([]Point, 0)
+    endPoints := make([]Point16, 0)
 
 	w := platform.Width
 	h := platform.Height
@@ -237,7 +238,7 @@ func makeBattleCells(platform *Platform) {
                 if start == -1 {
                     start = i
                 } else {
-                    endPoints = make([]Point, 1)
+                    endPoints = make([]Point16, 1)
 
                     endPoint := getPortalCoord(PlatformDir(i), platform.ExitCoord)
                     endPoints = append(endPoints, endPoint)
@@ -246,7 +247,7 @@ func makeBattleCells(platform *Platform) {
 
                     // TODO: ???
                     //path = _pathManager.findPathOld(startpt, endPoints, false, true, false);
-                    path := make([]Point, 0)
+                    path := make([]Point16, 0)
 
                     if len(path) > 0 {
                         foundPath = true
@@ -291,6 +292,36 @@ func makeBattleCells(platform *Platform) {
 
     for i := uint16(0); i < w * h; i++ {
         platform.Cells[i] = cellsInfo[i]
+    }
+}
+
+func createBlocks2x2(platform *Platform) {
+    platform.HaveDecor = false
+
+    for y := int16(0); y < PLATFORM_WORK_SIZE; y += PLATFORM_BLOCK_SIZE_2x2 {
+        for x := int16(0); x < PLATFORM_WORK_SIZE; x += PLATFORM_BLOCK_SIZE_2x2 {
+            curPoint := NewPoint16(x, y).Div(PLATFORM_BLOCK_SIZE_2x2)
+
+            northPoint := getPortalCoord(DIR_NORTH, platform.ExitCoord)
+            eastPoint := getPortalCoord(DIR_EAST, platform.ExitCoord)
+            southPoint := getPortalCoord(DIR_SOUTH, platform.ExitCoord)
+            westPoint := getPortalCoord(DIR_WEST, platform.ExitCoord)
+
+            testPoint1 := northPoint.Div(PLATFORM_BLOCK_SIZE_2x2)
+            testPoint2 := NewPoint16(eastPoint.X-PLATFORM_BLOCK_SIZE_2x2, eastPoint.Y).Div(PLATFORM_BLOCK_SIZE_2x2)
+            testPoint3 := NewPoint16(southPoint.X, southPoint.Y-PLATFORM_BLOCK_SIZE_2x2).Div(PLATFORM_BLOCK_SIZE_2x2)
+            testPoint4 := westPoint.Div(PLATFORM_BLOCK_SIZE_2x2)
+
+            isExit := false
+            if (curPoint == testPoint1) || (curPoint == testPoint2) || (curPoint == testPoint3) || (curPoint == testPoint4) {
+                isExit = true
+            }
+
+            posTest := (y == PLATFORM_WORK_SIZE / 2 - PLATFORM_BLOCK_SIZE_1x1) && (x == PLATFORM_WORK_SIZE / 2 - PLATFORM_BLOCK_SIZE_1x1)
+            if (rand.Int() % 2 == 0) || posTest || ((rand.Int() == 0) && isExit) {
+                // TODO: !!!!
+            }
+        }
     }
 }
 
