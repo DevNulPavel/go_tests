@@ -1,8 +1,8 @@
 package gameserver
 
 import (
+	"math"
 	"math/rand"
-    "math"
 )
 
 const (
@@ -172,23 +172,23 @@ func makeBattleCells(platform *Platform) {
 	h := platform.Height
 
 	// Blocks
-    block3x3 := make([]*PlatformObjectInfo, 0)
-    for i := range platform.Info.Blocks {
-        obj := &platform.Info.Blocks[i]
-        if (obj.Width == PLATFORM_BLOCK_SIZE_3x3) && (obj.Height == PLATFORM_BLOCK_SIZE_3x3) {
-            block3x3 = append(block3x3, obj)
-        }
-    }
-    /*block1x1 := make([]*PlatformObjectInfo, 0)
-    block2x2 := make([]*PlatformObjectInfo, 0)
-    for i := range platform.Info.Blocks {
-        obj := &platform.Info.Blocks[i]
-        if (obj.Width == PLATFORM_BLOCK_SIZE_6x6) && (obj.Height == PLATFORM_BLOCK_SIZE_6x6) {
-            block2x2 = append(block2x2, obj)
-        } else if (obj.Width == PLATFORM_BLOCK_SIZE_3x3) && (obj.Height == PLATFORM_BLOCK_SIZE_3x3) {
-            block1x1 = append(block1x1, obj)
-        }
-    }*/
+	block3x3 := make([]*PlatformObjectInfo, 0)
+	for i := range platform.Info.Blocks {
+		obj := &platform.Info.Blocks[i]
+		if (obj.Width == PLATFORM_BLOCK_SIZE_3x3) && (obj.Height == PLATFORM_BLOCK_SIZE_3x3) {
+			block3x3 = append(block3x3, obj)
+		}
+	}
+	/*block1x1 := make([]*PlatformObjectInfo, 0)
+	  block2x2 := make([]*PlatformObjectInfo, 0)
+	  for i := range platform.Info.Blocks {
+	      obj := &platform.Info.Blocks[i]
+	      if (obj.Width == PLATFORM_BLOCK_SIZE_6x6) && (obj.Height == PLATFORM_BLOCK_SIZE_6x6) {
+	          block2x2 = append(block2x2, obj)
+	      } else if (obj.Width == PLATFORM_BLOCK_SIZE_3x3) && (obj.Height == PLATFORM_BLOCK_SIZE_3x3) {
+	          block1x1 = append(block1x1, obj)
+	      }
+	  }*/
 
 	// Info
 	cellsInfo := [PLATFORM_SIDE_SIZE * PLATFORM_SIDE_SIZE]PlatformCellType{}
@@ -219,11 +219,11 @@ func makeBattleCells(platform *Platform) {
 
 		// TODO: ???
 
-        createBlocks6x6(platform)
+		createBlocks6x6(platform)
 		createBlocks3x3(platform, []PlatformCellType(cellsInfo), block3x3)
 
-		//createArches();
-		//createWalls();
+		createArches(platform, []PlatformCellType(cellsInfo), []PlatformCellType(cellsWalls))
+		createWalls(platform)
 
 		// заполняем стенами ячейки
 		for y := uint16(0); y < PLATFORM_WORK_SIZE; y++ {
@@ -337,123 +337,218 @@ func createBlocks6x6(platform *Platform) {
 
 // TODO: Пробрасывается ли указатель в cellInfo??
 func createBlocks3x3(platform *Platform, cellInfo []PlatformCellType, block3x3 []*PlatformObjectInfo) {
-    edges := make([]Point16, 0)
-    for y := int16(0); y < PLATFORM_WORK_SIZE; y += PLATFORM_BLOCK_SIZE_3x3 {
-        for x := int16(0); x < PLATFORM_WORK_SIZE; x += PLATFORM_BLOCK_SIZE_3x3 {
-            addEdge := false
-            addEdge = addEdge || (x == 0)
-            addEdge = addEdge || (y == 0)
-            addEdge = addEdge || (x == PLATFORM_WORK_SIZE-PLATFORM_BLOCK_SIZE_3x3)
-            addEdge = addEdge || (y == PLATFORM_WORK_SIZE-PLATFORM_BLOCK_SIZE_3x3)
+	edges := make([]Point16, 0)
+	for y := int16(0); y < PLATFORM_WORK_SIZE; y += PLATFORM_BLOCK_SIZE_3x3 {
+		for x := int16(0); x < PLATFORM_WORK_SIZE; x += PLATFORM_BLOCK_SIZE_3x3 {
+			addEdge := false
+			addEdge = addEdge || (x == 0)
+			addEdge = addEdge || (y == 0)
+			addEdge = addEdge || (x == PLATFORM_WORK_SIZE-PLATFORM_BLOCK_SIZE_3x3)
+			addEdge = addEdge || (y == PLATFORM_WORK_SIZE-PLATFORM_BLOCK_SIZE_3x3)
 
-            if addEdge {
-                edges = append(edges, NewPoint16(x, y))
-            }
-        }
-    }
-    // Перемешивание
-    for i := range edges {
-        j := rand.Intn(i + 1)
-        edges[i], edges[j] = edges[j], edges[i]
-    }
+			if addEdge {
+				edges = append(edges, NewPoint16(x, y))
+			}
+		}
+	}
+	// Перемешивание
+	for i := range edges {
+		j := rand.Intn(i + 1)
+		edges[i], edges[j] = edges[j], edges[i]
+	}
 
-    for i := 0; i < 4; i++ {
-        dir := PlatformDir(i)
-        exit := getPortalCoord(dir, platform.ExitCoord)
-        if (exit.X == -1) || (exit.Y == -1) {
-            continue
-        }
-        // TODO: было в оригинале
-        exit = exit.Div(3)
-        exit = exit.Mul(3)
+	for i := 0; i < 4; i++ {
+		dir := PlatformDir(i)
+		exit := getPortalCoord(dir, platform.ExitCoord)
+		if (exit.X == -1) || (exit.Y == -1) {
+			continue
+		}
+		// TODO: было в оригинале
+		exit = exit.Div(3)
+		exit = exit.Mul(3)
 
-        if cellInfo[exit.Y*int16(platform.Width) + exit.X] == CELL_TYPE_BLOCK {
-            for y := int16(0); y < PLATFORM_BLOCK_SIZE_3x3; y++ {
-                for x := int16(0); x < PLATFORM_BLOCK_SIZE_3x3; x++ {
-                    cellInfo[(exit.Y+y)*int16(platform.Width) + (exit.X+x)] = CELL_TYPE_SPACE
-                }
-            }
-            if (rand.Int()%3 == 0) && (dir == DIR_EAST || dir == DIR_SOUTH) {
-                direction := int8(1)
-                if i & 1 {
-                    direction = 0
-                }
-                platform.Blocks = appendObjects(platform.Blocks,
-                    platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_FLOOR],
-                    exit.X, exit.Y,
-                    direction,
-                    3)
-            }else{
-                direction := int8((exit.X + exit.Y) & 3)
-                platform.Blocks = appendObjects(platform.Blocks,
-                    block3x3,
-                    exit.X, exit.Y,
-                    direction,
-                    3)
-            }
-        }
-    }
+		if cellInfo[exit.Y*int16(platform.Width)+exit.X] == CELL_TYPE_BLOCK {
+			for y := int16(0); y < PLATFORM_BLOCK_SIZE_3x3; y++ {
+				for x := int16(0); x < PLATFORM_BLOCK_SIZE_3x3; x++ {
+					cellInfo[(exit.Y+y)*int16(platform.Width)+(exit.X+x)] = CELL_TYPE_SPACE
+				}
+			}
+			if (rand.Int()%3 == 0) && (dir == DIR_EAST || dir == DIR_SOUTH) {
+				direction := int8(1)
+				if i & 1 {
+					direction = 0
+				}
+				platform.Blocks = appendObjects(platform.Blocks,
+					platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_FLOOR],
+					exit.X, exit.Y,
+					direction,
+					3)
+			} else {
+				direction := int8((exit.X + exit.Y) & 3)
+				platform.Blocks = appendObjects(platform.Blocks,
+					block3x3,
+					exit.X, exit.Y,
+					direction,
+					3)
+			}
+		}
+	}
 
-    exit := getPortalCoord(DIR_EAST, platform.ExitCoord)
-    if exit.X != -1 {
-        edges = append(edges, NewPoint16(exit.X - 2, exit.Y - 1))
-    }
-    exit = getPortalCoord(DIR_SOUTH, platform.ExitCoord)
-    if exit.X != -1 {
-        edges = append(edges, NewPoint16(exit.X - 1, exit.Y - 2))
-    }
+	exit := getPortalCoord(DIR_EAST, platform.ExitCoord)
+	if exit.X != -1 {
+		edges = append(edges, NewPoint16(exit.X-2, exit.Y-1))
+	}
+	exit = getPortalCoord(DIR_SOUTH, platform.ExitCoord)
+	if exit.X != -1 {
+		edges = append(edges, NewPoint16(exit.X-1, exit.Y-2))
+	}
 
-    center := NewPoint16(PLATFORM_WORK_SIZE/2 - PLATFORM_BLOCK_SIZE_3x3, PLATFORM_WORK_SIZE/2 - PLATFORM_BLOCK_SIZE_3x3)
+	center := NewPoint16(PLATFORM_WORK_SIZE/2-PLATFORM_BLOCK_SIZE_3x3, PLATFORM_WORK_SIZE/2-PLATFORM_BLOCK_SIZE_3x3)
 
-    edgesSize := len(edges)
-    for i := 0; i < edgesSize; i++ {
-        // Iterate from end
-        point := edges[len(edges)-1]
-        edges = edges[0:len(edges)-1]
+	edgesSize := len(edges)
+	for i := 0; i < edgesSize; i++ {
+		// Iterate from end
+		point := edges[len(edges)-1]
+		edges = edges[0 : len(edges)-1]
 
-        searchComplete := false
-        for searchComplete {
-            // Check1
-            check1 := false
-            check1 = check1 || (rand.Int()%2 == 0)
-            check1 = check1 || (point.Y / PLATFORM_BLOCK_SIZE_6x6 == center.Y/PLATFORM_BLOCK_SIZE_6x6)
-            check1 = check1 || (point.X >= (PLATFORM_WORK_SIZE - PLATFORM_BLOCK_SIZE_3x3))
-            // Check2
-            check2 := point.X/PLATFORM_BLOCK_SIZE_6x6 != center.X/PLATFORM_BLOCK_SIZE_6x6
-            // Check3
-            check3 := point.Y < (PLATFORM_WORK_SIZE - PLATFORM_BLOCK_SIZE_3x3)
-            if check1 && check2 && check3 {
-                if point.X / PLATFORM_BLOCK_SIZE_6x6 < center.X / PLATFORM_BLOCK_SIZE_6x6 {
-                    point.X += PLATFORM_BLOCK_SIZE_3x3
-                }else{
-                    point.X -= PLATFORM_BLOCK_SIZE_3x3
-                }
-            } else {
-                if point.Y / PLATFORM_BLOCK_SIZE_6x6 < center.Y / PLATFORM_BLOCK_SIZE_6x6 {
-                    point.Y += PLATFORM_BLOCK_SIZE_3x3
-                }else{
-                    point.Y -= PLATFORM_BLOCK_SIZE_3x3
-                }
-            }
+		searchComplete := false
+		for searchComplete {
+			// Check1
+			check1 := false
+			check1 = check1 || (rand.Int()%2 == 0)
+			check1 = check1 || (point.Y/PLATFORM_BLOCK_SIZE_6x6 == center.Y/PLATFORM_BLOCK_SIZE_6x6)
+			check1 = check1 || (point.X >= (PLATFORM_WORK_SIZE - PLATFORM_BLOCK_SIZE_3x3))
+			// Check2
+			check2 := point.X/PLATFORM_BLOCK_SIZE_6x6 != center.X/PLATFORM_BLOCK_SIZE_6x6
+			// Check3
+			check3 := point.Y < (PLATFORM_WORK_SIZE - PLATFORM_BLOCK_SIZE_3x3)
+			if check1 && check2 && check3 {
+				if point.X/PLATFORM_BLOCK_SIZE_6x6 < center.X/PLATFORM_BLOCK_SIZE_6x6 {
+					point.X += PLATFORM_BLOCK_SIZE_3x3
+				} else {
+					point.X -= PLATFORM_BLOCK_SIZE_3x3
+				}
+			} else {
+				if point.Y/PLATFORM_BLOCK_SIZE_6x6 < center.Y/PLATFORM_BLOCK_SIZE_6x6 {
+					point.Y += PLATFORM_BLOCK_SIZE_3x3
+				} else {
+					point.Y -= PLATFORM_BLOCK_SIZE_3x3
+				}
+			}
 
-            check4 := point.Div(PLATFORM_BLOCK_SIZE_6x6) != center.Div(PLATFORM_BLOCK_SIZE_6x6)
-            check5 := cellInfo[point.Y * int16(platform.Width) + point.X] == CELL_TYPE_BLOCK
-            if check4 && check5 {
-                for y := int16(0); y < PLATFORM_BLOCK_SIZE_3x3; y++ {
-                    for x := int16(0); x < PLATFORM_BLOCK_SIZE_3x3; x++ {
-                        cellInfo[(exit.Y+y)*int16(platform.Width) + (exit.X+x)] = CELL_TYPE_SPACE
-                    }
-                }
-            }
+			check4 := point.Div(PLATFORM_BLOCK_SIZE_6x6) != center.Div(PLATFORM_BLOCK_SIZE_6x6)
+			check5 := cellInfo[point.Y*int16(platform.Width)+point.X] == CELL_TYPE_BLOCK
+			if check4 && check5 {
+				for y := int16(0); y < PLATFORM_BLOCK_SIZE_3x3; y++ {
+					for x := int16(0); x < PLATFORM_BLOCK_SIZE_3x3; x++ {
+						cellInfo[(exit.Y+y)*int16(platform.Width)+(exit.X+x)] = CELL_TYPE_SPACE
+					}
+				}
+			}
 
-            // TODO: ???
-            if point.Div(PLATFORM_BLOCK_SIZE_6x6) == center.Div(PLATFORM_BLOCK_SIZE_6x6) {
-                searchComplete = true
-            }
-        }
-    }
+			// TODO: ???
+			if point.Div(PLATFORM_BLOCK_SIZE_6x6) == center.Div(PLATFORM_BLOCK_SIZE_6x6) {
+				searchComplete = true
+			}
+		}
+	}
 }
 
+// TODO: Пробрасывается ли указатель в cellInfo + cellsWals??
+func createArches(platform *Platform, cellInfo []PlatformCellType, cellsWalls []PlatformCellType) {
+	for i := 0; i < 4; i++ {
+		if rand.Int()%2 == 0 {
+			continue
+		}
+
+		dir := PlatformDir(i)
+		exit := getPortalCoord(dir, platform.ExitCoord)
+		if (exit.X == -1) || (exit.Y == -1) {
+			continue
+		}
+
+		x := exit.X
+		y := exit.Y
+
+		if dir == DIR_EAST {
+			x -= PLATFORM_BLOCK_SIZE_6x6
+		} else if dir == DIR_SOUTH {
+			y -= PLATFORM_BLOCK_SIZE_6x6
+		}
+
+		// TODO: оптимизации
+
+		check1 := (y > 1) && (cellInfo[(y-4)*int16(platform.Width)+x] == CELL_TYPE_SPACE)
+		check2 := (y != (PLATFORM_WORK_SIZE - 2)) && (cellInfo[(y+2)*int16(platform.Width)+x] == CELL_TYPE_SPACE)
+		if (dir == DIR_WEST) && check1 && check2 {
+			platform.Objects = appendObjects(platform.Objects,
+				platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_ARCHE],
+				x, y-2.5, 0, 3)
+
+			cellsWalls[(y-4)*int16(platform.Width)+x] = CELL_TYPE_WALL
+			cellsWalls[(y-3)*int16(platform.Width)+x] = CELL_TYPE_WALL
+			cellsWalls[(y-2)*int16(platform.Width)+x] = CELL_TYPE_WALL
+			cellsWalls[(y+2)*int16(platform.Width)+x] = CELL_TYPE_WALL
+			cellsWalls[(y+3)*int16(platform.Width)+x] = CELL_TYPE_WALL
+			cellsWalls[(y+4)*int16(platform.Width)+x] = CELL_TYPE_WALL
+			continue
+		}
+
+		//check1 = (y > 1) && (cellInfo[(y-4)*int16(platform.Width) + x] == CELL_TYPE_SPACE)
+		//check2 = (y != (PLATFORM_WORK_SIZE-2)) && (cellInfo[(y + 2)*int16(platform.Width)+x] == CELL_TYPE_SPACE)
+		if (dir == DIR_EAST) && check1 && check2 {
+			platform.Objects = appendObjects(platform.Objects,
+				platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_ARCHE],
+				x-2, y+0.5, 2, 3)
+
+			cellsWalls[(y-4)*int16(platform.Width)+x] = CELL_TYPE_WALL
+			cellsWalls[(y-3)*int16(platform.Width)+x] = CELL_TYPE_WALL
+			cellsWalls[(y-2)*int16(platform.Width)+x] = CELL_TYPE_WALL
+			cellsWalls[(y+2)*int16(platform.Width)+x] = CELL_TYPE_WALL
+			cellsWalls[(y+3)*int16(platform.Width)+x] = CELL_TYPE_WALL
+			cellsWalls[(y+4)*int16(platform.Width)+x] = CELL_TYPE_WALL
+			continue
+		}
+
+		check1 = (x > 1) && (cellInfo[y*int16(platform.Width)+(x-4)] == CELL_TYPE_SPACE)
+		check2 = (x != (PLATFORM_WORK_SIZE - 2)) && (cellInfo[y*int16(platform.Width)+(x+2)] == CELL_TYPE_SPACE)
+		if (dir == DIR_NORTH) && check1 && check2 {
+			platform.Objects = appendObjects(platform.Objects,
+				platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_ARCHE],
+				x-2.5, y-1.5, 1, 3)
+
+			cellsWalls[y*int16(platform.Width)+(x-4)] = CELL_TYPE_WALL
+			cellsWalls[y*int16(platform.Width)+(x-3)] = CELL_TYPE_WALL
+			cellsWalls[y*int16(platform.Width)+(x-2)] = CELL_TYPE_WALL
+			cellsWalls[y*int16(platform.Width)+(x+2)] = CELL_TYPE_WALL
+			cellsWalls[y*int16(platform.Width)+(x+3)] = CELL_TYPE_WALL
+			cellsWalls[y*int16(platform.Width)+(x+4)] = CELL_TYPE_WALL
+			continue
+		}
+
+		//check1 = (x > 1) && (cellInfo[y*int16(platform.Width) + (x-4)] == CELL_TYPE_SPACE)
+		//check2 = (x != (PLATFORM_WORK_SIZE-2)) && (cellInfo[y*int16(platform.Width)+(x+2)] == CELL_TYPE_SPACE)
+		if (dir == DIR_SOUTH) && check1 && check2 {
+			platform.Objects = appendObjects(platform.Objects,
+				platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_ARCHE],
+				x+0.5, y-0.5, 3, 3)
+
+			cellsWalls[y*int16(platform.Width)+(x-4)] = CELL_TYPE_WALL
+			cellsWalls[y*int16(platform.Width)+(x-3)] = CELL_TYPE_WALL
+			cellsWalls[y*int16(platform.Width)+(x-2)] = CELL_TYPE_WALL
+			cellsWalls[y*int16(platform.Width)+(x+2)] = CELL_TYPE_WALL
+			cellsWalls[y*int16(platform.Width)+(x+3)] = CELL_TYPE_WALL
+			cellsWalls[y*int16(platform.Width)+(x+4)] = CELL_TYPE_WALL
+			continue
+		}
+	}
+}
+
+func createWalls(platform *Platform) {
+
+}
+
+// TODO: В качестве параметра float x,y???
 func appendObjects(container []PlatformObject, objects []*PlatformObjectInfo, x, y int16, rot int8, size int16) []PlatformObject {
 	if len(objects) == 0 {
 		return container

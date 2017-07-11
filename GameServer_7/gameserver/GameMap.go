@@ -7,7 +7,7 @@ import (
 )
 
 const (
-    BALL_SPEED = 50.0
+	BALL_SPEED = 50.0
 )
 
 var LAST_ID uint32 = 0
@@ -47,7 +47,7 @@ func NewGameRoom(server *Server) *GameRoom {
 		clientLeft:           nil,
 		clientRight:          nil,
 		gameRoomState:        roomState,
-		isFull:             0,
+		isFull:               0,
 		addClientByConnCh:    make(chan *net.TCPConn),
 		deleteClientCh:       make(chan *Client),
 		clientStateUpdatedCh: make(chan bool),
@@ -58,7 +58,7 @@ func NewGameRoom(server *Server) *GameRoom {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (room *GameRoom) StartLoop(){
+func (room *GameRoom) StartLoop() {
 	go room.mainLoop()
 }
 
@@ -141,11 +141,11 @@ func (room *GameRoom) mainLoop() {
 				client.QueueSendCurrentClientState()
 			}
 
-            canStartGame := (room.clientLeft != nil) && (room.clientRight != nil)
+			canStartGame := (room.clientLeft != nil) && (room.clientRight != nil)
 
-            if clientAdded && canStartGame {
-                room.gameRoomState.Reset(BALL_SPEED, -BALL_SPEED)
-            }
+			if clientAdded && canStartGame {
+				room.gameRoomState.Reset(BALL_SPEED, -BALL_SPEED)
+			}
 
 			if clientAdded && canStartGame && !timerActive {
 				// Запуск таймера
@@ -154,11 +154,11 @@ func (room *GameRoom) mainLoop() {
 				timer.Reset(worldUpdateTime)
 			}
 
-        // Канал обновления состояния юзера
-        case <-room.clientStateUpdatedCh:
-            if timerActive == false {
-                room.sendAllNewState()
-            }
+		// Канал обновления состояния юзера
+		case <-room.clientStateUpdatedCh:
+			if timerActive == false {
+				room.sendAllNewState()
+			}
 
 		// Канал удаления нового юзера
 		case client := <-room.deleteClientCh:

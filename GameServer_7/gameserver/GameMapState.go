@@ -90,17 +90,17 @@ func (state *GameRoomState) WorldTick(delta float64) {
 	}
 
 	// Рассчет новой позиции
-	nextPosX := state.BallPosX + delta * state.BallSpeedX
-	nextPosY := state.BallPosY + delta * state.BallSpeedY
+	nextPosX := state.BallPosX + delta*state.BallSpeedX
+	nextPosY := state.BallPosY + delta*state.BallSpeedY
 
 	// Проверка по Y
 	if nextPosY < float64(0.0) {
 		state.BallSpeedY = -state.BallSpeedY
-        nextPosY = state.BallPosY + delta * state.BallSpeedY
+		nextPosY = state.BallPosY + delta*state.BallSpeedY
 	}
 	if nextPosY > float64(state.Height) {
 		state.BallSpeedY = -state.BallSpeedY
-        nextPosY = state.BallPosY + delta * state.BallSpeedY
+		nextPosY = state.BallPosY + delta*state.BallSpeedY
 	}
 
 	// Проверка по X
@@ -114,7 +114,7 @@ func (state *GameRoomState) WorldTick(delta float64) {
 
 		if (nextPosY > minY) && (nextPosY < maxY) {
 			state.BallSpeedX = -state.BallSpeedX
-            nextPosX = state.BallPosX + delta * state.BallSpeedX
+			nextPosX = state.BallPosX + delta*state.BallSpeedX
 		} else {
 			state.Status = GAME_ROOM_STATUS_COMPLETED
 			state.clientLeftState.Status = CLIENT_STATUS_FAIL
@@ -130,7 +130,7 @@ func (state *GameRoomState) WorldTick(delta float64) {
 
 		if (nextPosY > minY) && (nextPosY < maxY) {
 			state.BallSpeedX = -state.BallSpeedX
-            nextPosX = state.BallPosX + delta * state.BallSpeedX
+			nextPosX = state.BallPosX + delta*state.BallSpeedX
 		} else {
 			state.Status = GAME_ROOM_STATUS_COMPLETED
 			state.clientLeftState.Status = CLIENT_STATUS_WIN
@@ -140,16 +140,16 @@ func (state *GameRoomState) WorldTick(delta float64) {
 		}
 	}
 
-    state.BallPosX = nextPosX
-    state.BallPosY = nextPosY
+	state.BallPosX = nextPosX
+	state.BallPosY = nextPosY
 
-    //log.Printf("delta=%f, x=%f, y=%f, sy=%f, sx=%f\n", delta, state.BallPosX, state.BallPosY, state.BallSpeedX, state.BallSpeedY)
+	//log.Printf("delta=%f, x=%f, y=%f, sy=%f, sx=%f\n", delta, state.BallPosX, state.BallPosY, state.BallSpeedX, state.BallSpeedY)
 }
 
-func (gameRoomState *GameRoomState) Reset (speedX, speedY float64)  {
+func (gameRoomState *GameRoomState) Reset(speedX, speedY float64) {
 	gameRoomState.Status = GAME_ROOM_STATUS_ACTIVE
 	gameRoomState.BallSpeedY = speedX
 	gameRoomState.BallSpeedX = speedY
-	gameRoomState.BallPosX = float64(gameRoomState.Width/2)
-	gameRoomState.BallPosY = float64(gameRoomState.Height/2)
+	gameRoomState.BallPosX = float64(gameRoomState.Width / 2)
+	gameRoomState.BallPosY = float64(gameRoomState.Height / 2)
 }
