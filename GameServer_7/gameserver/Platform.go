@@ -235,8 +235,7 @@ func makeBattleCells(platform *Platform) {
 			}
 		}
 
-		// TODO: ???
-		//createPlatformElements();
+		createPlatformElements(platform, []PlatformCellType(cellsInfo))
 
 		start := -1
 		foundPath = false
@@ -330,6 +329,8 @@ func createBlocks6x6(platform *Platform) {
 				platform.Objects = appendObjects(platform.Objects,
 					platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_DECOR],
 					x, y, 0, 3)
+
+                platform.HaveDecor = true
 			}
 		}
 	}
@@ -763,6 +764,100 @@ func createWalls(platform *Platform, cellInfo, cellsWalls []PlatformCellType) {
 
 		}
 	}
+}
+
+func createPlatformElements(platform *Platform, cellInfo []PlatformCellType){
+    empty := make([]Point16, 0)
+    for y := int16(0); y < PLATFORM_BLOCK_SIZE_3x3; y += PLATFORM_BLOCK_SIZE_3x3 {
+        for x := int16(0); x < PLATFORM_BLOCK_SIZE_3x3; x += PLATFORM_BLOCK_SIZE_3x3 {
+            // если в центре дырка, то дальше от центра
+            {
+                test1 := platform.HaveDecor || cellInfo[PLATFORM_WORK_SIZE/2*platform.Width + PLATFORM_WORK_SIZE/2] == CELL_TYPE_PIT
+                test2 := x > PLATFORM_BLOCK_SIZE_6x6 &&
+                    x < PLATFORM_WORK_SIZE - PLATFORM_BLOCK_SIZE_6x6 &&
+                    y > PLATFORM_BLOCK_SIZE_6x6 &&
+                    y < PLATFORM_WORK_SIZE - PLATFORM_BLOCK_SIZE_6x6
+                test3 := y / PLATFORM_BLOCK_SIZE_6x6 == PLATFORM_WORK_SIZE / 2 / PLATFORM_BLOCK_SIZE_6x6 &&
+                    x / PLATFORM_BLOCK_SIZE_6x6 == PLATFORM_WORK_SIZE / 2 / PLATFORM_BLOCK_SIZE_6x6
+
+                if test1 && (test2 || test3) {
+                    continue
+                }
+            }
+
+            {
+                testPoint := NewPoint16(x, y).Div(PLATFORM_BLOCK_SIZE_6x6)
+
+                test1 := getPortalCoord(DIR_NORTH, platform.ExitCoord).Div(PLATFORM_BLOCK_SIZE_6x6)
+
+                east := getPortalCoord(DIR_EAST, platform.ExitCoord)
+                test2 := NewPoint16(east.X - PLATFORM_BLOCK_SIZE_6x6, east.Y).Div(PLATFORM_BLOCK_SIZE_6x6)
+
+                south := getPortalCoord(DIR_SOUTH, platform.ExitCoord)
+                test3 := NewPoint16(south.X, south.Y - PLATFORM_BLOCK_SIZE_6x6).Div(PLATFORM_BLOCK_SIZE_6x6)
+
+                test4 := getPortalCoord(DIR_WEST, platform.ExitCoord).Div(PLATFORM_BLOCK_SIZE_6x6)
+
+                if (testPoint == test1) || (testPoint == test2) || (testPoint == test3) || (testPoint == test4) {
+                    continue
+                }
+            }
+
+            // есть проход
+            if (cellInfo[(y + 1) * int16(platform.Width) + (x + 1)] & CELL_TYPE_WALK) == 0 {
+                continue
+            }
+
+            empty = append(empty, NewPoint16(x, y))
+        }
+    }
+
+    // Shuffle
+    for i := range empty {
+        j := rand.Intn(i + 1)
+        empty[i], empty[j] = empty[j], empty[i]
+    }
+
+    pills := rand.Int() % 5
+    coffs := 1 + rand.Int() % 2
+    env := rand.Int() % 3 + 1
+
+    is := 0
+    if len(empty) < (pills + env) {
+        is = len(empty)
+    }else{
+        is = pills + env
+    }
+
+    for i := 0; i < is; i++ {
+        if coffs > 0 {
+            if createCoffins(platform, empty[i]) {
+                coffs--
+                continue
+            }
+        }
+        if pills > 0 { // столбы
+            if createPillars(platform, empty[i]) {
+                pills--
+                continue
+            }
+        }
+        if env > 0 { // свечи
+            if createEnvironment(platform, empty[i]) {
+                env--
+                continue
+            }
+        }
+    }
+}
+
+func createCoffins(platform *Platform, point Point16) bool {
+}
+
+func createPillars(platform *Platform, point Point16) bool {
+}
+
+func createEnvironment(platform *Platform, point Point16) bool {
 }
 
 // TODO: В качестве параметра float x,y???
