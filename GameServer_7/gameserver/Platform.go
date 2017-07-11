@@ -147,7 +147,7 @@ func makeBridgeCells(platform *Platform) {
 			}
 
 			if haveBlock {
-				platform.Objects = appendObjects(platform.Objects, block3x3,
+				platform.Objects, _ = appendObjects(platform.Objects, block3x3,
 					int16(x), int16(y),
 					int8((x+y)&3), 3)
 			}
@@ -326,7 +326,7 @@ func createBlocks6x6(platform *Platform) {
 
 			posTest := (y == PLATFORM_WORK_SIZE/2-PLATFORM_BLOCK_SIZE_3x3) && (x == PLATFORM_WORK_SIZE/2-PLATFORM_BLOCK_SIZE_3x3)
 			if (rand.Int()%2 == 0) || posTest || ((rand.Int() == 0) && isExit) {
-				platform.Objects = appendObjects(platform.Objects,
+				platform.Objects, _ = appendObjects(platform.Objects,
 					platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_DECOR],
 					x, y, 0, 3)
 
@@ -379,14 +379,14 @@ func createBlocks3x3(platform *Platform, cellInfo []PlatformCellType, block3x3 [
 				if i & 1 {
 					direction = 0
 				}
-				platform.Blocks = appendObjects(platform.Blocks,
+				platform.Blocks, _ = appendObjects(platform.Blocks,
 					platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_FLOOR],
 					exit.X, exit.Y,
 					direction,
 					3)
 			} else {
 				direction := int8((exit.X + exit.Y) & 3)
-				platform.Blocks = appendObjects(platform.Blocks,
+				platform.Blocks, _ = appendObjects(platform.Blocks,
 					block3x3,
 					exit.X, exit.Y,
 					direction,
@@ -482,7 +482,7 @@ func createArches(platform *Platform, cellInfo, cellsWalls []PlatformCellType) {
 		check1 := (y > 1) && (cellInfo[(y-4)*int16(platform.Width)+x] == CELL_TYPE_SPACE)
 		check2 := (y != (PLATFORM_WORK_SIZE - 2)) && (cellInfo[(y+2)*int16(platform.Width)+x] == CELL_TYPE_SPACE)
 		if (dir == DIR_WEST) && check1 && check2 {
-			platform.Objects = appendObjects(platform.Objects,
+			platform.Objects, _ = appendObjects(platform.Objects,
 				platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_ARCHE],
 				x, y-2.5, 0, 3)
 
@@ -498,7 +498,7 @@ func createArches(platform *Platform, cellInfo, cellsWalls []PlatformCellType) {
 		//check1 = (y > 1) && (cellInfo[(y-4)*int16(platform.Width) + x] == CELL_TYPE_SPACE)
 		//check2 = (y != (PLATFORM_WORK_SIZE-2)) && (cellInfo[(y + 2)*int16(platform.Width)+x] == CELL_TYPE_SPACE)
 		if (dir == DIR_EAST) && check1 && check2 {
-			platform.Objects = appendObjects(platform.Objects,
+			platform.Objects, _ = appendObjects(platform.Objects,
 				platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_ARCHE],
 				x-2, y+0.5, 2, 3)
 
@@ -514,7 +514,7 @@ func createArches(platform *Platform, cellInfo, cellsWalls []PlatformCellType) {
 		check1 = (x > 1) && (cellInfo[y*int16(platform.Width)+(x-4)] == CELL_TYPE_SPACE)
 		check2 = (x != (PLATFORM_WORK_SIZE - 2)) && (cellInfo[y*int16(platform.Width)+(x+2)] == CELL_TYPE_SPACE)
 		if (dir == DIR_NORTH) && check1 && check2 {
-			platform.Objects = appendObjects(platform.Objects,
+			platform.Objects, _ = appendObjects(platform.Objects,
 				platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_ARCHE],
 				x-2.5, y-1.5, 1, 3)
 
@@ -530,7 +530,7 @@ func createArches(platform *Platform, cellInfo, cellsWalls []PlatformCellType) {
 		//check1 = (x > 1) && (cellInfo[y*int16(platform.Width) + (x-4)] == CELL_TYPE_SPACE)
 		//check2 = (x != (PLATFORM_WORK_SIZE-2)) && (cellInfo[y*int16(platform.Width)+(x+2)] == CELL_TYPE_SPACE)
 		if (dir == DIR_SOUTH) && check1 && check2 {
-			platform.Objects = appendObjects(platform.Objects,
+			platform.Objects, _ = appendObjects(platform.Objects,
 				platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_ARCHE],
 				x+0.5, y-0.5, 3, 3)
 
@@ -590,7 +590,7 @@ func createWalls(platform *Platform, cellInfo, cellsWalls []PlatformCellType) {
 				test3 := (y == 0) || (cellInfo[(y-PLATFORM_BLOCK_SIZE_3x3)*int16(platform.Width)+x] == CELL_TYPE_BLOCK)
 
 				if test1 && test2 && test3 {
-					platform.Objects = appendObjects(platform.Objects,
+					platform.Objects, _ = appendObjects(platform.Objects,
 						platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_CORNER],
 						x, y, 0, 3)
 
@@ -611,7 +611,7 @@ func createWalls(platform *Platform, cellInfo, cellsWalls []PlatformCellType) {
 					(cellInfo[(y-PLATFORM_BLOCK_SIZE_3x3)*int16(platform.Width)+x] == CELL_TYPE_BLOCK)
 
 				if test1 && test2 && test3 {
-					platform.Objects = appendObjects(platform.Objects,
+					platform.Objects, _ = appendObjects(platform.Objects,
 						platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_CORNER],
 						x, y,
 						3, 3)
@@ -634,7 +634,7 @@ func createWalls(platform *Platform, cellInfo, cellsWalls []PlatformCellType) {
 					(cellInfo[(y+PLATFORM_BLOCK_SIZE_3x3)*int16(platform.Width)+x] == CELL_TYPE_BLOCK)
 
 				if test1 && test2 && test3 {
-					platform.Objects = appendObjects(platform.Objects,
+					platform.Objects, _ = appendObjects(platform.Objects,
 						platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_CORNER],
 						x, y,
 						2, 3)
@@ -657,7 +657,7 @@ func createWalls(platform *Platform, cellInfo, cellsWalls []PlatformCellType) {
 					(cellInfo[(y+PLATFORM_BLOCK_SIZE_3x3)*int16(platform.Width)+x] == CELL_TYPE_BLOCK)
 
 				if test1 && test2 && test3 {
-                    platform.Objects = appendObjects(platform.Objects,
+                    platform.Objects, _ = appendObjects(platform.Objects,
                         platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_CORNER],
                         x, y,
                         1, 3)
@@ -682,7 +682,7 @@ func createWalls(platform *Platform, cellInfo, cellsWalls []PlatformCellType) {
                     (cellInfo[(y + PLATFORM_BLOCK_SIZE_3x3) * int16(platform.Width) + x] == CELL_TYPE_SPACE)
 
                 if test1 && test2 && test3 && test4 {
-                    platform.Objects = appendObjects(platform.Objects,
+                    platform.Objects, _ = appendObjects(platform.Objects,
                         platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_WALL],
                         x, y,
                         0, 3)
@@ -705,7 +705,7 @@ func createWalls(platform *Platform, cellInfo, cellsWalls []PlatformCellType) {
                     (cellInfo[(y + PLATFORM_BLOCK_SIZE_3x3) * int16(platform.Width) + x] == CELL_TYPE_SPACE)
 
                 if test1 && test2 && test3 && test4 {
-                    platform.Objects = appendObjects(platform.Objects,
+                    platform.Objects, _ = appendObjects(platform.Objects,
                         platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_WALL],
                         x, y,
                         2, 3)
@@ -728,7 +728,7 @@ func createWalls(platform *Platform, cellInfo, cellsWalls []PlatformCellType) {
                     (cellInfo[y * int16(platform.Width) + (x + PLATFORM_BLOCK_SIZE_3x3)] == CELL_TYPE_SPACE)
 
                 if test1 && test2 && test3 && test4 {
-                    platform.Objects = appendObjects(platform.Objects,
+                    platform.Objects, _ = appendObjects(platform.Objects,
                         platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_WALL],
                         x, y,
                         3, 3)
@@ -751,7 +751,7 @@ func createWalls(platform *Platform, cellInfo, cellsWalls []PlatformCellType) {
                     (cellInfo[y * int16(platform.Width) + (x + PLATFORM_BLOCK_SIZE_3x3)] == CELL_TYPE_SPACE)
 
                 if test1 && test2 && test3 && test4 {
-                    platform.Objects = appendObjects(platform.Objects,
+                    platform.Objects, _ = appendObjects(platform.Objects,
                         platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_WALL],
                         x, y,
                         1, 3)
@@ -831,19 +831,19 @@ func createPlatformElements(platform *Platform, cellInfo []PlatformCellType){
 
     for i := 0; i < is; i++ {
         if coffs > 0 {
-            if createCoffins(platform, empty[i]) {
+            if createCoffins(platform, empty[i], cellInfo) {
                 coffs--
                 continue
             }
         }
         if pills > 0 { // столбы
-            if createPillars(platform, empty[i]) {
+            if createPillars(platform, empty[i], cellInfo) {
                 pills--
                 continue
             }
         }
         if env > 0 { // свечи
-            if createEnvironment(platform, empty[i]) {
+            if createEnvironment(platform, empty[i], cellInfo) {
                 env--
                 continue
             }
@@ -851,19 +851,121 @@ func createPlatformElements(platform *Platform, cellInfo []PlatformCellType){
     }
 }
 
-func createCoffins(platform *Platform, point Point16) bool {
+func createCoffins(platform *Platform, point Point16, cellInfo []PlatformCellType) bool {
+    w := int16(platform.Width)
+    x := point.X
+    y := point.Y
+
+    // есть проходы рядом
+    if (cellInfo[y * w + x - PLATFORM_BLOCK_SIZE_3x3] & CELL_TYPE_WALK) == 0 ||
+        (cellInfo[y * w + x + PLATFORM_BLOCK_SIZE_3x3] & CELL_TYPE_WALK) == 0 ||
+        (cellInfo[(y + PLATFORM_BLOCK_SIZE_3x3) * w + x] & CELL_TYPE_WALK) == 0 ||
+        (cellInfo[(y - PLATFORM_BLOCK_SIZE_3x3) * w + x] & CELL_TYPE_WALK) == 0 ||
+        (cellInfo[(y - PLATFORM_BLOCK_SIZE_3x3) * w + x - PLATFORM_BLOCK_SIZE_3x3] & CELL_TYPE_WALK) == 0 ||
+        (cellInfo[(y - PLATFORM_BLOCK_SIZE_3x3) * w + x + PLATFORM_BLOCK_SIZE_3x3] & CELL_TYPE_WALK) == 0 ||
+        (cellInfo[(y + PLATFORM_BLOCK_SIZE_3x3) * w + x - PLATFORM_BLOCK_SIZE_3x3] & CELL_TYPE_WALK) == 0 ||
+        (cellInfo[(y + PLATFORM_BLOCK_SIZE_3x3) * w + x + PLATFORM_BLOCK_SIZE_3x3] & CELL_TYPE_WALK) == 0 {
+        // ничего не делаем
+        return false
+    } else {
+        if len(platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_COFFIN]) > 0 {
+            objects, item := appendObjects(platform.Objects,
+                platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_COFFIN],
+                x, y,
+                int8(rand.Int() % 4),
+                1.0)
+            platform.Objects = objects
+
+            for yy := int16(0); yy < item.Width; yy++ {
+                for xx := int16(0); xx < item.Height; xx++ {
+                    cellInfo[(y + yy) * w + (x + xx)] = CELL_TYPE_WALL
+                }
+            }
+        }
+        return true
+    }
+    return false
 }
 
-func createPillars(platform *Platform, point Point16) bool {
+func createPillars(platform *Platform, point Point16, cellInfo []PlatformCellType) bool {
+    x := point.X
+    y := point.Y
+    w := int16(platform.Width)
+    ww := int16(PLATFORM_WORK_SIZE)
+    hh := int16(PLATFORM_WORK_SIZE)
+
+    // есть проходы рядом
+    if x < PLATFORM_BLOCK_SIZE_6x6 || x > ww - PLATFORM_BLOCK_SIZE_6x6 || y < PLATFORM_BLOCK_SIZE_6x6 || y > hh - PLATFORM_BLOCK_SIZE_6x6 ||
+        (cellInfo[y * w + x - PLATFORM_BLOCK_SIZE_3x3] & CELL_TYPE_WALK) == 0 ||
+        (cellInfo[y * w + x + PLATFORM_BLOCK_SIZE_3x3] & CELL_TYPE_WALK) == 0 ||
+        (cellInfo[(y + PLATFORM_BLOCK_SIZE_3x3) * w + x] & CELL_TYPE_WALK) == 0 ||
+        (cellInfo[(y - PLATFORM_BLOCK_SIZE_3x3) * w + x] & CELL_TYPE_WALK) == 0 {
+        // ничего не делаем
+        return false
+    } else {
+        platform.Objects, _ = appendObjects(platform.Objects,
+            platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_PILLAR],
+            x, y, int8(rand.Int()%4), 2.0)
+        cellInfo[(y+0)*w+x+0] = CELL_TYPE_WALL
+        cellInfo[(y+0)*w+x+1] = CELL_TYPE_WALL
+        cellInfo[(y+1)*w+x+0] = CELL_TYPE_WALL
+        cellInfo[(y+1)*w+x+1] = CELL_TYPE_WALL
+        return true
+    }
+    return false
 }
 
-func createEnvironment(platform *Platform, point Point16) bool {
+func createEnvironment(platform *Platform, point Point16, cellInfo []PlatformCellType) bool {
+    x := point.X
+    y := point.Y
+    w := int16(platform.Width)
+    ww := int16(PLATFORM_WORK_SIZE)
+    hh := int16(PLATFORM_WORK_SIZE)
+
+    // дальше от центра
+    if (x > PLATFORM_BLOCK_SIZE_6x6 && x < ww - PLATFORM_BLOCK_SIZE_6x6 && y > PLATFORM_BLOCK_SIZE_6x6 && y < hh - PLATFORM_BLOCK_SIZE_6x6) ||
+        (y / PLATFORM_BLOCK_SIZE_6x6 == hh / 2 / PLATFORM_BLOCK_SIZE_6x6 && x / PLATFORM_BLOCK_SIZE_6x6 == ww / 2 / PLATFORM_BLOCK_SIZE_6x6) {
+        // ничего не делаем
+        return false
+    }else{
+        nearWall := false
+        offset := NewPointFloat(0.0, 0.0)
+        if (cellInfo[(y + 1) * w + x] & CELL_TYPE_WALK) == 0 {
+            offset.X += 1.0
+            nearWall = true;
+        } else if (cellInfo[(y + 1) * w + (x + 2)] & CELL_TYPE_WALK) == 0 {
+            nearWall = true;
+        }
+
+        if (cellInfo[y * w + (x + 1)] & CELL_TYPE_WALK) == 0 {
+            offset.Y += 1.0
+            nearWall = true
+        } else if (cellInfo[(y + 2) * w + (x + 1)] & CELL_TYPE_WALK) == 0 {
+            nearWall = true;
+        }
+
+        if nearWall == false {
+            offset.X += 0.5
+            offset.Y += 0.5
+            cellInfo[(y + 1) * w + x + 1] = CELL_TYPE_WALL
+        }
+
+        x = x + int16(offset.X)
+        y = y + int16(offset.Y)
+
+        platform.Objects, _ = appendObjects(platform.Objects,
+            platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_ENVIRONMENT],
+            x, y, 0,
+            3)
+        return true
+    }
+    return false
 }
 
 // TODO: В качестве параметра float x,y???
-func appendObjects(container []PlatformObject, objects []*PlatformObjectInfo, x, y int16, rot int8, size int16) []PlatformObject {
+func appendObjects(container []PlatformObject, objects []*PlatformObjectInfo, x, y int16, rot int8, size int16) ([]PlatformObject,*PlatformObjectInfo) {
 	if len(objects) == 0 {
-		return container
+		return container, nil
 	}
 
 	var selectedItem *PlatformObjectInfo = nil
@@ -888,7 +990,7 @@ func appendObjects(container []PlatformObject, objects []*PlatformObjectInfo, x,
 	}
 
 	if selectedItem == nil {
-		return container
+		return container, nil
 	}
 
 	// Max size
@@ -919,5 +1021,5 @@ func appendObjects(container []PlatformObject, objects []*PlatformObjectInfo, x,
 	}
 
 	container = append(container, object)
-	return container
+	return container, selectedItem
 }
