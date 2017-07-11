@@ -26,7 +26,7 @@ type PlatformInfo struct {
 	Blocks        []PlatformObjectInfo `json:"blocks,omitempty"`        // блоки?? // TODO: ???
 	// Локальные данные для удобства и скорости (обрабатываются после загрузки)
 	Type          PlatformInfoType                           `json:"-"` // тип платформы
-	ObjectsByType map[PlatformObjectType]*PlatformObjectInfo `json:"-"` // объекты по типам данных
+	ObjectsByType map[PlatformObjectType]([]*PlatformObjectInfo) `json:"-"` // объекты по типам данных
 }
 
 // TODO: Указатели???
@@ -65,6 +65,6 @@ func (info *PlatformInfo) handleLoadedInfo() {
     // Сформируем список объектов по типам для быстрого доступа
     for i := range info.Objects {
         objPtr := &(info.Objects[i])
-        info.ObjectsByType[objPtr.Type] = objPtr
+        info.ObjectsByType[objPtr.Type] = append(info.ObjectsByType[objPtr.Type], objPtr)
     }
 }
