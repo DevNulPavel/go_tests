@@ -63,6 +63,7 @@ func (info *PlatformInfo) handleLoadedInfo() {
 	}
 
 	// Сформируем список объектов по типам для быстрого доступа
+	info.ObjectsByType = make(map[PlatformObjectType]([]*PlatformObjectInfo))
 	for i := range info.Objects {
 		objPtr := &(info.Objects[i])
 		info.ObjectsByType[objPtr.Type] = append(info.ObjectsByType[objPtr.Type], objPtr)

@@ -20,17 +20,18 @@ func (p *Point16) Mul(value int16) Point16 {
 }
 
 func (p *Point16) Sub(point Point16) Point16 {
-    return Point16{p.X - point.X, p.Y - point.Y}
+	return Point16{p.X - point.X, p.Y - point.Y}
 }
 
 func (p *Point16) Add(point Point16) Point16 {
-    return Point16{p.X + point.X, p.Y + point.Y}
+	return Point16{p.X + point.X, p.Y + point.Y}
 }
 
 func (p *Point16) Length() float64 {
-    return math.Sqrt(float64(p.X*p.X + p.Y*p.Y))
+	return math.Sqrt(float64(p.X*p.X + p.Y*p.Y))
 }
 
 func (p *Point16) Distance(point Point16) float64 {
-    return p.Sub(point).Length()
+	subRes := p.Sub(point)
+	return subRes.Length()
 }

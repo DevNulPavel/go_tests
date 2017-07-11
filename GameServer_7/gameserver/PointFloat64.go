@@ -20,17 +20,18 @@ func (p *PointFloat) Mul(value float64) PointFloat {
 }
 
 func (p *PointFloat) Sub(point PointFloat) PointFloat {
-    return PointFloat{p.X - point.X, p.Y - point.Y}
+	return PointFloat{p.X - point.X, p.Y - point.Y}
 }
 
 func (p *PointFloat) Add(point PointFloat) PointFloat {
-    return PointFloat{p.X + point.X, p.Y + point.Y}
+	return PointFloat{p.X + point.X, p.Y + point.Y}
 }
 
 func (p *PointFloat) Length() float64 {
-    return math.Sqrt(float64(p.X*p.X + p.Y*p.Y))
+	return math.Sqrt(float64(p.X*p.X + p.Y*p.Y))
 }
 
 func (p *PointFloat) Distance(point PointFloat) float64 {
-    return p.Sub(point).Length()
+	subRes := p.Sub(point)
+	return subRes.Length()
 }

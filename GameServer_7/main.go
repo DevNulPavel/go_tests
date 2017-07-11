@@ -27,6 +27,9 @@ func testLoadPlatform() {
 	for key, value := range platforms {
 		log.Printf("%s: %s\n", key, value.SymbolName)
 	}
+
+	arena := gameserver.NewArena(platforms)
+	log.Printf("Arena: %v\n", arena)
 }
 
 func main() {
