@@ -3,6 +3,8 @@ package gameserver
 import (
 	"encoding/json"
 	"io"
+	"log"
+	"os"
 )
 
 type PlatformInfoType uint8
@@ -52,6 +54,18 @@ func NewPlatformsFromReader(reader io.Reader) (map[string]*PlatformInfo, error) 
 		}
 	}
 	return result, err
+}
+
+func NewPlatformsFromFile(filePath string) (map[string]*PlatformInfo, error) {
+	// Загрузка платформ из файла
+	f, err := os.Open(filePath)
+	if err != nil {
+		log.Println(err)
+		return make(map[string]*PlatformInfo), err
+	}
+	defer f.Close()
+
+	return NewPlatformsFromReader(f)
 }
 
 func (info *PlatformInfo) handleLoadedInfo() {

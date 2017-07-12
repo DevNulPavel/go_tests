@@ -3,7 +3,6 @@ package main
 import (
 	"./gameserver"
 	//"fmt"
-	"os"
 	//"log"
 	//"runtime/trace"
 	//"github.com/pkg/profile"
@@ -11,25 +10,36 @@ import (
 )
 
 func testLoadPlatform() {
-	f, err := os.Open("data/platforms.json")
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer f.Close()
-
-	platforms, err := gameserver.NewPlatformsFromReader(f)
+	// Load platforms
+	platforms, err := gameserver.NewPlatformsFromFile("data/platforms.json")
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	for key, value := range platforms {
-		log.Printf("%s: %s\n", key, value.SymbolName)
+	// Load levels
+	levels, err := gameserver.NewLevelsFromFile("data/level_graphics.json")
+	if err != nil {
+		log.Println(err)
+		return
 	}
 
-	arena := gameserver.NewArena(platforms)
-	log.Printf("Arena: %v\n", arena)
+	// Make arena
+	item, exists := levels["egypt"]
+	if exists {
+		platformsForArena := make([]*gameserver.PlatformInfo, 0)
+		for _, key := range item.Platforms {
+			value, ok := platforms[key]
+			if ok {
+				platformsForArena = append(platformsForArena, value)
+			}
+		}
+
+		if len(platformsForArena) > 0 {
+			arena := gameserver.NewArena(platformsForArena)
+			log.Printf("Arena: %v\n", arena)
+		}
+	}
 }
 
 func main() {

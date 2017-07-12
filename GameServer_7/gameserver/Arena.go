@@ -1,6 +1,7 @@
 package gameserver
 
 import (
+	"log"
 	"math/rand"
 )
 
@@ -10,36 +11,40 @@ type Arena struct {
 	Platforms [ARENA_SIZE][ARENA_SIZE]*Platform
 }
 
-func NewArena(infos map[string]*PlatformInfo) *Arena {
+func NewArena(infos []*PlatformInfo) *Arena {
 	arena := &Arena{}
+
+	bridgePlatforms := make([]*PlatformInfo, 0)
+	battlePlatforms := make([]*PlatformInfo, 0)
+	for _, value := range infos {
+		switch value.Type {
+		case PLATFORM_INFO_TYPE_BRIDGE:
+			bridgePlatforms = append(bridgePlatforms, value)
+		case PLATFORM_INFO_TYPE_BATTLE:
+			battlePlatforms = append(battlePlatforms, value)
+		}
+	}
 
 	for y := int16(0); y < ARENA_SIZE; y++ {
 		for x := int16(0); x < ARENA_SIZE; x++ {
-            if arena.Platforms[y][x] == nil {
-                platform := makePlatform(infos, arena, x, y)
-                arena.Platforms[y][x] = platform
-            }
+			platform := makePlatform(battlePlatforms, arena, x, y)
+			arena.Platforms[y][x] = platform
+			log.Printf("Made platform %dx%d\n", y, x)
 		}
 	}
 
 	return arena
 }
 
-func makePlatform(infos map[string]*PlatformInfo, arena *Arena, x, y int16) *Platform {
-	// Дергаем рандомную платформу
-	var info *PlatformInfo = nil
-	randomIndex := rand.Int() % len(infos)
-	i := 0
-	for key := range infos {
-		i++
-		if i == randomIndex {
-			info = infos[key]
-			break
-		}
-	}
-	if info == nil {
+// TODO: ???
+func makePlatform(infos []*PlatformInfo, arena *Arena, x, y int16) *Platform {
+	if len(infos) == 0 {
 		return nil
 	}
+
+	// Дергаем рандомную платформу
+	randomIndex := rand.Int() % len(infos)
+	info := infos[randomIndex]
 
 	exitCoord := [4]int16{}
 

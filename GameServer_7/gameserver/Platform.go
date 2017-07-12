@@ -236,12 +236,13 @@ func makeBattleCells(platform *Platform) {
 		start := -1
 		foundPath = false
 
-		for i := 1; i < 4; i++ {
+		// TODO: ??? было с 1цы
+		for i := 0; i < 4; i++ {
 			if platform.ExitCoord[i] != -1 {
 				if start == -1 {
 					start = i
 				} else {
-					endPoints = make([]Point16, 1)
+					endPoints = make([]Point16, 0, 1)
 
 					endPoint := getPortalCoord(PlatformDir(i), platform.ExitCoord)
 					endPoints = append(endPoints, endPoint)
@@ -256,6 +257,7 @@ func makeBattleCells(platform *Platform) {
 							break
 						}*/
 					foundPath = true
+					break
 				}
 			}
 		}
@@ -373,7 +375,7 @@ func createBlocks3x3(platform *Platform, cellInfo []PlatformCellType, block3x3 [
 		if cellInfo[exit.Y*int16(platform.Width)+exit.X] == CELL_TYPE_BLOCK {
 			for y := int16(0); y < PLATFORM_BLOCK_SIZE_3x3; y++ {
 				for x := int16(0); x < PLATFORM_BLOCK_SIZE_3x3; x++ {
-                    index := (exit.Y+y)*int16(platform.Width)+(exit.X+x)
+					index := (exit.Y+y)*int16(platform.Width) + (exit.X + x)
 					cellInfo[index] = CELL_TYPE_SPACE
 				}
 			}
