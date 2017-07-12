@@ -3,12 +3,13 @@ package gameserver
 import (
 	"log"
 	"math/rand"
+    "encoding/json"
 )
 
 const ARENA_SIZE = 6 // Размер арены - сколько на сколь ячеек
 
 type Arena struct {
-	Platforms [ARENA_SIZE][ARENA_SIZE]*Platform
+	Platforms [ARENA_SIZE][ARENA_SIZE]*Platform `json:"platforms"`
 }
 
 func NewArena(infos []*PlatformInfo) *Arena {
@@ -34,6 +35,10 @@ func NewArena(infos []*PlatformInfo) *Arena {
 	}
 
 	return arena
+}
+
+func (arena *Arena) ToJsonData() ([]byte, error)  {
+    return json.Marshal(arena)
 }
 
 // TODO: ???

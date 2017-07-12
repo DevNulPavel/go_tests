@@ -12,39 +12,39 @@ const (
 )
 
 type PlatformMonster struct {
-	Name string
-	X    int16
-	Y    int16
+	Name string `json:"name"`
+	X    int16  `json:"x"`
+	Y    int16  `json:"y"`
 }
 
 type PlatformObject struct {
-	Id  string
-	X   float64
-	Y   float64
-	Rot int8
+	Id  string  `json:"id"`
+	X   float64 `json:"x"`
+	Y   float64 `json:"y"`
+	Rot int8    `json:"r"`
 }
 
 type Platform struct {
-	Info *PlatformInfo
+	Info *PlatformInfo `json:"-"`
 	// Pos and size
-	PosX   int16
-	PosY   int16
-	Width  uint16
-	Height uint16
+	PosX   int16  `json:"x"`
+	PosY   int16  `json:"y"`
+	Width  uint16 `json:"width"`
+	Height uint16 `json:"height"`
 	// Enter
-	EnterX   int16
-	EnterY   int16
-	EnterDir PlatformDir
+	EnterX   int16       `json:"enterX"`
+	EnterY   int16       `json:"enterY"`
+	EnterDir PlatformDir `json:"enterDir"`
 	// Exit
-	ExitCoord [4]int16
-	ExitDir   PlatformDir
+	ExitCoord [4]int16    `json:"exit"`
+	ExitDir   PlatformDir `json:"exitDir"`
 	// Cells
-	Cells []PlatformCellType
+	Cells []PlatformCellType `json:"cells,omitempty"`
 	// Items
-	Monsters  []PlatformMonster // TODO: ???
-	Objects   []PlatformObject  // TODO: ???
-	Blocks    []PlatformObject  // TODO: ???
-	HaveDecor bool
+	Monsters  []PlatformMonster `json:"monsters,omitempty"` // TODO: ???
+	Objects   []PlatformObject  `json:"objects,omitempty"`  // TODO: ???
+	Blocks    []PlatformObject  `json:"blocks,omitempty"`   // TODO: ???
+	HaveDecor bool              `json:"withDecor"`
 }
 
 func NewPlatform(info *PlatformInfo, posX, posY int16, exits [4]int16, isBridge bool) *Platform {

@@ -37,7 +37,12 @@ func testLoadPlatform() {
 
 		if len(platformsForArena) > 0 {
 			arena := gameserver.NewArena(platformsForArena)
-			log.Printf("Arena: %v\n", arena)
+            jsonBytes, err := arena.ToJsonData()
+            if err == nil {
+                log.Printf("Arena marshal: %s\n", string(jsonBytes))
+            }else{
+                log.Printf("Arena marshal error: %s\n", err)
+            }
 		}
 	}
 }
