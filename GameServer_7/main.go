@@ -6,46 +6,9 @@ import (
 	//"log"
 	//"runtime/trace"
 	//"github.com/pkg/profile"
+	"fmt"
 	"log"
 )
-
-func testLoadPlatform() {
-	// Load platforms
-	platforms, err := gameserver.NewPlatformsFromFile("data/platforms.json")
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	// Load levels
-	levels, err := gameserver.NewLevelsFromFile("data/level_graphics.json")
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	// Make arena
-	item, exists := levels["egypt"]
-	if exists {
-		platformsForArena := make([]*gameserver.PlatformInfo, 0)
-		for _, key := range item.Platforms {
-			value, ok := platforms[key]
-			if ok {
-				platformsForArena = append(platformsForArena, value)
-			}
-		}
-
-		if len(platformsForArena) > 0 {
-			arena := gameserver.NewArena(platformsForArena)
-            jsonBytes, err := arena.ToJsonData()
-            if err == nil {
-                log.Printf("Arena marshal: %s\n", string(jsonBytes))
-            }else{
-                log.Printf("Arena marshal error: %s\n", err)
-            }
-		}
-	}
-}
 
 func main() {
 	/*defer profile.Start(profile.MemProfile, profile.ProfilePath("."), profile.NoShutdownHook).Stop()
@@ -64,22 +27,25 @@ func main() {
 	    defer trace.Stop()
 	*/
 
-	/*// Запуск сервера
-		server := gameserver.NewServer()
-		server.StartListen()
+	err := gameserver.MakeApp()
+	if err != nil {
+		log.Printf("App not created: %s\n", err)
+		return
+	}
 
-		for {
-			var input string
-	    	fmt.Scanln(&input)
+	err = gameserver.GetApp().RunServer()
+	if err != nil {
+		log.Printf("Server not started: %s\n", err)
+		return
+	}
 
-			if input == "exit"{
-				server.ExitServer()
-				break
-			}
-		}*/
+	for {
+		var input string
+		fmt.Scanln(&input)
 
-	//<-time.After(time.Second * 30)
-	//server.ExitServer()
-
-	testLoadPlatform()
+		if input == "exit" {
+			gameserver.GetApp().ExitServer()
+			break
+		}
+	}
 }

@@ -15,24 +15,24 @@ const UPDATE_QUEUE_SIZE = 100
 // Variables
 var MAX_ID uint32 = 0
 
-// Client ... Структура клиента
-type Client struct {
-	gameRoom     *GameRoom
+// Структура клиента
+type ServerClient struct {
+	serverArena  *ServerArena
 	connection   *net.TCPConn
 	id           uint32
-	state        ClientState
+	state        ServerClientState
 	mutex        sync.RWMutex
 	uploadDataCh chan []byte
 	exitReadCh   chan bool
 	exitWriteCh  chan bool
 }
 
-// NewClient ... Конструктор
-func NewClient(connection *net.TCPConn, clientType uint8, gameRoom *GameRoom) *Client {
+// Конструктор
+func NewClient(connection *net.TCPConn, serverArena *ServerArena) *ServerClient {
 	if connection == nil {
 		panic("No connection")
 	}
-	if gameRoom == nil {
+	if serverArena == nil {
 		panic("No game server")
 	}
 
@@ -40,86 +40,78 @@ func NewClient(connection *net.TCPConn, clientType uint8, gameRoom *GameRoom) *C
 	curId := atomic.AddUint32(&MAX_ID, 1)
 
 	// Конструируем клиента и его каналы
-	clientState := ClientState{
+	clientState := ServerClientState{
 		ID:     curId,
-		Type:   clientType,
-		Y:      100,
-		Height: 100,
 		Status: CLIENT_STATUS_IN_GAME,
 	}
-	uploadDataCh := make(chan []byte, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
-	exitReadCh := make(chan bool, 1)
-	exitWriteCh := make(chan bool, 1)
 
-	return &Client{
-		gameRoom:     gameRoom,
+	return &ServerClient{
+		serverArena:  serverArena,
 		connection:   connection,
 		id:           curId,
 		state:        clientState,
 		mutex:        sync.RWMutex{},
-		uploadDataCh: uploadDataCh,
-		exitReadCh:   exitReadCh,
-		exitWriteCh:  exitWriteCh,
+		uploadDataCh: make(chan []byte, UPDATE_QUEUE_SIZE), // В канале апдейтов может накапливаться максимум 1000 апдейтов
+		exitReadCh:   make(chan bool, 1),
+		exitWriteCh:  make(chan bool, 1),
 	}
 }
 
-func (client *Client) Close() {
+func (client *ServerClient) Close() {
 	client.connection.Close()
 	log.Printf("Connection closed for client %d", client.id)
 }
 
-func (client *Client) GetCurrentState() ClientState {
-	client.mutex.Lock()
+func (client *ServerClient) GetCurrentState() ServerClientState {
+	client.mutex.RLock()
 	stateCopy := client.state
-	client.mutex.Unlock()
+	client.mutex.RUnlock()
 	return stateCopy
 }
 
-// Пишем сообщение клиенту
-func (client *Client) QueueSendGameState(gameState []byte) {
-	// Если очередь превышена - считаем, что юзер отвалился
-	if len(client.uploadDataCh)+1 > UPDATE_QUEUE_SIZE {
-		log.Printf("Queue full for client %d", client.id)
-		return
-	} else {
-		client.uploadDataCh <- gameState
+func (client *ServerClient) GetCurrentStateData() []byte {
+	client.mutex.RLock()
+	stateData, err := client.state.ConvertToBytes()
+	client.mutex.RUnlock()
+
+	if err != nil {
+		log.Printf("State data make error for client %d: %s\n", client.id, err)
 	}
+
+	return stateData
 }
 
-// Пишем сообщение клиенту только с его состоянием
-func (client *Client) QueueSendCurrentClientState() {
+// Пишем сообщение клиенту
+func (client *ServerClient) QueueSendData(data []byte) {
 	// Если очередь превышена - считаем, что юзер отвалился
 	if len(client.uploadDataCh)+1 > UPDATE_QUEUE_SIZE {
 		log.Printf("Queue full for client %d", client.id)
 		return
 	} else {
-		client.mutex.RLock()
-		currentUserStateCopy := client.state
-		client.mutex.RUnlock()
-
-		data, err := currentUserStateCopy.ConvertToBytes()
-		if err != nil {
-			log.Printf("State upload error for client %d: %s\n", client.id, err)
-		}
-
 		client.uploadDataCh <- data
 	}
 }
 
+// Пишем сообщение клиенту только с его состоянием
+func (client *ServerClient) QueueSendCurrentClientState() {
+	data := client.GetCurrentStateData()
+	client.QueueSendData(data)
+}
+
 // Запускаем ожидания записи и чтения (блокирующая функция)
-func (client *Client) StartLoop() {
+func (client *ServerClient) StartLoop() {
 	go client.loopWrite() // в отдельной горутине
 	go client.loopRead()
 }
 
-func (client *Client) StopLoop() {
+func (client *ServerClient) StopLoop() {
 	client.exitWriteCh <- true
 	client.exitReadCh <- true
 	client.Close()
 }
 
 // Ожидание записи
-func (client *Client) loopWrite() {
+func (client *ServerClient) loopWrite() {
 	//log.Println("StartSyncListenLoop write to client:", client.id)
 	for {
 		select {
@@ -139,7 +131,7 @@ func (client *Client) loopWrite() {
 			// Отсылаем
 			writenCount, err := (*client.connection).Write(sendData)
 			if (err != nil) || (writenCount < len(sendData)) {
-				client.gameRoom.DeleteClient(client)
+				client.serverArena.DeleteClient(client)
 				client.Close()
 				client.exitReadCh <- true // Выход из loopRead
 				if err != nil {
@@ -159,7 +151,7 @@ func (client *Client) loopWrite() {
 }
 
 // Ожидание чтения
-func (client *Client) loopRead() {
+func (client *ServerClient) loopRead() {
 	//log.Println("Listening read from client")
 	for {
 		select {
@@ -180,7 +172,7 @@ func (client *Client) loopRead() {
 
 			// Ошибка чтения данных
 			if (err != nil) || (readCount < 4) {
-				client.gameRoom.DeleteClient(client)
+				client.serverArena.DeleteClient(client)
 				client.Close()
 				client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
 
@@ -205,7 +197,7 @@ func (client *Client) loopRead() {
 
 			// Ошибка чтения данных
 			if (err != nil) || (uint32(readCount) < dataSize) {
-				client.gameRoom.DeleteClient(client)
+				client.serverArena.DeleteClient(client)
 				client.Close()
 				client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
 
@@ -220,18 +212,7 @@ func (client *Client) loopRead() {
 			}
 
 			if readCount > 0 {
-				// Декодирование
-				state, err := NewClientState(data)
-
-				if (err == nil) && (state.ID > 0) {
-					// Сбновляем состояние данного клиента
-					client.mutex.Lock()
-					client.state.Y = state.Y
-					client.mutex.Unlock()
-
-					// Отправляем обновление состояния всем
-					client.gameRoom.ClientStateUpdated(client)
-				}
+				// TODO: ???
 			}
 		}
 	}

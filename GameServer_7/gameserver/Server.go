@@ -1,53 +1,74 @@
 package gameserver
 
 import (
+	"errors"
 	"log"
 	"net"
 )
 
 type Server struct {
+	isActive       bool
 	listener       *net.TCPListener
 	listenerExitCh chan bool
 	loopExitCh     chan bool
-	gameRooms      map[uint32]*GameRoom
-	removeRoomCh   chan *GameRoom
+	gameRooms      map[uint32]*ServerArena
+	removeRoomCh   chan *ServerArena
 	makeClientCh   chan *net.TCPConn
 }
 
 // Создание нового сервера
 func NewServer() *Server {
 	server := Server{
+		isActive:       false,
 		listener:       nil,
 		listenerExitCh: make(chan bool),
 		loopExitCh:     make(chan bool),
-		gameRooms:      make(map[uint32]*GameRoom),
-		removeRoomCh:   make(chan *GameRoom),
+		gameRooms:      make(map[uint32]*ServerArena),
+		removeRoomCh:   make(chan *ServerArena),
 		makeClientCh:   make(chan *net.TCPConn),
 	}
 	return &server
 }
 
-func (server *Server) ExitServer() {
-	server.exitAsyncSocketListener()
-	server.exitMainLoop()
+func (server *Server) ExitServer() error {
+	// TODO: Atomic???
+	if server.isActive == true {
+		server.exitAsyncSocketListener()
+		server.exitMainLoop()
+		server.isActive = false
+		return nil
+	}
+	return errors.New("Server already stopped")
 }
 
-func (server *Server) StartListen() {
-	server.asyncSocketAcceptListener()
-	server.mainLoop()
+func (server *Server) StartListen() error {
+	// TODO: Atomic???
+	if server.isActive == false {
+		// Listener
+		err := server.asyncSocketAcceptListener()
+		if err != nil {
+			return err
+		}
+		// Loop
+		server.mainLoop()
+		// Flag
+		server.isActive = true
+		return nil
+	}
+	return errors.New("Server already active")
 }
 
-func (server *Server) DeleteRoom(room *GameRoom) {
+func (server *Server) DeleteRoom(room *ServerArena) {
 	server.removeRoomCh <- room
 }
 
 // Обработка входящих подключений
-func (server *Server) asyncSocketAcceptListener() {
+func (server *Server) asyncSocketAcceptListener() error {
 	address, err := net.ResolveTCPAddr("tcp", ":9999")
 	if err != nil {
 		log.Println("Server address resolve error")
 		server.ExitServer()
-		return
+		return err
 	}
 
 	// Создание листенера
@@ -55,7 +76,7 @@ func (server *Server) asyncSocketAcceptListener() {
 	if err != nil {
 		log.Printf("Server listener start error: %s\n", err)
 		server.ExitServer()
-		return
+		return err
 	}
 
 	// Сохраняем листенер для возможности закрытия
@@ -99,6 +120,7 @@ func (server *Server) asyncSocketAcceptListener() {
 	}
 
 	go loopFunction()
+	return nil
 }
 
 // Выход из листенера
@@ -128,17 +150,19 @@ func (server *Server) mainLoop() {
 				}
 				// Не нашли подходящей свободной комнаты
 				if roomFound == false {
-					newGameRoom := NewGameRoom(server)
-					server.gameRooms[newGameRoom.roomId] = newGameRoom
-
-					newGameRoom.StartLoop()
-
-					newGameRoom.AddClientForConnection(connection)
+					newGameRoom, err := NewServerArena(server)
+					if err != nil {
+						log.Printf("Failed server create: %s\n", err)
+					} else {
+						server.gameRooms[newGameRoom.arenaId] = newGameRoom
+						newGameRoom.StartLoop()
+						newGameRoom.AddClientForConnection(connection)
+					}
 				}
 
 			// Обработка удаления комнаты
 			case room := <-server.removeRoomCh:
-				delete(server.gameRooms, room.roomId)
+				delete(server.gameRooms, room.arenaId)
 
 			// Завершение работы
 			case <-server.loopExitCh:

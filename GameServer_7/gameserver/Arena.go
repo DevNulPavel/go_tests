@@ -1,19 +1,20 @@
 package gameserver
 
 import (
+	"encoding/json"
 	"log"
 	"math/rand"
-    "encoding/json"
 )
 
+const ARENA_DATA_MAGIC_NUMBER uint8 = 3
 const ARENA_SIZE = 6 // Размер арены - сколько на сколь ячеек
 
-type Arena struct {
+type ArenaModel struct {
 	Platforms [ARENA_SIZE][ARENA_SIZE]*Platform `json:"platforms"`
 }
 
-func NewArena(infos []*PlatformInfo) *Arena {
-	arena := &Arena{}
+func NewArenaModel(infos []*PlatformInfo) ArenaModel {
+	arena := ArenaModel{}
 
 	bridgePlatforms := make([]*PlatformInfo, 0)
 	battlePlatforms := make([]*PlatformInfo, 0)
@@ -28,7 +29,7 @@ func NewArena(infos []*PlatformInfo) *Arena {
 
 	for y := int16(0); y < ARENA_SIZE; y++ {
 		for x := int16(0); x < ARENA_SIZE; x++ {
-			platform := makePlatform(battlePlatforms, arena, x, y)
+			platform := makePlatform(battlePlatforms, &arena, x, y)
 			arena.Platforms[y][x] = platform
 			log.Printf("Made platform %dx%d\n", y, x)
 		}
@@ -37,12 +38,20 @@ func NewArena(infos []*PlatformInfo) *Arena {
 	return arena
 }
 
-func (arena *Arena) ToJsonData() ([]byte, error)  {
-    return json.Marshal(arena)
+func (arena *ArenaModel) ToUploadData() ([]byte, error) {
+	jsonData, err := json.Marshal(arena)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	uploadData := make([]byte, 0, len(jsonData)+1)
+	uploadData = append(uploadData, ARENA_DATA_MAGIC_NUMBER)
+	uploadData = append(uploadData, jsonData...)
+	return uploadData, nil
 }
 
 // TODO: ???
-func makePlatform(infos []*PlatformInfo, arena *Arena, x, y int16) *Platform {
+func makePlatform(infos []*PlatformInfo, arena *ArenaModel, x, y int16) *Platform {
 	if len(infos) == 0 {
 		return nil
 	}
