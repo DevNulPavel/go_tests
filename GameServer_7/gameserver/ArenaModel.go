@@ -6,16 +6,19 @@ import (
 	"math/rand"
 )
 
-const ARENA_DATA_MAGIC_NUMBER uint8 = 3
 const ARENA_SIZE = 6 // Размер арены - сколько на сколь ячеек
 
 type ArenaModel struct {
+	Type      string                            `json:"type"`
 	Platforms [ARENA_SIZE][ARENA_SIZE]*Platform `json:"platforms"`
 }
 
 func NewArenaModel(infos []*PlatformInfo) ArenaModel {
 	arena := ArenaModel{}
 
+	arena.Type = "ArenaInfo"
+
+	// Platforms
 	bridgePlatforms := make([]*PlatformInfo, 0)
 	battlePlatforms := make([]*PlatformInfo, 0)
 	for _, value := range infos {
@@ -38,16 +41,12 @@ func NewArenaModel(infos []*PlatformInfo) ArenaModel {
 	return arena
 }
 
-func (arena *ArenaModel) ToUploadData() ([]byte, error) {
+func (arena *ArenaModel) ToBytes() ([]byte, error) {
 	jsonData, err := json.Marshal(arena)
 	if err != nil {
 		return []byte{}, err
 	}
-
-	uploadData := make([]byte, 0, len(jsonData)+1)
-	uploadData = append(uploadData, ARENA_DATA_MAGIC_NUMBER)
-	uploadData = append(uploadData, jsonData...)
-	return uploadData, nil
+	return jsonData, nil
 }
 
 // TODO: ???

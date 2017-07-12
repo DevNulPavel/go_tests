@@ -22,5 +22,5 @@ type PlatformObjectInfo struct {
 	Y           int16              `json:"positionY"`
 	Width       int16              `json:"sizeX"`
 	Height      int16              `json:"sizeY"`
-	Cells       []int8             `json:"cells"`
+	Cells       []PlatformCellType `json:"cells"`
 }

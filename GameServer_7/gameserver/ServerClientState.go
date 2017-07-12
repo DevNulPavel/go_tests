@@ -1,11 +1,8 @@
 package gameserver
 
 import (
-	"bytes"
-	"encoding/binary"
+	"encoding/json"
 )
-
-const CLIENT_STATE_MAGIC_NUMBER uint8 = 1
 
 const (
 	CLIENT_STATUS_IN_GAME = 0
@@ -13,28 +10,20 @@ const (
 	CLIENT_STATUS_WIN     = 2
 )
 
-// ClienState ... ServerClient state structure
+// ServerClient state structure
 type ServerClientState struct {
-	ID     uint32
-	Status int8
+	Type   string `json:"type"`
+	ID     uint32 `json:"id"`
+	Status int8   `json:"status"`
 }
 
-func (client *ServerClientState) ConvertToBytes() ([]byte, error) {
-	buffer := new(bytes.Buffer)
-	// MagicNumber
-	err := binary.Write(buffer, binary.BigEndian, CLIENT_STATE_MAGIC_NUMBER)
-	if err != nil {
-		return []byte{}, err
+func NewServerClientState() ServerClientState {
+	state := ServerClientState{
+		Type: "ClientState",
 	}
-	// ID
-	err = binary.Write(buffer, binary.BigEndian, client.ID)
-	if err != nil {
-		return []byte{}, err
-	}
-	// Status
-	err = binary.Write(buffer, binary.BigEndian, client.Status)
-	if err != nil {
-		return []byte{}, err
-	}
-	return buffer.Bytes(), nil
+	return state
+}
+
+func (client *ServerClientState) ToBytes() ([]byte, error) {
+	return json.Marshal(client)
 }

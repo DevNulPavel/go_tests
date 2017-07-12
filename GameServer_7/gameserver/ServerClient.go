@@ -40,10 +40,9 @@ func NewClient(connection *net.TCPConn, serverArena *ServerArena) *ServerClient 
 	curId := atomic.AddUint32(&MAX_ID, 1)
 
 	// Конструируем клиента и его каналы
-	clientState := ServerClientState{
-		ID:     curId,
-		Status: CLIENT_STATUS_IN_GAME,
-	}
+	clientState := NewServerClientState()
+	clientState.ID = curId
+	clientState.Status = CLIENT_STATUS_IN_GAME
 
 	return &ServerClient{
 		serverArena:  serverArena,
@@ -71,7 +70,7 @@ func (client *ServerClient) GetCurrentState() ServerClientState {
 
 func (client *ServerClient) GetCurrentStateData() []byte {
 	client.mutex.RLock()
-	stateData, err := client.state.ConvertToBytes()
+	stateData, err := client.state.ToBytes()
 	client.mutex.RUnlock()
 
 	if err != nil {

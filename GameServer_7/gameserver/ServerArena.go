@@ -25,9 +25,8 @@ func NewServerArena(server *Server) (*ServerArena, error) {
 	newArenaId := atomic.AddUint32(&LAST_ID, 1)
 
 	// State
-	state := GameArenaState{
-		ID: newArenaId,
-	}
+	state := NewServerArenaState()
+	state.ID = newArenaId
 
 	// Формируем список платформ для данной арены
 	item, exists := GetApp().GetStaticInfo().Levels["egypt"]
@@ -103,7 +102,7 @@ func (arena *ServerArena) mainLoop() {
 			arena.clients = append(arena.clients, client)
 			client.StartLoop()
 
-			arenaMapData, err := arena.arenaData.ToUploadData()
+			arenaMapData, err := arena.arenaData.ToBytes()
 			if err == nil {
 				client.QueueSendData(arenaMapData)
 			}

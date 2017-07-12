@@ -1,11 +1,8 @@
 package gameserver
 
 import (
-	"bytes"
-	"encoding/binary"
+	"encoding/json"
 )
-
-const GAME_ROOM_STATE_MAGIC_NUMBER uint8 = 2
 
 const (
 	GAME_ROOM_STATUS_ACTIVE    = 0
@@ -13,28 +10,20 @@ const (
 )
 
 type GameArenaState struct {
-	ID     uint32
-	Status int8
+	Type   string `json:"type"`
+	ID     uint32 `json:"id"`
+	Status int8   `json:"status"`
 }
 
-func (state *GameArenaState) ConvertToBytes() ([]byte, error) {
-	buffer := new(bytes.Buffer)
-	// MagicNumber
-	err := binary.Write(buffer, binary.BigEndian, GAME_ROOM_STATE_MAGIC_NUMBER)
-	if err != nil {
-		return []byte{}, err
+func NewServerArenaState() GameArenaState {
+	state := GameArenaState{
+		Type: "ArenaState",
 	}
-	// ID
-	err = binary.Write(buffer, binary.BigEndian, state.ID)
-	if err != nil {
-		return []byte{}, err
-	}
-	// Status
-	err = binary.Write(buffer, binary.BigEndian, state.Status)
-	if err != nil {
-		return []byte{}, err
-	}
-	return buffer.Bytes(), nil
+	return state
+}
+
+func (state *GameArenaState) ToBytes() ([]byte, error) {
+	return json.Marshal(state)
 }
 
 func (state *GameArenaState) WorldTick(delta float64) {

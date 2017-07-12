@@ -38,13 +38,20 @@ type Platform struct {
 	// Exit
 	ExitCoord [4]int16    `json:"exit"`
 	ExitDir   PlatformDir `json:"exitDir"`
+	// Symbol name
+	SymbolName string `json:"symbolName"`
+	// Bridge
+	IsBridge bool `json:"isBridge"`
+	// Monsters
+	MonsterSpawnMin  uint8    `json:"monsterSpawnMin"`    // TODO: ???
+	MonsterSpawnMax  uint8    `json:"monsterSpawnMax"`    // TODO: ???
+	PossibleMonsters []string `json:"monsters,omitempty"` // TODO: ???
 	// Cells
 	Cells []PlatformCellType `json:"cells,omitempty"`
 	// Items
-	Monsters  []PlatformMonster `json:"monsters,omitempty"` // TODO: ???
-	Objects   []PlatformObject  `json:"objects,omitempty"`  // TODO: ???
-	Blocks    []PlatformObject  `json:"blocks,omitempty"`   // TODO: ???
-	HaveDecor bool              `json:"withDecor"`
+	Objects   []PlatformObject `json:"objects,omitempty"` // TODO: ???
+	Blocks    []PlatformObject `json:"blocks,omitempty"`  // TODO: ???
+	HaveDecor bool             `json:"withDecor"`
 }
 
 func NewPlatform(info *PlatformInfo, posX, posY int16, exits [4]int16, isBridge bool) *Platform {
@@ -72,6 +79,17 @@ func NewPlatform(info *PlatformInfo, posX, posY int16, exits [4]int16, isBridge 
 			break
 		}
 	}
+
+	// Symbol name
+	platform.SymbolName = info.SymbolName
+
+	// Bridge
+	platform.IsBridge = info.Type == PLATFORM_INFO_TYPE_BRIDGE
+
+	// Monster
+	platform.MonsterSpawnMin = info.SpawnMin
+	platform.MonsterSpawnMax = info.SpawnMax
+	copy(platform.PossibleMonsters, info.MonstersNames)
 
 	// Cells and walls
 	createCells(platform, isBridge)
@@ -171,10 +189,13 @@ func makeBattleCells(platform *Platform) {
 
 	// Blocks
 	block3x3 := make([]*PlatformObjectInfo, 0)
+	block6x6 := make([]*PlatformObjectInfo, 0)
 	for i := range platform.Info.Blocks {
 		obj := &platform.Info.Blocks[i]
 		if (obj.Width == PLATFORM_BLOCK_SIZE_3x3) && (obj.Height == PLATFORM_BLOCK_SIZE_3x3) {
 			block3x3 = append(block3x3, obj)
+		} else if (obj.Width == PLATFORM_BLOCK_SIZE_6x6) && (obj.Height == PLATFORM_BLOCK_SIZE_6x6) {
+			block6x6 = append(block6x6, obj)
 		}
 	}
 	/*block1x1 := make([]*PlatformObjectInfo, 0)
@@ -215,7 +236,7 @@ func makeBattleCells(platform *Platform) {
 			cellsWalls[i] = CELL_TYPE_UNDEF
 		}
 
-		createBlocks6x6(platform)
+		createBlocks6x6(platform, cellsInfo, cellsWalls, block6x6)
 		createBlocks3x3(platform, cellsInfo, block3x3)
 
 		createArches(platform, cellsInfo, cellsWalls)
@@ -300,7 +321,7 @@ func makeBattleCells(platform *Platform) {
 	}
 }
 
-func createBlocks6x6(platform *Platform) {
+func createBlocks6x6(platform *Platform, cellInfo, cellWalls []PlatformCellType, block6x6 []*PlatformObjectInfo) {
 	platform.HaveDecor = false
 
 	for y := int16(0); y < PLATFORM_WORK_SIZE; y += PLATFORM_BLOCK_SIZE_6x6 {
@@ -329,12 +350,35 @@ func createBlocks6x6(platform *Platform) {
 			}
 
 			posTest := (y == PLATFORM_WORK_SIZE/2-PLATFORM_BLOCK_SIZE_3x3) && (x == PLATFORM_WORK_SIZE/2-PLATFORM_BLOCK_SIZE_3x3)
-			if (rand.Int()%2 == 0) || posTest || ((rand.Int() == 0) && isExit) {
-				platform.Objects, _ = appendObjects(platform.Objects,
-					platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_DECOR],
-					float64(x), float64(y), 0, 3)
+			if (rand.Int()%2 == 0) || posTest || ((rand.Int()%2 == 0) && isExit) {
+				// TODO: править тут
+				newArray, item := appendObjects(platform.Blocks,
+					block6x6,
+					float64(x), float64(y),
+					int8((x+y)&3), 3)
+				platform.Blocks = newArray
 
-				platform.HaveDecor = true
+				for yy := int16(0); yy < item.Height; yy++ {
+					for xx := int16(0); xx < item.Width; xx++ {
+						cellInfo[(y+yy)*PLATFORM_WORK_SIZE+(x+xx)] = CELL_TYPE_SPACE
+						if item.Cells[yy*item.Width+xx] == CELL_TYPE_BLOCK {
+                            cellWalls[(y+yy)*PLATFORM_WORK_SIZE+(x+xx)] = CELL_TYPE_PIT
+						}
+					}
+				}
+
+                // если можем, то применяем декор
+                if ((y == PLATFORM_WORK_SIZE / 2 - PLATFORM_BLOCK_SIZE_3x3) &&
+                    (x == PLATFORM_WORK_SIZE / 2 - PLATFORM_BLOCK_SIZE_3x3)) &&
+                    (rand.Int()%3 == 0) {
+
+                    platform.Objects, _ = appendObjects(platform.Objects,
+                        platform.Info.ObjectsByType[PLATFORM_OBJ_TYPE_DECOR],
+                        float64(x), float64(y),
+                        0, 3)
+
+                    platform.HaveDecor = true
+                }
 			}
 		}
 	}
