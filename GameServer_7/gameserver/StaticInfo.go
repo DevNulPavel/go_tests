@@ -27,7 +27,7 @@ func NewStaticInfo() (*StaticInfo, error) {
 	}
 
 	// Test arena
-	testArenaData, err := ioutil.ReadFile("data/arenaDump.json")
+	testArenaData, err := ioutil.ReadFile("data/arenaDump2x2.json")
 	if err != nil {
 		log.Println(err)
 		return nil, err
