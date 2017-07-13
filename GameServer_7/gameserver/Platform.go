@@ -395,7 +395,9 @@ func createBlocks3x3(platform *Platform, cellInfo []PlatformCellType, block3x3 [
 			addEdge = addEdge || (x == PLATFORM_WORK_SIZE-PLATFORM_BLOCK_SIZE_3x3)
 			addEdge = addEdge || (y == PLATFORM_WORK_SIZE-PLATFORM_BLOCK_SIZE_3x3)
 
-			if addEdge {
+			validCell := cellInfo[y * int16(platform.Width) + x] == CELL_TYPE_BLOCK
+
+			if addEdge && validCell {
 				edges = append(edges, NewPoint16(x, y))
 			}
 		}
