@@ -1,7 +1,7 @@
 package gameserver
 
 import (
-	"errors"
+	//"errors"
 	"net"
 	"sync/atomic"
 )
@@ -12,7 +12,8 @@ type ServerArena struct {
 	arenaId              uint32
 	server               *Server
 	clients              []*ServerClient
-	arenaData            ArenaModel
+	//arenaData            ArenaModel
+	arenaData            []byte
 	arenaState           GameArenaState
 	isFull               uint32
 	addClientByConnCh    chan *net.TCPConn
@@ -29,7 +30,7 @@ func NewServerArena(server *Server) (*ServerArena, error) {
 	state.ID = newArenaId
 
 	// Формируем список платформ для данной арены
-	item, exists := GetApp().GetStaticInfo().Levels["egypt"]
+	/*item, exists := GetApp().GetStaticInfo().Levels["egypt"]
 	if exists == false {
 		return nil, errors.New("No level with name")
 	}
@@ -43,14 +44,15 @@ func NewServerArena(server *Server) (*ServerArena, error) {
 	if len(platformsForArena) == 0 {
 		return nil, errors.New("No platforms for arena")
 	}
-	arenaData := NewArenaModel(platformsForArena)
+	arenaData := NewArenaModel(platformsForArena)*/
+
 
 	// Server arena
 	arena := &ServerArena{
 		arenaId:              newArenaId,
 		server:               server,
 		clients:              make([]*ServerClient, 0),
-		arenaData:            arenaData,
+		arenaData:            GetApp().GetStaticInfo().TestArenaData,
 		arenaState:           state,
 		isFull:               0,
 		addClientByConnCh:    make(chan *net.TCPConn),
@@ -102,10 +104,13 @@ func (arena *ServerArena) mainLoop() {
 			arena.clients = append(arena.clients, client)
 			client.StartLoop()
 
-			arenaMapData, err := arena.arenaData.ToBytes()
+
+            client.QueueSendData(arena.arenaData)
+
+			/*arenaMapData, err := arena.arenaData.ToBytes()
 			if err == nil {
 				client.QueueSendData(arenaMapData)
-			}
+			}*/
 			//client.QueueSendCurrentClientState()
 			// TODO: Send arena
 

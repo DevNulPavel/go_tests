@@ -64,42 +64,42 @@ func makePlatform(infos []*PlatformInfo, arena *ArenaModel, x, y int16) *Platfor
 	// north
 	if y > 0 {
 		if arena.Platforms[y-1][x] != nil {
-			exitCoord[0] = arena.Platforms[y-1][x].ExitCoord[2]
+			exitCoord[DIR_NORTH] = arena.Platforms[y-1][x].ExitCoord[DIR_SOUTH]
 		} else {
-			exitCoord[0] = int16(rand.Int()%((PLATFORM_SIDE_SIZE-6-5)/3)*3 + 3 + 1)
+			exitCoord[DIR_NORTH] = int16(rand.Int()%((PLATFORM_SIDE_SIZE-6-5)/3)*3 + 3 + 1)
 		}
 	} else {
-		exitCoord[0] = -1
+		exitCoord[DIR_NORTH] = -1
 	}
 	// east
 	if x < ARENA_SIZE-1 {
 		if arena.Platforms[y][x+1] != nil {
-			exitCoord[1] = arena.Platforms[y][x+1].ExitCoord[3]
+			exitCoord[DIR_EAST] = arena.Platforms[y][x+1].ExitCoord[DIR_WEST]
 		} else {
-			exitCoord[1] = int16(rand.Int()%((PLATFORM_SIDE_SIZE-6-5)/3)*3 + 3 + 1)
+			exitCoord[DIR_EAST] = int16(rand.Int()%((PLATFORM_SIDE_SIZE-6-5)/3)*3 + 3 + 1)
 		}
 	} else {
-		exitCoord[1] = -1
+		exitCoord[DIR_EAST] = -1
 	}
 	// south
 	if y < ARENA_SIZE-1 {
 		if arena.Platforms[y+1][x] != nil {
-			exitCoord[2] = arena.Platforms[y+1][x].ExitCoord[0]
+			exitCoord[DIR_SOUTH] = arena.Platforms[y+1][x].ExitCoord[DIR_NORTH]
 		} else {
-			exitCoord[2] = int16(rand.Int()%((PLATFORM_SIDE_SIZE-6-5)/3)*3 + 3 + 1)
+			exitCoord[DIR_SOUTH] = int16(rand.Int()%((PLATFORM_SIDE_SIZE-6-5)/3)*3 + 3 + 1)
 		}
 	} else {
-		exitCoord[2] = -1
+		exitCoord[DIR_SOUTH] = -1
 	}
 	// west
 	if x > 0 {
 		if arena.Platforms[y][x-1] != nil {
-			exitCoord[3] = arena.Platforms[y][x-1].ExitCoord[1]
+			exitCoord[DIR_WEST] = arena.Platforms[y][x-1].ExitCoord[DIR_EAST]
 		} else {
-			exitCoord[3] = int16(rand.Int()%((PLATFORM_SIDE_SIZE-6-5)/3)*3 + 3 + 1)
+			exitCoord[DIR_WEST] = int16(rand.Int()%((PLATFORM_SIDE_SIZE-6-5)/3)*3 + 3 + 1)
 		}
 	} else {
-		exitCoord[3] = -1
+		exitCoord[DIR_WEST] = -1
 	}
 
 	platform := NewPlatform(info, x, y, exitCoord, false)
