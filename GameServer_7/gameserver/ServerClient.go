@@ -20,6 +20,7 @@ type ServerClient struct {
 	serverArena  *ServerArena
 	connection   *net.TCPConn
 	id           uint32
+	stateValid   bool
 	state        ServerClientState
 	mutex        sync.RWMutex
 	uploadDataCh chan []byte
@@ -48,6 +49,7 @@ func NewClient(connection *net.TCPConn, serverArena *ServerArena) *ServerClient 
 		serverArena:  serverArena,
 		connection:   connection,
 		id:           curId,
+		stateValid:   false,
 		state:        clientState,
 		mutex:        sync.RWMutex{},
 		uploadDataCh: make(chan []byte, UPDATE_QUEUE_SIZE), // В канале апдейтов может накапливаться максимум 1000 апдейтов
@@ -59,6 +61,13 @@ func NewClient(connection *net.TCPConn, serverArena *ServerArena) *ServerClient 
 func (client *ServerClient) Close() {
 	client.connection.Close()
 	log.Printf("Connection closed for client %d", client.id)
+}
+
+func (client *ServerClient) IsValidState() bool {
+	client.mutex.RLock()
+	validCopy := client.stateValid
+	client.mutex.RUnlock()
+	return validCopy
 }
 
 func (client *ServerClient) GetCurrentState() ServerClientState {
@@ -211,7 +220,24 @@ func (client *ServerClient) loopRead() {
 			}
 
 			if readCount > 0 {
-				// TODO: ???
+				command, err := NewClientCommand(data)
+				if err != nil {
+					client.serverArena.DeleteClient(client)
+					client.Close()
+					client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
+
+					log.Printf("Error read command, clientId = %d, command = %s\n", client.id, string(data))
+					return
+				}
+
+				client.mutex.Lock()
+				client.stateValid = true
+				client.state.X = command.X
+				client.state.Y = command.Y
+				client.mutex.Unlock()
+
+				// ставим в очередь обновление
+				client.serverArena.ClientStateUpdated(client)
 			}
 		}
 	}

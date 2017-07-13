@@ -2,32 +2,33 @@ package gameserver
 
 import (
 	//"errors"
+	"log"
 	"net"
 	"sync/atomic"
+	"time"
 )
 
 var LAST_ID uint32 = 0
 
 type ServerArena struct {
-	arenaId              uint32
-	server               *Server
-	clients              []*ServerClient
+	arenaId uint32
+	server  *Server
+	clients []*ServerClient
 	//arenaData            ArenaModel
-	arenaData            []byte
-	arenaState           GameArenaState
-	isFull               uint32
-	addClientByConnCh    chan *net.TCPConn
-	deleteClientCh       chan *ServerClient
-	clientStateUpdatedCh chan bool
-	exitLoopCh           chan bool
+	arenaData         []byte
+	arenaState        GameArenaState
+	isFull            uint32
+	needSendAll       uint32
+	addClientByConnCh chan *net.TCPConn
+	deleteClientCh    chan *ServerClient
+	exitLoopCh        chan bool
 }
 
 func NewServerArena(server *Server) (*ServerArena, error) {
 	newArenaId := atomic.AddUint32(&LAST_ID, 1)
 
 	// State
-	state := NewServerArenaState()
-	state.ID = newArenaId
+	state := NewServerArenaState(newArenaId)
 
 	// Формируем список платформ для данной арены
 	/*item, exists := GetApp().GetStaticInfo().Levels["egypt"]
@@ -46,19 +47,18 @@ func NewServerArena(server *Server) (*ServerArena, error) {
 	}
 	arenaData := NewArenaModel(platformsForArena)*/
 
-
 	// Server arena
 	arena := &ServerArena{
-		arenaId:              newArenaId,
-		server:               server,
-		clients:              make([]*ServerClient, 0),
-		arenaData:            GetApp().GetStaticInfo().TestArenaData,
-		arenaState:           state,
-		isFull:               0,
-		addClientByConnCh:    make(chan *net.TCPConn),
-		deleteClientCh:       make(chan *ServerClient),
-		clientStateUpdatedCh: make(chan bool),
-		exitLoopCh:           make(chan bool),
+		arenaId:           newArenaId,
+		server:            server,
+		clients:           make([]*ServerClient, 0),
+		arenaData:         GetApp().GetStaticInfo().TestArenaData,
+		arenaState:        state,
+		isFull:            0,
+		needSendAll:       0,
+		addClientByConnCh: make(chan *net.TCPConn),
+		deleteClientCh:    make(chan *ServerClient),
+		exitLoopCh:        make(chan bool),
 	}
 	return arena, nil
 }
@@ -82,7 +82,7 @@ func (arena *ServerArena) DeleteClient(client *ServerClient) {
 }
 
 func (arena *ServerArena) ClientStateUpdated(client *ServerClient) {
-	arena.clientStateUpdatedCh <- true
+	atomic.StoreUint32(&arena.needSendAll, 1)
 }
 
 func (arena *ServerArena) GetIsFull() bool {
@@ -92,10 +92,36 @@ func (arena *ServerArena) GetIsFull() bool {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (arena *ServerArena) sendAllNewState() {
-	// TODO: Send all
+	// Sync states
+	arena.arenaState.Clients = make([]ServerClientState, 0)
+	for _, client := range arena.clients {
+		if client.IsValidState() {
+			stateCopy := client.GetCurrentState()
+			arena.arenaState.Clients = append(arena.arenaState.Clients, stateCopy)
+		}
+	}
+
+	// State to data
+	data, err := arena.arenaState.ToBytes()
+	if err != nil {
+		log.Printf("Failed arena state marshaling: %s\n", err)
+		return
+	}
+
+	// Send all
+	for _, client := range arena.clients {
+		client.QueueSendData(data)
+	}
+}
+
+func (arena *ServerArena) worldTick(delta float64) {
 }
 
 func (arena *ServerArena) mainLoop() {
+	const updatePeriodMS = time.Millisecond * 50
+	timer := time.NewTimer(updatePeriodMS)
+	lastTickTime := time.Now()
+
 	for {
 		select {
 		// Канал добавления нового юзера
@@ -104,19 +130,27 @@ func (arena *ServerArena) mainLoop() {
 			arena.clients = append(arena.clients, client)
 			client.StartLoop()
 
-
-            client.QueueSendData(arena.arenaData)
+			client.QueueSendData(arena.arenaData)
+			client.QueueSendCurrentClientState()
 
 			/*arenaMapData, err := arena.arenaData.ToBytes()
 			if err == nil {
 				client.QueueSendData(arenaMapData)
 			}*/
-			//client.QueueSendCurrentClientState()
 			// TODO: Send arena
 
-		// Канал обновления состояния юзера
-		case <-arena.clientStateUpdatedCh:
-			arena.sendAllNewState()
+		// Основной серверный таймер, который обновляет серверный мир
+		case <-timer.C:
+			timer.Reset(updatePeriodMS)
+			delta := time.Now().Sub(lastTickTime).Seconds()
+			lastTickTime = time.Now()
+
+			arena.worldTick(delta)
+
+			if atomic.LoadUint32(&arena.needSendAll) > 0 {
+				atomic.StoreUint32(&arena.needSendAll, 0)
+				arena.sendAllNewState()
+			}
 
 		// Канал удаления нового юзера
 		case client := <-arena.deleteClientCh:

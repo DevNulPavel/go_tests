@@ -14,6 +14,8 @@ const (
 type ServerClientState struct {
 	Type   string `json:"type"`
 	ID     uint32 `json:"id"`
+	X      int16  `json:"x"`
+	Y      int16  `json:"y"`
 	Status int8   `json:"status"`
 }
 

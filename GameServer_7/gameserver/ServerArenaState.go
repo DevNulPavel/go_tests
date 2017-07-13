@@ -10,14 +10,17 @@ const (
 )
 
 type GameArenaState struct {
-	Type   string `json:"type"`
-	ID     uint32 `json:"id"`
-	Status int8   `json:"status"`
+	ID      uint32              `json:"id"`
+	Type    string              `json:"type"`
+	Status  int8                `json:"status"`
+	Clients []ServerClientState `json:"clients"`
 }
 
-func NewServerArenaState() GameArenaState {
+func NewServerArenaState(id uint32) GameArenaState {
 	state := GameArenaState{
-		Type: "ArenaState",
+		ID:      id,
+		Type:    "ArenaState",
+		Clients: []ServerClientState{},
 	}
 	return state
 }
@@ -32,6 +35,6 @@ func (state *GameArenaState) WorldTick(delta float64) {
 	}
 }
 
-func (gameRoomState *GameArenaState) Reset() {
-	gameRoomState.Status = GAME_ROOM_STATUS_ACTIVE
+func (state *GameArenaState) Reset() {
+	state.Status = GAME_ROOM_STATUS_ACTIVE
 }

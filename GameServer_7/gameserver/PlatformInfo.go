@@ -84,30 +84,30 @@ func (info *PlatformInfo) handleLoadedInfo() {
 	}
 
 	// Формируем массивы ячеек для каждого объекта и блока
-    for i := range info.Objects {
-        obj := &(info.Objects[i])
+	for i := range info.Objects {
+		obj := &(info.Objects[i])
 
-        oldCells := obj.Cells
-        obj.Cells = make([]PlatformCellType, obj.Width * obj.Height)
-        for i := int16(0); i < obj.Width * obj.Height; i++  {
-            if i < int16(len(oldCells)) {
-                obj.Cells[i] = oldCells[i]
-            } else {
-                obj.Cells[i] = CELL_TYPE_SPACE
-            }
-        }
-    }
-    for i := range info.Blocks {
-        obj := &(info.Blocks[i])
+		oldCells := obj.Cells
+		obj.Cells = make([]PlatformCellType, obj.Width*obj.Height)
+		for i := int16(0); i < obj.Width*obj.Height; i++ {
+			if i < int16(len(oldCells)) {
+				obj.Cells[i] = oldCells[i]
+			} else {
+				obj.Cells[i] = CELL_TYPE_SPACE
+			}
+		}
+	}
+	for i := range info.Blocks {
+		obj := &(info.Blocks[i])
 
-        oldCells := obj.Cells
-        obj.Cells = make([]PlatformCellType, obj.Width * obj.Height)
-        for i := int16(0); i < obj.Width * obj.Height; i++  {
-            if i < int16(len(oldCells)) {
-                obj.Cells[i] = oldCells[i]
-            } else {
-                obj.Cells[i] = CELL_TYPE_SPACE
-            }
-        }
-    }
+		oldCells := obj.Cells
+		obj.Cells = make([]PlatformCellType, obj.Width*obj.Height)
+		for i := int16(0); i < obj.Width*obj.Height; i++ {
+			if i < int16(len(oldCells)) {
+				obj.Cells[i] = oldCells[i]
+			} else {
+				obj.Cells[i] = CELL_TYPE_SPACE
+			}
+		}
+	}
 }
