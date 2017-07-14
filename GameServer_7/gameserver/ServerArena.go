@@ -127,8 +127,6 @@ func (arena *ServerArena) mainLoop() {
 	const updatePeriodMS = time.Millisecond * 100
 	timer := time.NewTimer(updatePeriodMS)
 	lastTickTime := time.Now()
-    // TODO: Test
-    timer.Stop()
 
 	for {
 		select {

@@ -14,11 +14,11 @@ const (
 type ServerClientState struct {
 	Type        string  `json:"type"`
 	ID          uint32  `json:"id"`
-	X           float32 `json:"x"`
-	Y           float32 `json:"y"`
-	VX          float32 `json:"vx"`
-	VY          float32 `json:"vx"`
-	Duration    float32 `json:"duration"`
+	X           float64 `json:"x"`
+	Y           float64 `json:"y"`
+	VX          float64 `json:"vx"`
+	VY          float64 `json:"vx"`
+	Duration    float64 `json:"duration"`
 	Status      int8    `json:"status"`
 	VisualState uint8   `json:"visualState"`
 	AnimName    string  `json:"animName"`
