@@ -69,16 +69,22 @@ func (client *ServerClient) IsValidState() bool {
 	return validCopy
 }
 
-func (client *ServerClient) GetCurrentState() ServerClientState {
+func (client *ServerClient) GetCurrentState(withReset bool) ServerClientState {
 	client.mutex.RLock()
 	stateCopy := client.state
+	if withReset {
+		client.state.Duration = 0.0
+	}
 	client.mutex.RUnlock()
 	return stateCopy
 }
 
-func (client *ServerClient) GetCurrentStateData() []byte {
+func (client *ServerClient) GetCurrentStateData(withReset bool) []byte {
 	client.mutex.RLock()
 	stateData, err := client.state.ToBytes()
+	if withReset {
+		client.state.Duration = 0.0
+	}
 	client.mutex.RUnlock()
 
 	if err != nil {
@@ -101,7 +107,7 @@ func (client *ServerClient) QueueSendData(data []byte) {
 
 // Пишем сообщение клиенту только с его состоянием
 func (client *ServerClient) QueueSendCurrentClientState() {
-	data := client.GetCurrentStateData()
+	data := client.GetCurrentStateData(false)
 	client.QueueSendData(data)
 }
 
@@ -234,10 +240,14 @@ func (client *ServerClient) loopRead() {
 				client.state.X = command.X
 				client.state.Y = command.Y
 				client.state.VisualState = command.VisualState
+				client.state.AnimName = command.AnimName
+				client.state.Duration = command.Duration
+				client.state.VX = command.VX
+				client.state.VY = command.VY
 				client.mutex.Unlock()
 
 				// ставим в очередь обновление
-				client.serverArena.ClientStateUpdated(client)
+				client.serverArena.ClientStateUpdated(client, true)
 			}
 		}
 	}

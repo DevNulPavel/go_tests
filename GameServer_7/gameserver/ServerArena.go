@@ -21,6 +21,7 @@ type ServerArena struct {
 	needSendAll       uint32
 	addClientByConnCh chan *net.TCPConn
 	deleteClientCh    chan *ServerClient
+    forceSendAll      chan bool
 	exitLoopCh        chan bool
 }
 
@@ -58,6 +59,7 @@ func NewServerArena(server *Server) (*ServerArena, error) {
 		needSendAll:       0,
 		addClientByConnCh: make(chan *net.TCPConn),
 		deleteClientCh:    make(chan *ServerClient),
+        forceSendAll:      make(chan bool),
 		exitLoopCh:        make(chan bool),
 	}
 	return arena, nil
@@ -81,8 +83,12 @@ func (arena *ServerArena) DeleteClient(client *ServerClient) {
 	arena.deleteClientCh <- client
 }
 
-func (arena *ServerArena) ClientStateUpdated(client *ServerClient) {
-	atomic.StoreUint32(&arena.needSendAll, 1)
+func (arena *ServerArena) ClientStateUpdated(client *ServerClient, force bool) {
+    if force {
+        arena.forceSendAll<- true
+    }else{
+        atomic.StoreUint32(&arena.needSendAll, 1)
+    }
 }
 
 func (arena *ServerArena) GetIsFull() bool {
@@ -96,7 +102,7 @@ func (arena *ServerArena) sendAllNewState() {
 	arena.arenaState.Clients = make([]ServerClientState, 0)
 	for _, client := range arena.clients {
 		if client.IsValidState() {
-			stateCopy := client.GetCurrentState()
+			stateCopy := client.GetCurrentState(true)
 			arena.arenaState.Clients = append(arena.arenaState.Clients, stateCopy)
 		}
 	}
@@ -118,39 +124,45 @@ func (arena *ServerArena) worldTick(delta float64) {
 }
 
 func (arena *ServerArena) mainLoop() {
-	const updatePeriodMS = time.Millisecond * 50
+	const updatePeriodMS = time.Millisecond * 100
 	timer := time.NewTimer(updatePeriodMS)
 	lastTickTime := time.Now()
+    // TODO: Test
+    timer.Stop()
 
 	for {
 		select {
-		// Канал добавления нового юзера
-		case connection := <-arena.addClientByConnCh:
-			client := NewClient(connection, arena)
-			arena.clients = append(arena.clients, client)
-			client.StartLoop()
+        // Канал добавления нового юзера
+        case connection := <-arena.addClientByConnCh:
+            client := NewClient(connection, arena)
+            arena.clients = append(arena.clients, client)
+            client.StartLoop()
 
-			client.QueueSendData(arena.arenaData)
-			client.QueueSendCurrentClientState()
+            client.QueueSendData(arena.arenaData)
+            client.QueueSendCurrentClientState()
 
-			/*arenaMapData, err := arena.arenaData.ToBytes()
+            /*arenaMapData, err := arena.arenaData.ToBytes()
 			if err == nil {
 				client.QueueSendData(arenaMapData)
 			}*/
-			// TODO: Send arena
+            // TODO: Send arena
 
-		// Основной серверный таймер, который обновляет серверный мир
-		case <-timer.C:
-			timer.Reset(updatePeriodMS)
-			delta := time.Now().Sub(lastTickTime).Seconds()
-			lastTickTime = time.Now()
+            // Основной серверный таймер, который обновляет серверный мир
+        case <-timer.C:
+            timer.Reset(updatePeriodMS)
+            delta := time.Now().Sub(lastTickTime).Seconds()
+            lastTickTime = time.Now()
 
-			arena.worldTick(delta)
+            arena.worldTick(delta)
 
-			if atomic.LoadUint32(&arena.needSendAll) > 0 {
-				atomic.StoreUint32(&arena.needSendAll, 0)
-				arena.sendAllNewState()
-			}
+            if atomic.LoadUint32(&arena.needSendAll) > 0 {
+                atomic.StoreUint32(&arena.needSendAll, 0)
+                arena.sendAllNewState()
+            }
+
+        case <-arena.forceSendAll:
+            atomic.StoreUint32(&arena.needSendAll, 0)
+            arena.sendAllNewState()
 
 		// Канал удаления нового юзера
 		case client := <-arena.deleteClientCh:
