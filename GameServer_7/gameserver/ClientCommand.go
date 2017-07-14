@@ -10,10 +10,11 @@ const (
 )
 
 type ClientCommand struct {
-	ID   uint32 `json:"id"`
-	Type uint8  `json:"type"`
-	X    int16  `json:"x"`
-	Y    int16  `json:"y"`
+	ID          uint32 `json:"id"`
+	Type        uint8  `json:"type"`
+	X           int16  `json:"x"`
+	Y           int16  `json:"y"`
+	VisualState uint8   `json:"visualState"`
 }
 
 func NewClientCommand(data []byte) (*ClientCommand, error) {

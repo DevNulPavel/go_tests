@@ -41,8 +41,7 @@ func NewClient(connection *net.TCPConn, serverArena *ServerArena) *ServerClient 
 	curId := atomic.AddUint32(&MAX_ID, 1)
 
 	// Конструируем клиента и его каналы
-	clientState := NewServerClientState()
-	clientState.ID = curId
+	clientState := NewServerClientState(curId)
 	clientState.Status = CLIENT_STATUS_IN_GAME
 
 	return &ServerClient{
@@ -234,6 +233,7 @@ func (client *ServerClient) loopRead() {
 				client.stateValid = true
 				client.state.X = command.X
 				client.state.Y = command.Y
+				client.state.VisualState = command.VisualState
 				client.mutex.Unlock()
 
 				// ставим в очередь обновление
