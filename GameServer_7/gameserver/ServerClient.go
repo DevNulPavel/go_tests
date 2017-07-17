@@ -244,7 +244,7 @@ func (client *ServerClient) loopRead() {
 				client.state.Y = command.Y
 				client.state.VX = command.VX
 				client.state.VY = command.VY
-				client.state.Duration = command.Duration
+				client.state.Duration += command.Duration // Специально + для накопления
 				client.state.VisualState = command.VisualState
 				client.state.AnimName = command.AnimName
 				client.state.StartSkillName = command.StartSkillName

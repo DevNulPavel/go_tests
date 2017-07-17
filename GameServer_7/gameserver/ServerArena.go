@@ -145,7 +145,7 @@ func (arena *ServerArena) mainLoop() {
 			}*/
 			// TODO: Send arena
 
-			// Основной серверный таймер, который обновляет серверный мир
+		// Основной серверный таймер, который обновляет серверный мир
 		case <-timer.C:
 			timer.Reset(updatePeriodMS)
 			delta := time.Now().Sub(lastTickTime).Seconds()
