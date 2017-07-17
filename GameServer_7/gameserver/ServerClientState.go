@@ -12,16 +12,20 @@ const (
 
 // ServerClient state structure
 type ServerClientState struct {
-	Type        string  `json:"type"`
-	ID          uint32  `json:"id"`
-	X           float64 `json:"x"`
-	Y           float64 `json:"y"`
-	VX          float64 `json:"vx"`
-	VY          float64 `json:"vx"`
-	Duration    float64 `json:"duration"`
-	Status      int8    `json:"status"`
-	VisualState uint8   `json:"visualState"`
-	AnimName    string  `json:"animName"`
+	Type           string  `json:"type"`
+	ID             uint32  `json:"id"`
+	RotationX      float64 `json:"rx"`
+	RotationY      float64 `json:"ry"`
+	RotationZ      float64 `json:"rz"`
+	X              float64 `json:"x"`
+	Y              float64 `json:"y"`
+	VX             float64 `json:"vx"`
+	VY             float64 `json:"vx"`
+	Duration       float64 `json:"duration"`
+	Status         int8    `json:"status"`
+	VisualState    uint8   `json:"visualState"`
+	AnimName       string  `json:"animName"`
+	StartSkillName string  `json:"startSkillName"`
 }
 
 func NewServerClientState(id uint32) ServerClientState {

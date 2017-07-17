@@ -237,17 +237,21 @@ func (client *ServerClient) loopRead() {
 
 				client.mutex.Lock()
 				client.stateValid = true
+				client.state.RotationX = command.RotationX
+                client.state.RotationY = command.RotationY
+                client.state.RotationZ = command.RotationZ
 				client.state.X = command.X
 				client.state.Y = command.Y
-				client.state.VisualState = command.VisualState
-				client.state.AnimName = command.AnimName
-				client.state.Duration = command.Duration
 				client.state.VX = command.VX
 				client.state.VY = command.VY
+				client.state.Duration = command.Duration
+				client.state.VisualState = command.VisualState
+				client.state.AnimName = command.AnimName
+				client.state.StartSkillName = command.StartSkillName
 				client.mutex.Unlock()
 
 				// ставим в очередь обновление
-				client.serverArena.ClientStateUpdated(client, true)
+				client.serverArena.ClientStateUpdated(client, false)
 			}
 		}
 	}
