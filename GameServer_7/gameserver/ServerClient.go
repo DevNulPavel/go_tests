@@ -238,8 +238,8 @@ func (client *ServerClient) loopRead() {
 				client.mutex.Lock()
 				client.stateValid = true
 				client.state.RotationX = command.RotationX
-                client.state.RotationY = command.RotationY
-                client.state.RotationZ = command.RotationZ
+				client.state.RotationY = command.RotationY
+				client.state.RotationZ = command.RotationZ
 				client.state.X = command.X
 				client.state.Y = command.Y
 				client.state.VX = command.VX

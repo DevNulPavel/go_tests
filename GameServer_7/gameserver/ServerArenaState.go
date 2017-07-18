@@ -10,15 +10,16 @@ const (
 )
 
 type GameArenaState struct {
-	Type    string              `json:"type"`
-	ID      uint32              `json:"id"`
-	Status  int8                `json:"status"`
-	Clients []ServerClientState `json:"clients"`
+	Type     string               `json:"type"`
+	ID       uint32               `json:"id"`
+	Status   int8                 `json:"status"`
+	Clients  []ServerClientState  `json:"clients"`
+	Monsters []ServerMonsterState `json:"monsters"`
 }
 
 func NewServerArenaState(id uint32) GameArenaState {
 	state := GameArenaState{
-        Type:    "ArenaState",
+		Type:    "ArenaState",
 		ID:      id,
 		Clients: []ServerClientState{},
 	}
