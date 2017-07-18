@@ -3,12 +3,14 @@ package gameserver
 import (
 	//"errors"
 	"log"
+	"math"
 	"net"
 	"sync/atomic"
 	"time"
 )
 
 var LAST_ID uint32 = 0
+var LAST_MONSTER_ID uint32 = 0
 
 type ServerArena struct {
 	arenaId uint32
@@ -121,12 +123,56 @@ func (arena *ServerArena) sendAllNewState() {
 }
 
 func (arena *ServerArena) worldTick(delta float64) {
+	if len(arena.arenaState.Monsters) > 0 {
+		hits := []ClientCommandHitInfo{}
+		for _, client := range arena.clients {
+			hits = append(hits, client.GetCurrentHitsWithReset()...)
+		}
+
+		// TODO: Optimize
+		haveUpdates := false
+		for _, hit := range hits {
+			for i, _ := range arena.arenaState.Monsters {
+				if arena.arenaState.Monsters[i].ID == hit.ID {
+					arena.arenaState.Monsters[i].Health -= hit.Damage
+					arena.arenaState.Monsters[i].Health = int16(math.Max(float64(arena.arenaState.Monsters[i].Health), 0.0))
+
+                    // Delete
+                    if arena.arenaState.Monsters[i].Health == 0.0 {
+                        arena.arenaState.Monsters = append(arena.arenaState.Monsters[:i], arena.arenaState.Monsters[i+1:]...)
+                    }
+
+                    haveUpdates = true
+				}
+			}
+		}
+
+		if haveUpdates == true {
+			atomic.StoreUint32(&arena.needSendAll, 1)
+		}
+	}
+}
+
+func (arena *ServerArena) createMonster() {
+	if len(arena.arenaState.Monsters) == 0 {
+		newMonsterId := atomic.AddUint32(&LAST_MONSTER_ID, 1)
+
+		monsterState := NewServerMonsterState(newMonsterId)
+		monsterState.Name = "angry_cat"
+		monsterState.Health = 200
+
+		arena.arenaState.Monsters = append(arena.arenaState.Monsters, monsterState)
+
+		atomic.StoreUint32(&arena.needSendAll, 1)
+	}
 }
 
 func (arena *ServerArena) mainLoop() {
-	const updatePeriodMS = time.Millisecond * 50
-	timer := time.NewTimer(updatePeriodMS)
+	updatePeriodMS := time.Millisecond * 50
+	updateTimer := time.NewTimer(updatePeriodMS)
 	lastTickTime := time.Now()
+
+	newMonsterTimer := time.NewTimer(time.Second * 15)
 
 	for {
 		select {
@@ -146,8 +192,8 @@ func (arena *ServerArena) mainLoop() {
 			// TODO: Send arena
 
 		// Основной серверный таймер, который обновляет серверный мир
-		case <-timer.C:
-			timer.Reset(updatePeriodMS)
+		case <-updateTimer.C:
+			updateTimer.Reset(updatePeriodMS)
 			delta := time.Now().Sub(lastTickTime).Seconds()
 			lastTickTime = time.Now()
 
@@ -157,6 +203,9 @@ func (arena *ServerArena) mainLoop() {
 				atomic.StoreUint32(&arena.needSendAll, 0)
 				arena.sendAllNewState()
 			}
+
+		case <-newMonsterTimer.C:
+			arena.createMonster()
 
 		case <-arena.forceSendAll:
 			atomic.StoreUint32(&arena.needSendAll, 0)
@@ -178,6 +227,8 @@ func (arena *ServerArena) mainLoop() {
 
 		// Выход из цикла обработки событий
 		case <-arena.exitLoopCh:
+			updateTimer.Stop()
+			newMonsterTimer.Stop()
 			// Clients
 			for _, client := range arena.clients {
 				client.Close()

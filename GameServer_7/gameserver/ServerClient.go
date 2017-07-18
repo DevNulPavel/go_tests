@@ -20,9 +20,10 @@ type ServerClient struct {
 	serverArena  *ServerArena
 	connection   *net.TCPConn
 	id           uint32
+	mutex        sync.RWMutex
 	stateValid   bool
 	state        ServerClientState
-	mutex        sync.RWMutex
+	hits         []ClientCommandHitInfo
 	uploadDataCh chan []byte
 	exitReadCh   chan bool
 	exitWriteCh  chan bool
@@ -48,9 +49,10 @@ func NewClient(connection *net.TCPConn, serverArena *ServerArena) *ServerClient 
 		serverArena:  serverArena,
 		connection:   connection,
 		id:           curId,
+		mutex:        sync.RWMutex{},
 		stateValid:   false,
 		state:        clientState,
-		mutex:        sync.RWMutex{},
+		hits:         make([]ClientCommandHitInfo, 0),
 		uploadDataCh: make(chan []byte, UPDATE_QUEUE_SIZE), // В канале апдейтов может накапливаться максимум 1000 апдейтов
 		exitReadCh:   make(chan bool, 1),
 		exitWriteCh:  make(chan bool, 1),
@@ -80,18 +82,36 @@ func (client *ServerClient) GetCurrentState(withReset bool) ServerClientState {
 }
 
 func (client *ServerClient) GetCurrentStateData(withReset bool) []byte {
-	client.mutex.RLock()
-	stateData, err := client.state.ToBytes()
 	if withReset {
+		client.mutex.Lock()
+		stateData, err := client.state.ToBytes()
 		client.state.Duration = 0.0
-	}
-	client.mutex.RUnlock()
+		client.mutex.Unlock()
 
-	if err != nil {
-		log.Printf("State data make error for client %d: %s\n", client.id, err)
+		if err != nil {
+			log.Printf("State data make error for client %d: %s\n", client.id, err)
+		}
+		return stateData
+	} else {
+		client.mutex.RLock()
+		stateData, err := client.state.ToBytes()
+		client.mutex.RUnlock()
+
+		if err != nil {
+			log.Printf("State data make error for client %d: %s\n", client.id, err)
+		}
+		return stateData
 	}
 
-	return stateData
+	return []byte{}
+}
+
+func (client *ServerClient) GetCurrentHitsWithReset() []ClientCommandHitInfo {
+	client.mutex.Lock()
+	hits := client.hits
+	client.hits = make([]ClientCommandHitInfo, 0)
+	client.mutex.Unlock()
+	return hits
 }
 
 // Пишем сообщение клиенту
@@ -236,7 +256,9 @@ func (client *ServerClient) loopRead() {
 				}
 
 				client.mutex.Lock()
+
 				client.stateValid = true
+				// State
 				client.state.RotationX = command.RotationX
 				client.state.RotationY = command.RotationY
 				client.state.RotationZ = command.RotationZ
@@ -248,6 +270,8 @@ func (client *ServerClient) loopRead() {
 				client.state.VisualState = command.VisualState
 				client.state.AnimName = command.AnimName
 				client.state.StartSkillName = command.StartSkillName
+				// Hits
+				client.hits = append(client.hits, command.HitMonsters...)
 				client.mutex.Unlock()
 
 				// ставим в очередь обновление
