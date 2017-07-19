@@ -3,7 +3,7 @@ package gameserver
 import (
 	//"errors"
 	"log"
-	"math"
+	//"math"
 	"net"
 	"sync/atomic"
 	"time"
@@ -130,22 +130,25 @@ func (arena *ServerArena) worldTick(delta float64) {
 		}
 
 		// TODO: Optimize
+		validMonsters := make([]ServerMonsterState, 0)
 		haveUpdates := false
-		for _, hit := range hits {
-			for i, _ := range arena.arenaState.Monsters {
+		for i, _ := range arena.arenaState.Monsters {
+			for _, hit := range hits {
 				if arena.arenaState.Monsters[i].ID == hit.ID {
 					arena.arenaState.Monsters[i].Health -= hit.Damage
-					arena.arenaState.Monsters[i].Health = int16(math.Max(float64(arena.arenaState.Monsters[i].Health), 0.0))
 
-                    // Delete
-                    if arena.arenaState.Monsters[i].Health == 0.0 {
-                        arena.arenaState.Monsters = append(arena.arenaState.Monsters[:i], arena.arenaState.Monsters[i+1:]...)
-                    }
+                    log.Printf("Hit monster %d: damage = %d, health = %d\n", hit.ID, hit.Damage, arena.arenaState.Monsters[i].Health)
 
-                    haveUpdates = true
+					haveUpdates = true
 				}
 			}
+
+            if arena.arenaState.Monsters[i].Health > 0 {
+                //arena.arenaState.Monsters[i].Health = int16(math.Max(float64(arena.arenaState.Monsters[i].Health), 0.0))
+                validMonsters = append(validMonsters, arena.arenaState.Monsters[i])
+            }
 		}
+        arena.arenaState.Monsters = validMonsters
 
 		if haveUpdates == true {
 			atomic.StoreUint32(&arena.needSendAll, 1)
@@ -159,9 +162,13 @@ func (arena *ServerArena) createMonster() {
 
 		monsterState := NewServerMonsterState(newMonsterId)
 		monsterState.Name = "angry_cat"
-		monsterState.Health = 200
+		monsterState.Health = 1000
+		monsterState.X = 2
+		monsterState.Y = 2
 
 		arena.arenaState.Monsters = append(arena.arenaState.Monsters, monsterState)
+
+        log.Printf("Generated monster %d", newMonsterId)
 
 		atomic.StoreUint32(&arena.needSendAll, 1)
 	}
@@ -172,7 +179,8 @@ func (arena *ServerArena) mainLoop() {
 	updateTimer := time.NewTimer(updatePeriodMS)
 	lastTickTime := time.Now()
 
-	newMonsterTimer := time.NewTimer(time.Second * 15)
+    monsterGeneratePeriod := time.Second * 3
+	newMonsterTimer := time.NewTimer(monsterGeneratePeriod)
 
 	for {
 		select {
@@ -205,6 +213,7 @@ func (arena *ServerArena) mainLoop() {
 			}
 
 		case <-newMonsterTimer.C:
+            newMonsterTimer.Reset(time.Second * 20)
 			arena.createMonster()
 
 		case <-arena.forceSendAll:
