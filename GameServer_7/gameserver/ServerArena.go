@@ -135,20 +135,20 @@ func (arena *ServerArena) worldTick(delta float64) {
 		for i, _ := range arena.arenaState.Monsters {
 			for _, hit := range hits {
 				if arena.arenaState.Monsters[i].ID == hit.ID {
-					arena.arenaState.Monsters[i].Health -= hit.Damage
+					arena.arenaState.Monsters[i].Health -= hit.Damage / 10
 
-                    log.Printf("Hit monster %d: damage = %d, health = %d\n", hit.ID, hit.Damage, arena.arenaState.Monsters[i].Health)
+					log.Printf("Hit monster %d: damage = %d, health = %d\n", hit.ID, hit.Damage, arena.arenaState.Monsters[i].Health)
 
 					haveUpdates = true
 				}
 			}
 
-            if arena.arenaState.Monsters[i].Health > 0 {
-                //arena.arenaState.Monsters[i].Health = int16(math.Max(float64(arena.arenaState.Monsters[i].Health), 0.0))
-                validMonsters = append(validMonsters, arena.arenaState.Monsters[i])
-            }
+			if arena.arenaState.Monsters[i].Health > 0 {
+				//arena.arenaState.Monsters[i].Health = int16(math.Max(float64(arena.arenaState.Monsters[i].Health), 0.0))
+				validMonsters = append(validMonsters, arena.arenaState.Monsters[i])
+			}
 		}
-        arena.arenaState.Monsters = validMonsters
+		arena.arenaState.Monsters = validMonsters
 
 		if haveUpdates == true {
 			atomic.StoreUint32(&arena.needSendAll, 1)
@@ -168,7 +168,7 @@ func (arena *ServerArena) createMonster() {
 
 		arena.arenaState.Monsters = append(arena.arenaState.Monsters, monsterState)
 
-        log.Printf("Generated monster %d", newMonsterId)
+		log.Printf("Generated monster %d", newMonsterId)
 
 		atomic.StoreUint32(&arena.needSendAll, 1)
 	}
@@ -179,7 +179,7 @@ func (arena *ServerArena) mainLoop() {
 	updateTimer := time.NewTimer(updatePeriodMS)
 	lastTickTime := time.Now()
 
-    monsterGeneratePeriod := time.Second * 3
+	monsterGeneratePeriod := time.Second * 3
 	newMonsterTimer := time.NewTimer(monsterGeneratePeriod)
 
 	for {
@@ -213,7 +213,7 @@ func (arena *ServerArena) mainLoop() {
 			}
 
 		case <-newMonsterTimer.C:
-            newMonsterTimer.Reset(time.Second * 20)
+			newMonsterTimer.Reset(time.Second * 20)
 			arena.createMonster()
 
 		case <-arena.forceSendAll:
