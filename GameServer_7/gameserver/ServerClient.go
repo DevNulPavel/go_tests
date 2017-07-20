@@ -256,22 +256,27 @@ func (client *ServerClient) loopRead() {
 				}
 
 				client.mutex.Lock()
-
-				client.stateValid = true
-				// State
-				client.state.RotationX = command.RotationX
-				client.state.RotationY = command.RotationY
-				client.state.RotationZ = command.RotationZ
-				client.state.X = command.X
-				client.state.Y = command.Y
-				client.state.VX = command.VX
-				client.state.VY = command.VY
-				client.state.Duration += command.Duration // Специально + для накопления
-				client.state.VisualState = command.VisualState
-				client.state.AnimName = command.AnimName
-				client.state.StartSkillName = command.StartSkillName
-				// Hits
-				client.hits = append(client.hits, command.HitMonsters...)
+                {
+                    client.stateValid = true
+                    // State
+                    client.state.RotationX = command.RotationX
+                    client.state.RotationY = command.RotationY
+                    client.state.RotationZ = command.RotationZ
+                    client.state.X = command.X
+                    client.state.Y = command.Y
+                    client.state.VX = command.VX
+                    client.state.VY = command.VY
+                    client.state.Duration += command.Duration // Специально + для накопления
+                    client.state.VisualState = command.VisualState
+                    client.state.AnimName = command.AnimName
+                    client.state.StartSkillName = command.StartSkillName
+                    // Damage
+                    for i, _ := range command.HitMonsters{
+                        client.state.TotalDamage += uint32(command.HitMonsters[i].Damage) / 10
+                    }
+                    // Hits
+                    client.hits = append(client.hits, command.HitMonsters...)
+                }
 				client.mutex.Unlock()
 
 				// ставим в очередь обновление

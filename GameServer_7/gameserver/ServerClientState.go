@@ -26,6 +26,7 @@ type ServerClientState struct {
 	VisualState    uint8   `json:"visualState"`
 	AnimName       string  `json:"animName"`
 	StartSkillName string  `json:"startSkillName"`
+	TotalDamage    uint32  `json:"totalDamage"`
 }
 
 func NewServerClientState(id uint32) ServerClientState {

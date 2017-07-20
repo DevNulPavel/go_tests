@@ -7,6 +7,7 @@ import (
 	"net"
 	"sync/atomic"
 	"time"
+    "math/rand"
 )
 
 var LAST_ID uint32 = 0
@@ -160,11 +161,21 @@ func (arena *ServerArena) createMonster() {
 	if len(arena.arenaState.Monsters) == 0 {
 		newMonsterId := atomic.AddUint32(&LAST_MONSTER_ID, 1)
 
+        points := [5]Point16{
+            NewPoint16(10, 2),
+            NewPoint16(2, 2),
+            NewPoint16(2, 10),
+            NewPoint16(10, 10),
+            NewPoint16(4, 5),
+        }
+
+        point := points[rand.Int() % len(points)]
+
 		monsterState := NewServerMonsterState(newMonsterId)
 		monsterState.Name = "angry_cat"
 		monsterState.Health = 1000
-		monsterState.X = 2
-		monsterState.Y = 2
+		monsterState.X = float64(point.X)
+		monsterState.Y = float64(point.Y)
 
 		arena.arenaState.Monsters = append(arena.arenaState.Monsters, monsterState)
 
