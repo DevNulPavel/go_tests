@@ -8,7 +8,7 @@ import (
 	//"github.com/pkg/profile"
 	"fmt"
 	"log"
-	"github.com/pquerna/ffjson/ffjson"
+	//"github.com/pquerna/ffjson/ffjson"
 )
 
 func main() {
