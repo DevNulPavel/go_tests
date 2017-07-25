@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gameserver"
+	"GoTests/GameServer_7/gameserver"
 	//"fmt"
 	//"log"
 	//"runtime/trace"
