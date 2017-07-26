@@ -6,7 +6,7 @@ import (
 	"math/rand"
 )
 
-const ARENA_SIZE = 6 // Размер арены - сколько на сколь ячеек
+const ARENA_SIZE = 2 // Размер арены - сколько на сколь ячеек
 
 type ArenaModel struct {
 	Type      string                            `json:"type"`
@@ -102,6 +102,6 @@ func makePlatform(infos []*PlatformInfo, arena *ArenaModel, x, y int16) *Platfor
 		exitCoord[DIR_WEST] = -1
 	}
 
-	platform := NewPlatform(info, x, y, exitCoord, false)
+	platform := NewPlatform(info, x * PLATFORM_SIDE_SIZE, y * PLATFORM_SIDE_SIZE, exitCoord, false)
 	return platform
 }

@@ -68,9 +68,10 @@ func NewPlatform(info *PlatformInfo, posX, posY int16, exits [4]int16, isBridge 
 	platform.Height = info.Height
 
 	// Exit and enter
-	platform.ExitCoord = exits
-	for i := range platform.ExitCoord {
-		if platform.ExitCoord[i] != -1 {
+    copiedCount := copy(platform.ExitCoord, exits)
+    log.Printf("Copied count: %d\n", copiedCount)
+	for i, coord := range platform.ExitCoord {
+		if coord != -1 {
 			dir := PlatformDir(i)
 
 			point := getPortalCoord(dir, exits)
@@ -88,10 +89,14 @@ func NewPlatform(info *PlatformInfo, posX, posY int16, exits [4]int16, isBridge 
 	// Bridge
 	platform.IsBridge = info.Type == PLATFORM_INFO_TYPE_BRIDGE
 
-	// Monster
+	// Monster count
 	platform.MonsterSpawnMin = info.SpawnMin
 	platform.MonsterSpawnMax = info.SpawnMax
-	copy(platform.PossibleMonsters, info.MonstersNames)
+
+    // Monster names list
+    //platform.PossibleMonsters = make([]string, len(info.MonstersNames))
+    //copy(platform.PossibleMonsters, info.MonstersNames)
+	platform.PossibleMonsters = append(platform.PossibleMonsters, info.MonstersNames...)
 
 	// Cells and walls
 	createCells(platform, isBridge)
@@ -213,7 +218,7 @@ func makeBattleCells(platform *Platform) {
 	block3x3 := make([]*PlatformObjectInfo, 0)
 	block6x6 := make([]*PlatformObjectInfo, 0)
 	for i := range platform.Info.Blocks {
-		obj := &platform.Info.Blocks[i]
+		obj := &(platform.Info.Blocks[i])
 		if (obj.Width == PLATFORM_BLOCK_SIZE_3x3) && (obj.Height == PLATFORM_BLOCK_SIZE_3x3) {
 			block3x3 = append(block3x3, obj)
 		} else if (obj.Width == PLATFORM_BLOCK_SIZE_6x6) && (obj.Height == PLATFORM_BLOCK_SIZE_6x6) {
@@ -222,9 +227,10 @@ func makeBattleCells(platform *Platform) {
 	}
 
 	// Info
-	cellsInfo := make([]PlatformCellType, PLATFORM_SIDE_SIZE*PLATFORM_SIDE_SIZE)
-	cellsWalls := make([]PlatformCellType, PLATFORM_SIDE_SIZE*PLATFORM_SIDE_SIZE)
-	for i := 0; i < PLATFORM_SIDE_SIZE*PLATFORM_SIDE_SIZE; i++ {
+    cellsCount := w*h
+	cellsInfo := make([]PlatformCellType, cellsCount)
+	cellsWalls := make([]PlatformCellType, cellsCount)
+	for i := uint16(0); i < cellsCount; i++ {
 		cellsInfo[i] = CELL_TYPE_BLOCK
 		cellsWalls[i] = CELL_TYPE_UNDEF
 	}

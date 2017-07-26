@@ -1,7 +1,7 @@
 package gameserver
 
 import (
-	//"errors"
+	"errors"
 	"log"
 	//"math"
 	"net"
@@ -35,7 +35,7 @@ func NewServerArena(server *Server) (*ServerArena, error) {
 	state := NewServerArenaState(newArenaId)
 
 	// Формируем список платформ для данной арены
-	/*item, exists := GetApp().GetStaticInfo().Levels["egypt"]
+	item, exists := GetApp().GetStaticInfo().Levels["egypt"]
 	if exists == false {
 		return nil, errors.New("No level with name")
 	}
@@ -49,14 +49,20 @@ func NewServerArena(server *Server) (*ServerArena, error) {
 	if len(platformsForArena) == 0 {
 		return nil, errors.New("No platforms for arena")
 	}
-	arenaData := NewArenaModel(platformsForArena)*/
+    arenaModel := NewArenaModel(platformsForArena)
+	arenaData, err := arenaModel.ToBytes()
+    if err != nil {
+        return nil, err
+    }
+
+	//arenaData := GetApp().GetStaticInfo().TestArenaData
 
 	// Server arena
 	arena := &ServerArena{
 		arenaId:           newArenaId,
 		server:            server,
 		clients:           make([]*ServerClient, 0),
-		arenaData:         GetApp().GetStaticInfo().TestArenaData,
+		arenaData:         arenaData,
 		arenaState:        state,
 		isFull:            0,
 		needSendAll:       0,
