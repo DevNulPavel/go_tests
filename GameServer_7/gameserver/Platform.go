@@ -68,8 +68,7 @@ func NewPlatform(info *PlatformInfo, posX, posY int16, exits [4]int16, isBridge 
 	platform.Height = info.Height
 
 	// Exit and enter
-    copiedCount := copy(platform.ExitCoord, exits)
-    log.Printf("Copied count: %d\n", copiedCount)
+    platform.ExitCoord = exits
 	for i, coord := range platform.ExitCoord {
 		if coord != -1 {
 			dir := PlatformDir(i)
@@ -841,8 +840,8 @@ func createWalls(platform *Platform, cellInfo, cellsWalls []PlatformCellType) {
 
 func createPlatformElements(platform *Platform, cellInfo []PlatformCellType) {
 	empty := make([]Point16, 0)
-	for y := int16(0); y < PLATFORM_BLOCK_SIZE_3x3; y += PLATFORM_BLOCK_SIZE_3x3 {
-		for x := int16(0); x < PLATFORM_BLOCK_SIZE_3x3; x += PLATFORM_BLOCK_SIZE_3x3 {
+	for y := int16(0); y < PLATFORM_WORK_SIZE; y += PLATFORM_BLOCK_SIZE_3x3 {
+		for x := int16(0); x < PLATFORM_WORK_SIZE; x += PLATFORM_BLOCK_SIZE_3x3 {
 			// если в центре дырка, то дальше от центра
 			{
 				test1 := platform.HaveDecor || cellInfo[PLATFORM_WORK_SIZE/2*platform.Width+PLATFORM_WORK_SIZE/2] == CELL_TYPE_PIT
