@@ -20,7 +20,7 @@ type ServerClientState struct {
 	X              float64 `json:"x"`
 	Y              float64 `json:"y"`
 	VX             float64 `json:"vx"`
-	VY             float64 `json:"vx"`
+	VY             float64 `json:"vy"`
 	Duration       float64 `json:"duration"`
 	Status         int8    `json:"status"`
 	VisualState    uint8   `json:"visualState"`
