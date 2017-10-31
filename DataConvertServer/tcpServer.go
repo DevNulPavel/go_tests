@@ -4,13 +4,16 @@ import (
     "net"
     "time"
     "fmt"
-    "strconv"
-    "strings"
+    "encoding/binary"
     "crypto/rand"
     "io"
     "io/ioutil"
     "os"
     "os/exec"
+)
+
+const (
+    CONVERT_TYPE_PNG_TO_PVR = 1
 )
 
 // newUUID generates a random UUID according to RFC 4122
@@ -80,12 +83,28 @@ func convertPNGToPVR(c net.Conn, dataSize int) {
         return
     }
 
-    // Send file
+    // Open result file
     file, err := os.Open(resultFile)
     if checkErr(err) {
         return
     }
 
+    // Send file size
+    stat, err := file.Stat()
+    if checkErr(err) {
+        return
+    }
+    statBytes := make([]byte, 4)
+    binary.BigEndian.PutUint32(statBytes, uint32(stat.Size()))
+    writtenCount, writeErr := c.Write(statBytes)
+    if writtenCount < 4 {
+        return
+    }
+    if checkErr(writeErr) {
+        return
+    }
+
+    // Send file
     var currentByte int64 = 0
     fileSendBuffer := make([]byte, 1024)
     for {
@@ -116,39 +135,37 @@ func handleServerConnectionRaw(c net.Conn) {
     c.SetReadDeadline(timeVal)
 
     // Read convert type
-    convertTypeBytes := make([]byte, 8)
+    convertTypeBytes := make([]byte, 1)
     readCount, err := c.Read(convertTypeBytes)
+    if err == io.EOF {
+        return
+    }
     if checkErr(err) {
         return
     }
-    if readCount < 8 {
+    if readCount < 1 {
         return
     }
 
     // Read data size
-    dataSizeBytes := make([]byte, 8)
+    dataSizeBytes := make([]byte, 4)
     readCount, err = c.Read(dataSizeBytes)
     if checkErr(err) {
         return
     }
-    if readCount < 8 {
+    if readCount < 4 {
         return
     }
 
-    convertTypeStr := string(convertTypeBytes)
-
-    dataSizeStr := string(dataSizeBytes)
-    dataSizeStr = strings.Replace(dataSizeStr, " ", "", -1)
-    dataSize, err := strconv.Atoi(dataSizeStr)
-    if checkErr(err) {
-        return
-    }
+    // Parse bytes
+    convertType := convertTypeBytes[0]
+    dataSize := int(binary.BigEndian.Uint32(dataSizeBytes))
 
     //fmt.Println(convertTypeStr, dataSize)
 
     // Converting
-    switch convertTypeStr {
-    case "pngToPvr":
+    switch convertType {
+    case CONVERT_TYPE_PNG_TO_PVR:
         convertPNGToPVR(c, dataSize)
     }
 }
