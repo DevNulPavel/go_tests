@@ -35,7 +35,79 @@ func checkErr(e error) bool {
     return false
 }
 
-func HandleServerConnectionRaw(c net.Conn) {
+func convertPNGToPVR(c net.Conn, dataSize int) {
+    dataBytes := make([]byte, dataSize)
+    totalReadCount := 0
+    for totalReadCount < dataSize {
+        bytesRef := dataBytes[totalReadCount:]
+        fileReadCount, readErr := c.Read(bytesRef)
+        if fileReadCount == 0 {
+            break
+        }
+        if readErr != nil {
+            break
+        }
+        totalReadCount += fileReadCount
+    }
+    if totalReadCount < dataSize {
+        return
+    }
+
+    uuid, err := newUUID()
+    if checkErr(err) {
+        return
+    }
+    // Save file
+    filePath := "/tmp/" + uuid + ".png"
+    err = ioutil.WriteFile(filePath, dataBytes, 0644)
+    if checkErr(err) {
+        return
+    }
+
+    // Result file path
+    resultFile := "/tmp/" + uuid + ".pvr"
+
+    // Defer remove files
+    defer os.Remove(filePath)
+    defer os.Remove(resultFile)
+
+    // Convert file
+    pvrToolPath := "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/CLI/OSX_x86/PVRTexToolCLI"
+    commandText := fmt.Sprintf("%s -f PVRTC2_4 -dither -q pvrtcbest -i %s -o %s", pvrToolPath, filePath, resultFile)
+    command := exec.Command("bash", "-c", commandText)
+    err = command.Run()
+    if checkErr(err) {
+        return
+    }
+
+    // Send file
+    file, err := os.Open(resultFile)
+    if checkErr(err) {
+        return
+    }
+
+    var currentByte int64 = 0
+    fileSendBuffer := make([]byte, 1024)
+    for {
+        fileReadCount, fileErr := file.ReadAt(fileSendBuffer, currentByte)
+        if fileReadCount == 0 {
+            break
+        }
+
+        writtenCount, writeErr := c.Write(fileSendBuffer[:fileReadCount])
+        if checkErr(writeErr) {
+            return
+        }
+
+        currentByte += int64(writtenCount)
+
+        if (fileErr == io.EOF) && (fileReadCount == writtenCount)  {
+            break
+        }
+    }
+}
+
+func handleServerConnectionRaw(c net.Conn) {
     defer c.Close()
 
     timeVal := time.Now().Add(2 * time.Minute)
@@ -43,6 +115,7 @@ func HandleServerConnectionRaw(c net.Conn) {
     c.SetWriteDeadline(timeVal)
     c.SetReadDeadline(timeVal)
 
+    // Read convert type
     convertTypeBytes := make([]byte, 8)
     readCount, err := c.Read(convertTypeBytes)
     if checkErr(err) {
@@ -52,6 +125,7 @@ func HandleServerConnectionRaw(c net.Conn) {
         return
     }
 
+    // Read data size
     dataSizeBytes := make([]byte, 8)
     readCount, err = c.Read(dataSizeBytes)
     if checkErr(err) {
@@ -72,77 +146,10 @@ func HandleServerConnectionRaw(c net.Conn) {
 
     //fmt.Println(convertTypeStr, dataSize)
 
+    // Converting
     switch convertTypeStr {
     case "pngToPvr":
-        dataBytes := make([]byte, dataSize)
-        totalReadCount := 0
-        for totalReadCount < dataSize {
-            bytesRef := dataBytes[totalReadCount:]
-            fileReadCount, readErr := c.Read(bytesRef)
-            if fileReadCount == 0 {
-                break
-            }
-            if readErr != nil {
-                break
-            }
-            totalReadCount += fileReadCount
-        }
-        if totalReadCount < dataSize {
-            return
-        }
-
-        uuid, err := newUUID()
-        if checkErr(err) {
-            return
-        }
-        // Save file
-        filePath := "/tmp/" + uuid + ".png"
-        err = ioutil.WriteFile(filePath, dataBytes, 0644)
-        if checkErr(err) {
-            return
-        }
-
-        // Result file path
-        resultFile := "/tmp/" + uuid + ".pvr"
-
-        // Defer remove files
-        defer os.Remove(filePath)
-        defer os.Remove(resultFile)
-
-        // Convert file
-        pvrToolPath := "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/CLI/OSX_x86/PVRTexToolCLI"
-        commandText := fmt.Sprintf("%s -f PVRTC2_4 -dither -q pvrtcbest -i %s -o %s", pvrToolPath, filePath, resultFile)
-        command := exec.Command("bash", "-c", commandText)
-        err = command.Run()
-        if checkErr(err) {
-            return
-        }
-
-        // Send file
-        file, err := os.Open(resultFile)
-        if checkErr(err) {
-            return
-        }
-
-        var currentByte int64 = 0
-        fileSendBuffer := make([]byte, 1024)
-        for {
-            fileReadCount, fileErr := file.ReadAt(fileSendBuffer, currentByte)
-            if fileReadCount == 0 {
-                break
-            }
-
-            writtenCount, writeErr := c.Write(fileSendBuffer[:fileReadCount])
-            if checkErr(writeErr) {
-                return
-            }
-
-            currentByte += int64(writtenCount)
-
-            if (fileErr == io.EOF) && (fileReadCount == writtenCount)  {
-                break
-            }
-        }
+        convertPNGToPVR(c, dataSize)
     }
 }
 
@@ -161,7 +168,7 @@ func server() {
             continue
         }
         // Запуск горутины
-        go HandleServerConnectionRaw(c)
+        go handleServerConnectionRaw(c)
     }
 }
 
