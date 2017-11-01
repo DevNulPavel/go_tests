@@ -14,6 +14,7 @@ import (
 
 const (
     CONVERT_TYPE_PNG_TO_PVR = 1
+    CONVERT_TYPE_PNG_TO_PVRGZ = 2
 )
 
 // newUUID generates a random UUID according to RFC 4122
@@ -31,6 +32,7 @@ func newUUID() (string, error) {
 }
 
 func checkErr(e error) bool {
+    // TODO: Print stack
     if e != nil {
         fmt.Println(e)
         return true
@@ -38,7 +40,7 @@ func checkErr(e error) bool {
     return false
 }
 
-func convertPNGToPVR(c net.Conn, dataSize int) {
+func convert(c net.Conn, dataSize int, convertType byte) {
     dataBytes := make([]byte, dataSize)
     totalReadCount := 0
     for totalReadCount < dataSize {
@@ -60,27 +62,52 @@ func convertPNGToPVR(c net.Conn, dataSize int) {
     if checkErr(err) {
         return
     }
+
+    // File extentions
+    srcFileExt := ""
+    dstFileExt := ""
+    switch convertType {
+    case CONVERT_TYPE_PNG_TO_PVR:
+        srcFileExt = ".png"
+        dstFileExt = ".pvr"
+    case CONVERT_TYPE_PNG_TO_PVRGZ:
+        srcFileExt = ".png"
+        dstFileExt = ".pvrgz"
+    }
+
     // Save file
-    filePath := "/tmp/" + uuid + ".png"
+    filePath := "/tmp/" + uuid + srcFileExt
     err = ioutil.WriteFile(filePath, dataBytes, 0644)
     if checkErr(err) {
         return
     }
 
     // Result file path
-    resultFile := "/tmp/" + uuid + ".pvr"
+    resultFile := "/tmp/" + uuid + dstFileExt
 
     // Defer remove files
     defer os.Remove(filePath)
     defer os.Remove(resultFile)
 
     // Convert file
-    pvrToolPath := "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/CLI/OSX_x86/PVRTexToolCLI"
-    commandText := fmt.Sprintf("%s -f PVRTC2_4 -dither -q pvrtcbest -i %s -o %s", pvrToolPath, filePath, resultFile)
-    command := exec.Command("bash", "-c", commandText)
-    err = command.Run()
-    if checkErr(err) {
-        return
+    switch convertType {
+    case CONVERT_TYPE_PNG_TO_PVR:
+        pvrToolPath := "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/CLI/OSX_x86/PVRTexToolCLI"
+        commandText := fmt.Sprintf("%s -f PVRTC2_4 -dither -q pvrtcbest -i %s -o %s", pvrToolPath, filePath, resultFile)
+        command := exec.Command("bash", "-c", commandText)
+        err = command.Run()
+        if checkErr(err) {
+            return
+        }
+    case CONVERT_TYPE_PNG_TO_PVRGZ:
+        tempFileName := "/tmp/" + uuid + ".pvr"
+        pvrToolPath := "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/CLI/OSX_x86/PVRTexToolCLI"
+        convertCommandText := fmt.Sprintf("%s -f r8g8b8a8 -dither -q pvrtcbest -i %s -o %s; gzip -f --suffix gz -9 %s", pvrToolPath, filePath, tempFileName, tempFileName)
+        command := exec.Command("bash", "-c", convertCommandText)
+        err = command.Run()
+        if checkErr(err) {
+            return
+        }
     }
 
     // Open result file
@@ -164,10 +191,7 @@ func handleServerConnectionRaw(c net.Conn) {
     //fmt.Println(convertTypeStr, dataSize)
 
     // Converting
-    switch convertType {
-    case CONVERT_TYPE_PNG_TO_PVR:
-        convertPNGToPVR(c, dataSize)
-    }
+    convert(c, dataSize, convertType)
 }
 
 func server() {
