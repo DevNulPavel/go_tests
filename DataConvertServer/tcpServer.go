@@ -4,6 +4,7 @@ import (
     "net"
     "time"
     "fmt"
+    "strings"
     "encoding/binary"
     "crypto/rand"
     "io"
@@ -13,8 +14,9 @@ import (
 )
 
 const (
-    CONVERT_TYPE_PNG_TO_PVR = 1
-    CONVERT_TYPE_PNG_TO_PVRGZ = 2
+    CONVERT_TYPE_IMAGE_TO_PVR   = 1
+    CONVERT_TYPE_IMAGE_TO_PVRGZ = 2
+    CONVERT_TYPE_SOUND          = 3
 )
 
 // newUUID generates a random UUID according to RFC 4122
@@ -40,19 +42,22 @@ func checkErr(e error) bool {
     return false
 }
 
-func convert(c net.Conn, dataSize int, convertType byte) {
+func convert(c net.Conn, convertType byte, dataSize int, srcFileExt, dstFileExt string) {
     dataBytes := make([]byte, dataSize)
     totalReadCount := 0
-    for totalReadCount < dataSize {
+    for {
         bytesRef := dataBytes[totalReadCount:]
-        fileReadCount, readErr := c.Read(bytesRef)
-        if fileReadCount == 0 {
+        curReadCount, readErr := c.Read(bytesRef)
+        if readErr == io.EOF {
             break
         }
-        if readErr != nil {
+        if curReadCount == 0 {
             break
         }
-        totalReadCount += fileReadCount
+        if checkErr(readErr) {
+            break
+        }
+        totalReadCount += curReadCount
     }
     if totalReadCount < dataSize {
         return
@@ -61,18 +66,6 @@ func convert(c net.Conn, dataSize int, convertType byte) {
     uuid, err := newUUID()
     if checkErr(err) {
         return
-    }
-
-    // File extentions
-    srcFileExt := ""
-    dstFileExt := ""
-    switch convertType {
-    case CONVERT_TYPE_PNG_TO_PVR:
-        srcFileExt = ".png"
-        dstFileExt = ".pvr"
-    case CONVERT_TYPE_PNG_TO_PVRGZ:
-        srcFileExt = ".png"
-        dstFileExt = ".pvrgz"
     }
 
     // Save file
@@ -91,7 +84,7 @@ func convert(c net.Conn, dataSize int, convertType byte) {
 
     // Convert file
     switch convertType {
-    case CONVERT_TYPE_PNG_TO_PVR:
+    case CONVERT_TYPE_IMAGE_TO_PVR:
         pvrToolPath := "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/CLI/OSX_x86/PVRTexToolCLI"
         commandText := fmt.Sprintf("%s -f PVRTC2_4 -dither -q pvrtcbest -i %s -o %s", pvrToolPath, filePath, resultFile)
         command := exec.Command("bash", "-c", commandText)
@@ -99,11 +92,18 @@ func convert(c net.Conn, dataSize int, convertType byte) {
         if checkErr(err) {
             return
         }
-    case CONVERT_TYPE_PNG_TO_PVRGZ:
+    case CONVERT_TYPE_IMAGE_TO_PVRGZ:
         tempFileName := "/tmp/" + uuid + ".pvr"
         pvrToolPath := "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/CLI/OSX_x86/PVRTexToolCLI"
         convertCommandText := fmt.Sprintf("%s -f r8g8b8a8 -dither -q pvrtcbest -i %s -o %s; gzip -f --suffix gz -9 %s", pvrToolPath, filePath, tempFileName, tempFileName)
         command := exec.Command("bash", "-c", convertCommandText)
+        err = command.Run()
+        if checkErr(err) {
+            return
+        }
+    case CONVERT_TYPE_SOUND:
+        commandText := fmt.Sprintf("ffmpeg -i %s %s", filePath, resultFile)
+        command := exec.Command("bash", "-c", commandText)
         err = command.Run()
         if checkErr(err) {
             return
@@ -162,36 +162,36 @@ func handleServerConnectionRaw(c net.Conn) {
     c.SetReadDeadline(timeVal)
 
     // Read convert type
-    convertTypeBytes := make([]byte, 1)
-    readCount, err := c.Read(convertTypeBytes)
-    if err == io.EOF {
-        return
+    const metaSize = 21
+    metaData := make([]byte, metaSize)
+    totalReadCount := 0
+    for {
+        readCount, err := c.Read(metaData[totalReadCount:])
+        if err == io.EOF {
+            break
+        }
+        if readCount == 0 {
+            break
+        }
+        if checkErr(err) {
+            break
+        }
+        totalReadCount += readCount
     }
-    if checkErr(err) {
-        return
-    }
-    if readCount < 1 {
-        return
-    }
-
-    // Read data size
-    dataSizeBytes := make([]byte, 4)
-    readCount, err = c.Read(dataSizeBytes)
-    if checkErr(err) {
-        return
-    }
-    if readCount < 4 {
+    if totalReadCount < metaSize {
         return
     }
 
     // Parse bytes
-    convertType := convertTypeBytes[0]
-    dataSize := int(binary.BigEndian.Uint32(dataSizeBytes))
+    convertType := metaData[0]
+    dataSize := int(binary.BigEndian.Uint32(metaData[1:5]))
+    srcFileExt := strings.Replace(string(metaData[5:13]), " ", "", -1)
+    dstFileExt := strings.Replace(string(metaData[13:21]), " ", "", -1)
 
     //fmt.Println(convertTypeStr, dataSize)
 
     // Converting
-    convert(c, dataSize, convertType)
+    convert(c, convertType, dataSize, srcFileExt, dstFileExt)
 }
 
 func server() {
