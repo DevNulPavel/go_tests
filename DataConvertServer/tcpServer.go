@@ -102,7 +102,7 @@ func convert(c net.Conn, convertType byte, dataSize int, srcFileExt, dstFileExt 
             return
         }
     case CONVERT_TYPE_SOUND:
-        commandText := fmt.Sprintf("ffmpeg -i %s %s", filePath, resultFile)
+        commandText := fmt.Sprintf("ffmpeg -y -i %s %s", filePath, resultFile)
         command := exec.Command("bash", "-c", commandText)
         err = command.Run()
         if checkErr(err) {
