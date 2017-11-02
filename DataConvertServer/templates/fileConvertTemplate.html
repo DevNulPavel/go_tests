@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>File convert</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>File converting</h1>
+    <b>Выходной формат файла:</b>
+    <form method="POST" enctype="multipart/form-data">
+        <table>
+            <tr>
+                <td><input name="convertType" type="radio" value="pvr" checked="checked">.pvr</td>
+            </tr>
+            <tr>
+                <td><input name="convertType" type="radio" value="pvrgz16">.pvrgz (16 bit)</td>
+            </tr>
+            <tr>
+                <td><input name="convertType" type="radio" value="pvrgz32">.pvrgz (32 bit)</td>
+            </tr>
+            <tr>
+                <td><input name="convertType" type="radio" value="m4a">.m4a</td>
+            </tr>
+            <tr>
+                <td><input name="convertType" type="radio" value="ogg">.ogg</td>
+            </tr>
+        </table>
+
+        <p>
+            <input type="file" name="transferFile">
+            <input type="submit">
+        </p>
+    </form>
+
+</body>
+</html>
