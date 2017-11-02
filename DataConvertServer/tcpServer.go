@@ -261,7 +261,8 @@ func httpRootFunc(writer http.ResponseWriter, req *http.Request)  {
         defer receivedFileData.Close()
 
         // Input file ext
-        inputFileExt := filepath.Ext(fileHeader.Filename)
+        inputFileName := fileHeader.Filename
+        inputFileExt := filepath.Ext(inputFileName)
         if len(inputFileExt) == 0{
             http.Error(writer, err.Error(), 500)
             return
@@ -291,22 +292,33 @@ func httpRootFunc(writer http.ResponseWriter, req *http.Request)  {
 
         // Convert type
         resultFilePath := ""
+        uploadFileName := ""
         convertType := req.FormValue("convertType")
         switch convertType {
         case "pvr":
-            resultFilePath = os.TempDir() + uuid + ".pvr"
+            const extention = ".pvr"
+            resultFilePath = os.TempDir() + uuid + extention
+            uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
             err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_IMAGE_TO_PVR)
         case "pvrgz16":
-            resultFilePath = os.TempDir() + uuid + ".pvrgz"
+            const extention = ".pvrgz"
+            resultFilePath = os.TempDir() + uuid + extention
+            uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
             err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_IMAGE_TO_PVRGZ16)
         case "pvrgz32":
-            resultFilePath = os.TempDir() + uuid + ".pvrgz"
+            const extention = ".pvrgz"
+            resultFilePath = os.TempDir() + uuid + extention
+            uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
             err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_IMAGE_TO_PVRGZ32)
         case "m4a":
-            resultFilePath = os.TempDir() + uuid + ".m4a"
+            const extention = ".m4a"
+            resultFilePath = os.TempDir() + uuid + extention
+            uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
             err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_SOUND)
         case "ogg":
-            resultFilePath = os.TempDir() + uuid + ".ogg"
+            const extention = ".ogg"
+            resultFilePath = os.TempDir() + uuid + extention
+            uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
             err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_SOUND)
         default:
             http.Error(writer, err.Error(), 500)
@@ -327,6 +339,12 @@ func httpRootFunc(writer http.ResponseWriter, req *http.Request)  {
             http.Error(writer, err.Error(), 500)
             return
         }
+
+        // Header for file upload
+        writer.Header().Set("ContentType", "application/octet-stream")
+        writer.Header().Set("Content-Disposition", fmt.Sprintf("attachment;filename=\"%s\"", uploadFileName))
+
+        // Write file to stream
         io.Copy(writer, uploadFile)
 
         uploadFile.Close()
