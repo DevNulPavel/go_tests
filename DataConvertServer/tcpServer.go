@@ -1,6 +1,7 @@
 package main
 
 import (
+    "log"
     "net"
     "time"
     "fmt"
@@ -11,6 +12,15 @@ import (
     "io/ioutil"
     "os"
     "os/exec"
+)
+
+const (
+    SERVER_PORT = 10000
+)
+
+const (
+    PVR_TOOL_PATH = "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/CLI/OSX_x86/PVRTexToolCLI"
+    FFMPEG_PATH = "ffmpeg"
 )
 
 const (
@@ -36,29 +46,39 @@ func newUUID() (string, error) {
 func checkErr(e error) bool {
     // TODO: Print stack
     if e != nil {
-        fmt.Println(e)
+        log.Println(e)
         return true
     }
     return false
 }
 
-func convert(c net.Conn, convertType byte, dataSize int, srcFileExt, dstFileExt string) {
-    dataBytes := make([]byte, dataSize)
+func readToFizedSizeBuffer(c net.Conn, dataBuffer []byte) int {
+    dataBufferLen := len(dataBuffer)
     totalReadCount := 0
     for {
-        bytesRef := dataBytes[totalReadCount:]
-        curReadCount, readErr := c.Read(bytesRef)
-        if readErr == io.EOF {
+        readCount, err := c.Read(dataBuffer[totalReadCount:])
+        if err == io.EOF {
             break
         }
-        if curReadCount == 0 {
+        if readCount == 0 {
             break
         }
-        if checkErr(readErr) {
+        if checkErr(err) {
             break
         }
-        totalReadCount += curReadCount
+
+        totalReadCount += readCount
+
+        if totalReadCount == dataBufferLen {
+            break
+        }
     }
+    return totalReadCount
+}
+
+func convert(c net.Conn, convertType byte, dataSize int, srcFileExt, dstFileExt string) {
+    dataBytes := make([]byte, dataSize)
+    totalReadCount := readToFizedSizeBuffer(c, dataBytes)
     if totalReadCount < dataSize {
         return
     }
@@ -85,8 +105,7 @@ func convert(c net.Conn, convertType byte, dataSize int, srcFileExt, dstFileExt 
     // Convert file
     switch convertType {
     case CONVERT_TYPE_IMAGE_TO_PVR:
-        pvrToolPath := "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/CLI/OSX_x86/PVRTexToolCLI"
-        commandText := fmt.Sprintf("%s -f PVRTC2_4 -dither -q pvrtcbest -i %s -o %s", pvrToolPath, filePath, resultFile)
+        commandText := fmt.Sprintf("%s -f PVRTC2_4 -dither -q pvrtcbest -i %s -o %s", PVR_TOOL_PATH, filePath, resultFile)
         command := exec.Command("bash", "-c", commandText)
         err = command.Run()
         if checkErr(err) {
@@ -94,15 +113,14 @@ func convert(c net.Conn, convertType byte, dataSize int, srcFileExt, dstFileExt 
         }
     case CONVERT_TYPE_IMAGE_TO_PVRGZ:
         tempFileName := "/tmp/" + uuid + ".pvr"
-        pvrToolPath := "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/CLI/OSX_x86/PVRTexToolCLI"
-        convertCommandText := fmt.Sprintf("%s -f r8g8b8a8 -dither -q pvrtcbest -i %s -o %s; gzip -f --suffix gz -9 %s", pvrToolPath, filePath, tempFileName, tempFileName)
+        convertCommandText := fmt.Sprintf("%s -f r8g8b8a8 -dither -q pvrtcbest -i %s -o %s; gzip -f --suffix gz -9 %s", PVR_TOOL_PATH, filePath, tempFileName, tempFileName)
         command := exec.Command("bash", "-c", convertCommandText)
         err = command.Run()
         if checkErr(err) {
             return
         }
     case CONVERT_TYPE_SOUND:
-        commandText := fmt.Sprintf("ffmpeg -y -i %s %s", filePath, resultFile)
+        commandText := fmt.Sprintf("%s -y -i %s %s", FFMPEG_PATH, filePath, resultFile)
         command := exec.Command("bash", "-c", commandText)
         err = command.Run()
         if checkErr(err) {
@@ -164,20 +182,7 @@ func handleServerConnectionRaw(c net.Conn) {
     // Read convert type
     const metaSize = 21
     metaData := make([]byte, metaSize)
-    totalReadCount := 0
-    for {
-        readCount, err := c.Read(metaData[totalReadCount:])
-        if err == io.EOF {
-            break
-        }
-        if readCount == 0 {
-            break
-        }
-        if checkErr(err) {
-            break
-        }
-        totalReadCount += readCount
-    }
+    totalReadCount := readToFizedSizeBuffer(c, metaData)
     if totalReadCount < metaSize {
         return
     }
@@ -188,7 +193,7 @@ func handleServerConnectionRaw(c net.Conn) {
     srcFileExt := strings.Replace(string(metaData[5:13]), " ", "", -1)
     dstFileExt := strings.Replace(string(metaData[13:21]), " ", "", -1)
 
-    //fmt.Println(convertTypeStr, dataSize)
+    //log.Println(convertTypeStr, dataSize)
 
     // Converting
     convert(c, convertType, dataSize, srcFileExt, dstFileExt)
@@ -196,16 +201,16 @@ func handleServerConnectionRaw(c net.Conn) {
 
 func server() {
     // Прослушивание сервера
-    ln, err := net.Listen("tcp", ":10000")
+    ln, err := net.Listen("tcp", fmt.Sprintf(":%d", SERVER_PORT))
     if err != nil {
-        fmt.Println(err)
+        log.Println(err)
         return
     }
     for {
         // Принятие соединения
         c, err := ln.Accept()
         if err != nil {
-            fmt.Println(err)
+            log.Println(err)
             continue
         }
         // Запуск горутины
@@ -214,8 +219,11 @@ func server() {
 }
 
 func main() {
+    log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
+
     go server()
 
+    fmt.Println("Press enter to exit")
     var input string
     fmt.Scanln(&input)
 }
