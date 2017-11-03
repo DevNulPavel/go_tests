@@ -16,6 +16,9 @@ import (
 	"time"
     "path/filepath"
 	"html/template"
+    //"mime/multipart"
+    //"go/types"
+    "archive/zip"
 )
 
 const (
@@ -248,94 +251,210 @@ func loadHtmlTemplates()  {
     }
 }
 
+// ZipFiles compresses one or many files into a single zip archive file
+func zipFiles(filename string, filesPath []string, filesNames []string) error {
+    newfile, err := os.Create(filename)
+    if err != nil {
+        return err
+    }
+    defer newfile.Close()
+
+    zipWriter := zip.NewWriter(newfile)
+    defer zipWriter.Close()
+
+    // Add files to zip
+    for index, file := range filesPath {
+
+        zipfile, err := os.Open(file)
+        if err != nil {
+            return err
+        }
+        defer zipfile.Close()
+
+        // Get the file information
+        info, err := zipfile.Stat()
+        if err != nil {
+            return err
+        }
+
+        header, err := zip.FileInfoHeader(info)
+        if err != nil {
+            return err
+        }
+
+        // Change to deflate to gain better compression
+        // see http://golang.org/pkg/archive/zip/#pkg-constants
+        header.Method = zip.Deflate
+        header.Name = filesNames[index]
+
+        writer, err := zipWriter.CreateHeader(header)
+        if err != nil {
+            return err
+        }
+        _, err = io.Copy(writer, zipfile)
+        if err != nil {
+            return err
+        }
+    }
+    return nil
+}
+
 func httpRootFunc(writer http.ResponseWriter, req *http.Request)  {
     // TODO: For debug!!!
     loadHtmlTemplates()
 
     if req.Method == "POST" {
-        // Receive file data
-        receivedFileData, fileHeader, err := req.FormFile("transferFile")
-        if err != nil {
-            http.Error(writer, err.Error(), 500)
-            return
-        }
-        defer receivedFileData.Close()
-
-        // Input file ext
-        inputFileName := fileHeader.Filename
-        inputFileExt := filepath.Ext(inputFileName)
-        if len(inputFileExt) == 0{
-            http.Error(writer, err.Error(), 500)
-            return
+        type SendFileInfo struct {
+            filePath string
+            uploadName string
         }
 
-        // Temp udid
-        uuid, err := newUUID()
-        if checkErr(err) {
+        sendFiles := make([]SendFileInfo, 0)
+
+        // Read input files count
+        req.ParseMultipartForm(2<<16)
+        headers := req.MultipartForm.File["transferFile"]
+        for _, fileHeader := range headers {
+            // Receive file data
+            receivedFileData, err := fileHeader.Open()
+            if err != nil {
+                http.Error(writer, err.Error(), 500)
+                return
+            }
+
+            // Input file ext
+            inputFileName := fileHeader.Filename
+            inputFileExt := filepath.Ext(inputFileName)
+            if len(inputFileExt) == 0 {
+                receivedFileData.Close()
+                continue
+            }
+
+            // Temp udid
+            uuid, err := newUUID()
+            if checkErr(err) {
+                receivedFileData.Close()
+                return
+            }
+
+            // Save file
+            sourceFilePath := os.TempDir() + uuid + inputFileExt
+            sourceFile, err := os.Create(sourceFilePath)
+            if err != nil {
+                receivedFileData.Close()
+                http.Error(writer, err.Error(), 500)
+                return
+            }
+            io.Copy(sourceFile, receivedFileData)
+
+            // Manual closing after copy
+            sourceFile.Close()
+            receivedFileData.Close()
+
+            // Convert type
+            resultFilePath := ""
+            uploadFileName := ""
+            convertType := req.FormValue("convertType")
+            switch convertType {
+            case "pvr":
+                const extention = ".pvr"
+                resultFilePath = os.TempDir() + uuid + extention
+                uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
+                err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_IMAGE_TO_PVR)
+            case "pvrgz16":
+                const extention = ".pvrgz"
+                resultFilePath = os.TempDir() + uuid + extention
+                uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
+                err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_IMAGE_TO_PVRGZ16)
+            case "pvrgz32":
+                const extention = ".pvrgz"
+                resultFilePath = os.TempDir() + uuid + extention
+                uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
+                err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_IMAGE_TO_PVRGZ32)
+            case "m4a":
+                const extention = ".m4a"
+                resultFilePath = os.TempDir() + uuid + extention
+                uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
+                err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_SOUND)
+            case "ogg":
+                const extention = ".ogg"
+                resultFilePath = os.TempDir() + uuid + extention
+                uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
+                err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_SOUND)
+            default:
+                os.Remove(sourceFilePath)
+                continue
+            }
+            if err != nil {
+                os.Remove(sourceFilePath)
+                continue
+            }
+
+            // Source file remove + derer remove result file
+            os.Remove(sourceFilePath)
+
+            // Add to list of files
+            info := SendFileInfo{
+                filePath: resultFilePath,
+                uploadName: uploadFileName,
+            }
+            sendFiles = append(sendFiles, info)
+        }
+
+        // Check files count
+        if len(sendFiles) == 0 {
+            http.Error(writer, errors.New("No files").Error(), 500)
             return
         }
 
-        // Save file
-        sourceFilePath := os.TempDir() + uuid + inputFileExt
-        sourceFileFile, err := os.Create(sourceFilePath)
-        if err != nil {
-            http.Error(writer, err.Error(), 500)
-            return
-        }
-        io.Copy(sourceFileFile, receivedFileData)
+        // Compress if needed
+        var sendInfo SendFileInfo
+        if len(sendFiles) == 1 {
+            // Only one file - send as it
+            sendInfo = sendFiles[0]
+        }else{
+            // Compress many files into one file
+            zipFileUDID, err := newUUID()
+            if err != nil {
+                http.Error(writer, err.Error(), 500)
+                return
+            }
 
-        // Manual closing after copy
-        sourceFileFile.Close()
-        receivedFileData.Close()
+            // Compress files into zip
+            zipFilePath := os.TempDir() + zipFileUDID + ".zip"
+            filesPathes := make([]string, 0, len(sendFiles))
+            filesAliases := make([]string, 0, len(sendFiles))
+            for _, sendFileInfo := range sendFiles {
+                filesPathes = append(filesPathes, sendFileInfo.filePath)
+                filesAliases = append(filesAliases, sendFileInfo.uploadName)
+            }
+            // Compress into zip
+            err = zipFiles(zipFilePath, filesPathes, filesAliases)
+            if err != nil {
+                // Files remove
+                for _, sendFileInfo := range sendFiles {
+                    os.Remove(sendFileInfo.filePath)
+                }
+                // Send error
+                http.Error(writer, err.Error(), 500)
+                return
+            }
 
-        // Remove defer source file
-        defer os.Remove(sourceFilePath)
+            // Manual remove files
+            for _, sendFileInfo := range sendFiles {
+                os.Remove(sendFileInfo.filePath)
+            }
 
-        // Convert type
-        resultFilePath := ""
-        uploadFileName := ""
-        convertType := req.FormValue("convertType")
-        switch convertType {
-        case "pvr":
-            const extention = ".pvr"
-            resultFilePath = os.TempDir() + uuid + extention
-            uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
-            err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_IMAGE_TO_PVR)
-        case "pvrgz16":
-            const extention = ".pvrgz"
-            resultFilePath = os.TempDir() + uuid + extention
-            uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
-            err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_IMAGE_TO_PVRGZ16)
-        case "pvrgz32":
-            const extention = ".pvrgz"
-            resultFilePath = os.TempDir() + uuid + extention
-            uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
-            err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_IMAGE_TO_PVRGZ32)
-        case "m4a":
-            const extention = ".m4a"
-            resultFilePath = os.TempDir() + uuid + extention
-            uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
-            err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_SOUND)
-        case "ogg":
-            const extention = ".ogg"
-            resultFilePath = os.TempDir() + uuid + extention
-            uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
-            err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_SOUND)
-        default:
-            http.Error(writer, errors.New("Wrong file format").Error(), 500)
-            return
-        }
-        if err != nil {
-            http.Error(writer, err.Error(), 500)
-            return
+            // Update send info
+            sendInfo.filePath = zipFilePath
+            sendInfo.uploadName = "files_archive.zip"
         }
 
-        // Source file remove + derer remove result file
-        os.Remove(sourceFilePath)
-        defer os.Remove(resultFilePath)
+        // Defer result remove
+        defer os.Remove(sendInfo.filePath)
 
         // Out file
-        uploadFile, err := os.Open(resultFilePath)
+        uploadFile, err := os.Open(sendInfo.filePath)
         if err != nil {
             http.Error(writer, err.Error(), 500)
             return
@@ -348,7 +467,7 @@ func httpRootFunc(writer http.ResponseWriter, req *http.Request)  {
 
         // Header for file upload
         writer.Header().Set("ContentType", "application/octet-stream")
-        writer.Header().Set("Content-Disposition", fmt.Sprintf("attachment;filename=\"%s\"", uploadFileName))
+        writer.Header().Set("Content-Disposition", fmt.Sprintf("attachment;filename=\"%s\"", sendInfo.uploadName))
         writer.Header().Set("Content-Length:", fmt.Sprintf("%d", uploadFileStat.Size()))
 
         // Write file to stream
@@ -356,7 +475,7 @@ func httpRootFunc(writer http.ResponseWriter, req *http.Request)  {
 
         // Close and remove files
         uploadFile.Close()
-        os.Remove(resultFilePath)
+        os.Remove(sendInfo.filePath)
 
         return
     }
