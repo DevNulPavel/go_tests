@@ -109,6 +109,11 @@ func httpRootFunc(writer http.ResponseWriter, req *http.Request)  {
         // Read input files count
         req.ParseMultipartForm(2<<16)
         headers := req.MultipartForm.File["transferFile"]
+        if len(headers) == 0 {
+            http.Error(writer, errors.New("No files").Error(), 500)
+            return
+        }
+
         for _, fileHeader := range headers {
             // Receive file data
             receivedFileData, err := fileHeader.Open()
