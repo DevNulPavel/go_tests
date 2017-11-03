@@ -322,7 +322,7 @@ func httpRootFunc(writer http.ResponseWriter, req *http.Request)  {
             uploadFileName = strings.Replace(inputFileName, inputFileExt, extention, -1)
             err = convertFile(sourceFilePath, resultFilePath, uuid, CONVERT_TYPE_SOUND)
         default:
-            http.Error(writer, err.Error(), 500)
+            http.Error(writer, errors.New("Wrong file format").Error(), 500)
             return
         }
         if err != nil {
@@ -340,16 +340,24 @@ func httpRootFunc(writer http.ResponseWriter, req *http.Request)  {
             http.Error(writer, err.Error(), 500)
             return
         }
+        uploadFileStat, err := uploadFile.Stat()
+        if err != nil {
+            http.Error(writer, err.Error(), 500)
+            return
+        }
 
         // Header for file upload
         writer.Header().Set("ContentType", "application/octet-stream")
         writer.Header().Set("Content-Disposition", fmt.Sprintf("attachment;filename=\"%s\"", uploadFileName))
+        writer.Header().Set("Content-Length:", fmt.Sprintf("%d", uploadFileStat.Size()))
 
         // Write file to stream
         io.Copy(writer, uploadFile)
 
+        // Close and remove files
         uploadFile.Close()
         os.Remove(resultFilePath)
+
         return
     }
 
