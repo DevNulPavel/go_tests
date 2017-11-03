@@ -2,8 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>File convert</title>
-    <link rel="stylesheet" href="/style.css">
+    <title>File converting</title>
+    <!-- Styles -->
+    <link rel="stylesheet" type="text/css" href="static/styles/style.css">
+    <!-- JQuery -->
+    <script type="text/javascript" src="static/libs/jquery-3.2.1.js"></script>
+    <!-- MyScripts -->
+    <script type="text/javascript" src="static/scripts/logic.js"></script>
 </head>
 <body>
     <h1>File converting</h1>
@@ -11,25 +16,25 @@
     <form method="POST" enctype="multipart/form-data">
         <table>
             <tr>
-                <td><input name="convertType" type="radio" value="pvr" checked="checked">.pvr</td>
+                <td><input name="convertType" type="radio" id="pvr" value="pvr" disabled><label for="pvr">.pvr</label></td>
             </tr>
             <tr>
-                <td><input name="convertType" type="radio" value="pvrgz16">.pvrgz (16 bit)</td>
+                <td><input name="convertType" type="radio" id="pvrgz16" value="pvrgz16" disabled><label for="pvrgz16">.pvrgz (16 bit)</label></td>
             </tr>
             <tr>
-                <td><input name="convertType" type="radio" value="pvrgz32">.pvrgz (32 bit)</td>
+                <td><input name="convertType" type="radio" id="pvrgz32" value="pvrgz32" disabled><label for="pvrgz32">.pvrgz (32 bit)</label></td>
             </tr>
             <tr>
-                <td><input name="convertType" type="radio" value="m4a">.m4a</td>
+                <td><input name="convertType" type="radio" id="m4a" value="m4a" disabled><label for="m4a">.m4a</label></td>
             </tr>
             <tr>
-                <td><input name="convertType" type="radio" value="ogg">.ogg</td>
+                <td><input name="convertType" type="radio" id="ogg" value="ogg" disabled><label for="ogg">.ogg</label></td>
             </tr>
         </table>
 
         <p>
-            <input type="file" name="transferFile">
-            <input type="submit">
+            <input id="fileChoose" type="file" name="transferFile" onchange="onFileSelected()">
+            <input type="submit" id="convertButton" disabled>
         </p>
     </form>
 

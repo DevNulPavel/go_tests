@@ -62,7 +62,8 @@ func checkErr(e error) bool {
 	return false
 }
 
-func readToFizedSizeBuffer(c net.Conn, dataBuffer []byte) int {
+// TODO: Можно заменить на io.ReadAll()???
+func readToFixedSizeBuffer(c net.Conn, dataBuffer []byte) int {
 	dataBufferLen := len(dataBuffer)
 	totalReadCount := 0
 	for {
@@ -117,7 +118,7 @@ func convertFile(srcFilePath, resultFile, uuid string, convertType byte) error {
 
 func convertDataForConnection(c net.Conn, convertType byte, dataSize int, srcFileExt, dstFileExt string) {
 	dataBytes := make([]byte, dataSize)
-	totalReadCount := readToFizedSizeBuffer(c, dataBytes)
+	totalReadCount := readToFixedSizeBuffer(c, dataBytes)
 	if totalReadCount < dataSize {
 		return
 	}
@@ -202,7 +203,7 @@ func handleServerConnectionRaw(c net.Conn) {
 	// Read convertDataForConnection type
 	const metaSize = 21
 	metaData := make([]byte, metaSize)
-	totalReadCount := readToFizedSizeBuffer(c, metaData)
+	totalReadCount := readToFixedSizeBuffer(c, metaData)
 	if totalReadCount < metaSize {
 		return
 	}
