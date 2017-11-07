@@ -98,9 +98,6 @@ func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo,
 }
 
 func httpRootFunc(writer http.ResponseWriter, req *http.Request) {
-	// TODO: For debug!!!
-	loadHtmlTemplates()
-
 	if req.Method == "POST" {
 		receivedFiles := make([]HttpReceivedFileInfo, 0)
 

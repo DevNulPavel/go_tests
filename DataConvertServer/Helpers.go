@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"runtime/debug"
 )
 
 // newUUID generates a random UUID according to RFC 4122
@@ -24,8 +25,8 @@ func newUUID() (string, error) {
 }
 
 func checkErr(e error) bool {
-	// TODO: Print stack
 	if e != nil {
+        debug.PrintStack()
 		log.Println(e)
 		return true
 	}
