@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"crypto/md5"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -9,14 +11,11 @@ import (
 	"net"
 	"os"
 	"time"
-    "crypto/md5"
-    "bytes"
 )
 
 const TCP_SERVER_PORT = 10000
-var CONFIG_DATA_SALT []byte = []byte{ 0xBA, 0xBA, 0xEB, 0x53, 0x78, 0x88, 0x32, 0x91 }
 
-
+var CONFIG_DATA_SALT = []byte{0xBA, 0xBA, 0xEB, 0x53, 0x78, 0x88, 0x32, 0x91}
 
 // TODO: Можно заменить на io.ReadAll()???
 func readToFixedSizeBuffer(c net.Conn, dataBuffer []byte) int {
@@ -44,55 +43,55 @@ func readToFixedSizeBuffer(c net.Conn, dataBuffer []byte) int {
 }
 
 func convertDataForConnection(c net.Conn, convertType, srcFileExtLen, resultFileExtLen, paramsStrSize byte, dataSize uint32) {
-    if (srcFileExtLen == 0) || (resultFileExtLen == 0) {
-        return
-    }
+	if (srcFileExtLen == 0) || (resultFileExtLen == 0) {
+		return
+	}
 
-    // Md5 calc
-    hash := md5.New()
+	// Md5 calc
+	hash := md5.New()
 
-    // Input file extention
-    srcFileExt := make([]byte, srcFileExtLen)
-    totalReadCount := readToFixedSizeBuffer(c, srcFileExt)
-    if totalReadCount < int(srcFileExtLen) {
-        return
-    }
-    hash.Write(srcFileExt)
+	// Input file extention
+	srcFileExt := make([]byte, srcFileExtLen)
+	totalReadCount := readToFixedSizeBuffer(c, srcFileExt)
+	if totalReadCount < int(srcFileExtLen) {
+		return
+	}
+	hash.Write(srcFileExt)
 
-    // Result file extention
-    resultFileExt := make([]byte, resultFileExtLen)
-    totalReadCount = readToFixedSizeBuffer(c, resultFileExt)
-    if totalReadCount < int(resultFileExtLen) {
-        return
-    }
-    hash.Write(resultFileExt)
+	// Result file extention
+	resultFileExt := make([]byte, resultFileExtLen)
+	totalReadCount = readToFixedSizeBuffer(c, resultFileExt)
+	if totalReadCount < int(resultFileExtLen) {
+		return
+	}
+	hash.Write(resultFileExt)
 
-    // Convert parameters
-    convertParams := make([]byte, paramsStrSize)
-    totalReadCount = readToFixedSizeBuffer(c, convertParams)
-    if totalReadCount < int(paramsStrSize) {
-        return
-    }
-    hash.Write(convertParams)
+	// Convert parameters
+	convertParams := make([]byte, paramsStrSize)
+	totalReadCount = readToFixedSizeBuffer(c, convertParams)
+	if totalReadCount < int(paramsStrSize) {
+		return
+	}
+	hash.Write(convertParams)
 
-    // Data salt
-    hash.Write(CONFIG_DATA_SALT)
+	// Data salt
+	hash.Write(CONFIG_DATA_SALT)
 
-    // Hash receive
-    dataHash := make([]byte, 16)
-    totalReadCount = readToFixedSizeBuffer(c, dataHash)
-    if totalReadCount < 16 {
-        return
-    }
+	// Hash receive
+	dataHash := make([]byte, 16)
+	totalReadCount = readToFixedSizeBuffer(c, dataHash)
+	if totalReadCount < 16 {
+		return
+	}
 
-    // Hash comparison
-    calculatedDataHash := hash.Sum(nil)
-    if bytes.Equal(dataHash, calculatedDataHash) == false {
-        log.Printf("Invalid data hashes!!!")
-        return
-    }
+	// Hash comparison
+	calculatedDataHash := hash.Sum(nil)
+	if bytes.Equal(dataHash, calculatedDataHash) == false {
+		log.Printf("Invalid data hashes!!!")
+		return
+	}
 
-    // File data
+	// File data
 	dataBytes := make([]byte, dataSize)
 	totalReadCount = readToFixedSizeBuffer(c, dataBytes)
 	if uint32(totalReadCount) < dataSize {
@@ -187,9 +186,9 @@ func handleServerConnectionRaw(c net.Conn) {
 
 	// Parse bytes
 	convertType := metaData[0]
-    srcFileExtLen := metaData[1]
-    resultFileExtLen := metaData[2]
-    paramsStrSize := metaData[3]
+	srcFileExtLen := metaData[1]
+	resultFileExtLen := metaData[2]
+	paramsStrSize := metaData[3]
 	dataSize := binary.BigEndian.Uint32(metaData[4:8])
 
 	// Converting
