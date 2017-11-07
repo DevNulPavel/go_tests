@@ -46,7 +46,7 @@ function onFileSelected() {
         return
     }
 
-    imagesExt = ["jpeg", "png"]
+    imagesExt = ["jpeg", "jpg", "png"]
     audioExt = ["wav", "mp3", "ogg"]
 
     type = -1
