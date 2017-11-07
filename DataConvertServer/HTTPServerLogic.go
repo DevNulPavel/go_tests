@@ -53,27 +53,27 @@ func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo,
 			const extention = ".pvr"
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_TO_PVR)
+			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVR, "-f PVRTC2_4 -dither -q pvrtcbest")
 		case "pvrgz16":
 			const extention = ".pvrgz"
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_TO_PVRGZ16)
+			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVRGZ, "-f r4g4b4a4 -dither -q pvrtcbest")
 		case "pvrgz32":
 			const extention = ".pvrgz"
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_TO_PVRGZ32)
+			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVRGZ, "-f r8g8b8a8 -dither -q pvrtcbest")
 		case "m4a":
 			const extention = ".m4a"
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_SOUND)
+			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_SOUND_FFMPEG, "")
 		case "ogg":
 			const extention = ".ogg"
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_SOUND)
+			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_SOUND_FFMPEG, "")
 		default:
 			os.Remove(fileInfo.filePath)
 			resultChannel <- nil

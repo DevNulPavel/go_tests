@@ -8,42 +8,119 @@ import (
 	"log"
 	"net"
 	"os"
-	"strings"
 	"time"
+    "crypto/md5"
+    "bytes"
 )
 
-const (
-	TCP_SERVER_PORT = 10000
-)
+const TCP_SERVER_PORT = 10000
+var CONFIG_DATA_SALT []byte = []byte{ 0xBA, 0xBA, 0xEB, 0x53, 0x78, 0x88, 0x32, 0x91 }
 
-func convertDataForConnection(c net.Conn, convertType byte, dataSize int, srcFileExt, dstFileExt string) {
+
+
+// TODO: Можно заменить на io.ReadAll()???
+func readToFixedSizeBuffer(c net.Conn, dataBuffer []byte) int {
+	dataBufferLen := len(dataBuffer)
+	totalReadCount := 0
+	for {
+		readCount, err := c.Read(dataBuffer[totalReadCount:])
+		if err == io.EOF {
+			break
+		}
+		if readCount == 0 {
+			break
+		}
+		if checkErr(err) {
+			break
+		}
+
+		totalReadCount += readCount
+
+		if totalReadCount == dataBufferLen {
+			break
+		}
+	}
+	return totalReadCount
+}
+
+func convertDataForConnection(c net.Conn, convertType, srcFileExtLen, resultFileExtLen, paramsStrSize byte, dataSize uint32) {
+    if (srcFileExtLen == 0) || (resultFileExtLen == 0) {
+        return
+    }
+
+    // Md5 calc
+    hash := md5.New()
+
+    // Input file extention
+    srcFileExt := make([]byte, srcFileExtLen)
+    totalReadCount := readToFixedSizeBuffer(c, srcFileExt)
+    if totalReadCount < int(srcFileExtLen) {
+        return
+    }
+    hash.Write(srcFileExt)
+
+    // Result file extention
+    resultFileExt := make([]byte, resultFileExtLen)
+    totalReadCount = readToFixedSizeBuffer(c, resultFileExt)
+    if totalReadCount < int(resultFileExtLen) {
+        return
+    }
+    hash.Write(resultFileExt)
+
+    // Convert parameters
+    convertParams := make([]byte, paramsStrSize)
+    totalReadCount = readToFixedSizeBuffer(c, convertParams)
+    if totalReadCount < int(paramsStrSize) {
+        return
+    }
+    hash.Write(convertParams)
+
+    // Data salt
+    hash.Write(CONFIG_DATA_SALT)
+
+    // Hash receive
+    dataHash := make([]byte, 16)
+    totalReadCount = readToFixedSizeBuffer(c, dataHash)
+    if totalReadCount < 16 {
+        return
+    }
+
+    // Hash comparison
+    receivedDataHash := hash.Sum(nil)
+    if bytes.Equal(dataHash, receivedDataHash) == false {
+        log.Printf("Invalid data hashes!!!")
+        return
+    }
+
+    // File data
 	dataBytes := make([]byte, dataSize)
-	totalReadCount := readToFixedSizeBuffer(c, dataBytes)
-	if totalReadCount < dataSize {
+	totalReadCount = readToFixedSizeBuffer(c, dataBytes)
+	if uint32(totalReadCount) < dataSize {
 		return
 	}
 
+	// Temp file udid
 	uuid, err := newUUID()
 	if checkErr(err) {
 		return
 	}
 
 	// Save file
-	filePath := os.TempDir() + uuid + srcFileExt
+	filePath := os.TempDir() + uuid + string(srcFileExt)
 	err = ioutil.WriteFile(filePath, dataBytes, 0644)
 	if checkErr(err) {
 		return
 	}
 
 	// Result file path
-	resultFile := os.TempDir() + uuid + dstFileExt
+	resultFile := os.TempDir() + uuid + string(resultFileExt)
 
 	// Defer remove files
 	defer os.Remove(filePath)
 	defer os.Remove(resultFile)
 
 	// File convert
-	err = convertFile(filePath, resultFile, uuid, convertType)
+	err = convertFile(filePath, resultFile, uuid, convertType, string(convertParams))
 	if checkErr(err) {
 		return
 	}
@@ -95,13 +172,13 @@ func convertDataForConnection(c net.Conn, convertType byte, dataSize int, srcFil
 func handleServerConnectionRaw(c net.Conn) {
 	defer c.Close()
 
-	timeVal := time.Now().Add(2 * time.Minute)
+	timeVal := time.Now().Add(5 * time.Minute)
 	c.SetDeadline(timeVal)
 	c.SetWriteDeadline(timeVal)
 	c.SetReadDeadline(timeVal)
 
 	// Read convertDataForConnection type
-	const metaSize = 21
+	const metaSize = 8
 	metaData := make([]byte, metaSize)
 	totalReadCount := readToFixedSizeBuffer(c, metaData)
 	if totalReadCount < metaSize {
@@ -110,14 +187,13 @@ func handleServerConnectionRaw(c net.Conn) {
 
 	// Parse bytes
 	convertType := metaData[0]
-	dataSize := int(binary.BigEndian.Uint32(metaData[1:5]))
-	srcFileExt := strings.Replace(string(metaData[5:13]), " ", "", -1)
-	dstFileExt := strings.Replace(string(metaData[13:21]), " ", "", -1)
-
-	//log.Println(convertTypeStr, dataSize)
+    srcFileExtLen := metaData[1]
+    resultFileExtLen := metaData[2]
+    paramsStrSize := metaData[3]
+	dataSize := binary.BigEndian.Uint32(metaData[4:8])
 
 	// Converting
-	convertDataForConnection(c, convertType, dataSize, srcFileExt, dstFileExt)
+	convertDataForConnection(c, convertType, srcFileExtLen, resultFileExtLen, paramsStrSize, dataSize)
 }
 
 func tcpServer() {

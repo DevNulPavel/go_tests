@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net"
 	"os"
 )
 
@@ -31,31 +30,6 @@ func checkErr(e error) bool {
 		return true
 	}
 	return false
-}
-
-// TODO: Можно заменить на io.ReadAll()???
-func readToFixedSizeBuffer(c net.Conn, dataBuffer []byte) int {
-	dataBufferLen := len(dataBuffer)
-	totalReadCount := 0
-	for {
-		readCount, err := c.Read(dataBuffer[totalReadCount:])
-		if err == io.EOF {
-			break
-		}
-		if readCount == 0 {
-			break
-		}
-		if checkErr(err) {
-			break
-		}
-
-		totalReadCount += readCount
-
-		if totalReadCount == dataBufferLen {
-			break
-		}
-	}
-	return totalReadCount
 }
 
 // ZipFiles compresses one or many files into a single zip archive file
