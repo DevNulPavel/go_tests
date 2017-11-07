@@ -11,11 +11,17 @@ import (
 	"net"
 	"os"
 	"time"
+    "runtime"
 )
 
 const TCP_SERVER_PORT = 10000
 
+// Request type
+const REQUEST_TYPE_PROC_COUNT = 1
+const REQUEST_TYPE_CONVERT = 2
+
 var CONFIG_DATA_SALT = []byte{0xBA, 0xBA, 0xEB, 0x53, 0x78, 0x88, 0x32, 0x91}
+
 
 // TODO: Можно заменить на io.ReadAll()???
 func readToFixedSizeBuffer(c net.Conn, dataBuffer []byte) int {
@@ -176,23 +182,36 @@ func handleServerConnectionRaw(c net.Conn) {
 	c.SetWriteDeadline(timeVal)
 	c.SetReadDeadline(timeVal)
 
-	// Read convertDataForConnection type
-	const metaSize = 8
-	metaData := make([]byte, metaSize)
-	totalReadCount := readToFixedSizeBuffer(c, metaData)
-	if totalReadCount < metaSize {
-		return
-	}
+    requestTypeArr := make([]byte, 1)
+	readCount, err := c.Read(requestTypeArr)
+    if (readCount == 0) || (err != nil) {
+        return
+    }
 
-	// Parse bytes
-	convertType := metaData[0]
-	srcFileExtLen := metaData[1]
-	resultFileExtLen := metaData[2]
-	paramsStrSize := metaData[3]
-	dataSize := binary.BigEndian.Uint32(metaData[4:8])
+    requestType := requestTypeArr[0]
+    switch requestType {
+    case REQUEST_TYPE_PROC_COUNT:
+        numCount := byte(runtime.NumCPU())
+        c.Write([]byte{numCount})
+    case REQUEST_TYPE_CONVERT:
+        // Read convertDataForConnection type
+        const metaSize = 8
+        metaData := make([]byte, metaSize)
+        totalReadCount := readToFixedSizeBuffer(c, metaData)
+        if totalReadCount < metaSize {
+            return
+        }
 
-	// Converting
-	convertDataForConnection(c, convertType, srcFileExtLen, resultFileExtLen, paramsStrSize, dataSize)
+        // Parse bytes
+        convertType := metaData[0]
+        srcFileExtLen := metaData[1]
+        resultFileExtLen := metaData[2]
+        paramsStrSize := metaData[3]
+        dataSize := binary.BigEndian.Uint32(metaData[4:8])
+
+        // Converting
+        convertDataForConnection(c, convertType, srcFileExtLen, resultFileExtLen, paramsStrSize, dataSize)
+    }
 }
 
 func tcpServer() {
