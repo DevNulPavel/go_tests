@@ -86,8 +86,8 @@ func convertDataForConnection(c net.Conn, convertType, srcFileExtLen, resultFile
     }
 
     // Hash comparison
-    receivedDataHash := hash.Sum(nil)
-    if bytes.Equal(dataHash, receivedDataHash) == false {
+    calculatedDataHash := hash.Sum(nil)
+    if bytes.Equal(dataHash, calculatedDataHash) == false {
         log.Printf("Invalid data hashes!!!")
         return
     }
