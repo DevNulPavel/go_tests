@@ -53,7 +53,7 @@ func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo, resultC
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
             if len(convertParams) == 0 {
-                convertParams = "-f PVRTC2_4 -dither -q pvrtcbest"
+                convertParams = "-f PVRTC1_4 -pot + -dither -q pvrtcbest"
             }
 			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVR, convertParams)
 		case "pvrgz16":
