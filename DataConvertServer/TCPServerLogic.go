@@ -22,32 +22,6 @@ const REQUEST_TYPE_CONVERT = 2
 
 var CONFIG_DATA_SALT = []byte{0xBA, 0xBA, 0xEB, 0x53, 0x78, 0x88, 0x32, 0x91}
 
-
-// TODO: Можно заменить на io.ReadAll()???
-func readToFixedSizeBuffer(c net.Conn, dataBuffer []byte) int {
-	dataBufferLen := len(dataBuffer)
-	totalReadCount := 0
-	for {
-		readCount, err := c.Read(dataBuffer[totalReadCount:])
-		if err == io.EOF {
-			break
-		}
-		if readCount == 0 {
-			break
-		}
-		if checkErr(err) {
-			break
-		}
-
-		totalReadCount += readCount
-
-		if totalReadCount == dataBufferLen {
-			break
-		}
-	}
-	return totalReadCount
-}
-
 func convertDataForConnection(c net.Conn, convertType, srcFileExtLen, resultFileExtLen, paramsStrSize byte, dataSize uint32) {
 	if (srcFileExtLen == 0) || (resultFileExtLen == 0) {
 		return
@@ -58,24 +32,24 @@ func convertDataForConnection(c net.Conn, convertType, srcFileExtLen, resultFile
 
 	// Input file extention
 	srcFileExt := make([]byte, srcFileExtLen)
-	totalReadCount := readToFixedSizeBuffer(c, srcFileExt)
-	if totalReadCount < int(srcFileExtLen) {
+	_, err := io.ReadFull(c, srcFileExt)
+	if err != nil {
 		return
 	}
 	hash.Write(srcFileExt)
 
 	// Result file extention
 	resultFileExt := make([]byte, resultFileExtLen)
-	totalReadCount = readToFixedSizeBuffer(c, resultFileExt)
-	if totalReadCount < int(resultFileExtLen) {
+	_, err = io.ReadFull(c, resultFileExt)
+	if err != nil {
 		return
 	}
 	hash.Write(resultFileExt)
 
 	// Convert parameters
 	convertParams := make([]byte, paramsStrSize)
-	totalReadCount = readToFixedSizeBuffer(c, convertParams)
-	if totalReadCount < int(paramsStrSize) {
+	_, err = io.ReadFull(c, convertParams)
+	if err != nil {
 		return
 	}
 	hash.Write(convertParams)
@@ -85,8 +59,8 @@ func convertDataForConnection(c net.Conn, convertType, srcFileExtLen, resultFile
 
 	// Hash receive
 	dataHash := make([]byte, 16)
-	totalReadCount = readToFixedSizeBuffer(c, dataHash)
-	if totalReadCount < 16 {
+	_, err = io.ReadFull(c, dataHash)
+	if err != nil {
 		return
 	}
 
@@ -99,8 +73,8 @@ func convertDataForConnection(c net.Conn, convertType, srcFileExtLen, resultFile
 
 	// File data
 	dataBytes := make([]byte, dataSize)
-	totalReadCount = readToFixedSizeBuffer(c, dataBytes)
-	if uint32(totalReadCount) < dataSize {
+	_, err = io.ReadFull(c, dataBytes)
+	if err != nil {
 		return
 	}
 
@@ -152,26 +126,10 @@ func convertDataForConnection(c net.Conn, convertType, srcFileExtLen, resultFile
 		return
 	}
 
-	// Send file
-	var currentByte int64 = 0
-	fileSendBuffer := make([]byte, 1024)
-	for {
-		fileReadCount, fileErr := file.ReadAt(fileSendBuffer, currentByte)
-		if fileReadCount == 0 {
-			break
-		}
-
-		writtenCount, writeErr := c.Write(fileSendBuffer[:fileReadCount])
-		if checkErr(writeErr) {
-			return
-		}
-
-		currentByte += int64(writtenCount)
-
-		if (fileErr == io.EOF) && (fileReadCount == writtenCount) {
-			break
-		}
-	}
+	// File send
+    io.Copy(c, file)
+    file.Close()
+    os.Remove(resultFile)
 }
 
 func handleServerConnectionRaw(c net.Conn) {
@@ -197,8 +155,8 @@ func handleServerConnectionRaw(c net.Conn) {
         // Read convertDataForConnection type
         const metaSize = 8
         metaData := make([]byte, metaSize)
-        totalReadCount := readToFixedSizeBuffer(c, metaData)
-        if totalReadCount < metaSize {
+        _, err := io.ReadFull(c, metaData)
+        if err != nil {
             return
         }
 
