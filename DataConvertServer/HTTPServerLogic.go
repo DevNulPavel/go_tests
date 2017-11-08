@@ -40,9 +40,8 @@ func loadHtmlTemplates() {
 	}
 }
 
-func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo,
-	resultChannel chan<- *HttpSendFileInfo,
-	convertType string) {
+func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo, resultChannel chan<- *HttpSendFileInfo, convertType, convertParams string) {
+
 	for fileInfo := range inputChannel {
 		// Convert type
 		var err error = nil
@@ -53,32 +52,50 @@ func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo,
 			const extention = ".pvr"
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVR, "-f PVRTC2_4 -dither -q pvrtcbest")
+            if len(convertParams) == 0 {
+                convertParams = "-f PVRTC2_4 -dither -q pvrtcbest"
+            }
+			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVR, convertParams)
 		case "pvrgz16":
 			const extention = ".pvrgz"
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVRGZ, "-f r4g4b4a4 -dither -q pvrtcbest")
+            if len(convertParams) == 0 {
+                convertParams = "-f r4g4b4a4 -dither -q pvrtcbest"
+            }
+			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVRGZ, convertParams)
 		case "pvrgz32":
 			const extention = ".pvrgz"
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVRGZ, "-f r8g8b8a8 -dither -q pvrtcbest")
+            if len(convertParams) == 0 {
+                convertParams = "-f r8g8b8a8 -dither -q pvrtcbest"
+            }
+			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVRGZ, convertParams)
 		case "webp":
 			const extention = ".webp"
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_WEBP, "-q 96")
+            if len(convertParams) == 0 {
+                convertParams = "-q 96"
+            }
+			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_WEBP, convertParams)
 		case "m4a":
 			const extention = ".m4a"
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_SOUND_FFMPEG, "")
+            /*if len(convertParams) == 0 {
+                convertParams = ""
+            }*/
+			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_SOUND_FFMPEG, convertParams)
 		case "ogg":
 			const extention = ".ogg"
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_SOUND_FFMPEG, "")
+            /*if len(convertParams) == 0 {
+                convertParams = ""
+            }*/
+			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_SOUND_FFMPEG, convertParams)
 		default:
 			os.Remove(fileInfo.filePath)
 			resultChannel <- nil
@@ -103,6 +120,9 @@ func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo,
 }
 
 func httpRootFunc(writer http.ResponseWriter, req *http.Request) {
+    // TODO: Debug
+    loadHtmlTemplates()
+
 	if req.Method == "POST" {
 		receivedFiles := make([]HttpReceivedFileInfo, 0)
 
@@ -114,6 +134,7 @@ func httpRootFunc(writer http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		// Save files to temp folders
 		for _, fileHeader := range headers {
 			// Receive file data
 			receivedFileData, err := fileHeader.Open()
@@ -171,11 +192,14 @@ func httpRootFunc(writer http.ResponseWriter, req *http.Request) {
 		// Convert Type
 		convertType := req.FormValue("convertType")
 
+		// Custom parameters
+        customParameters := req.FormValue("customParams")
+
 		// Workers pool
 		convertChannel := make(chan HttpReceivedFileInfo)
 		resultChannel := make(chan *HttpSendFileInfo)
 		for i := 0; (i < len(receivedFiles)) && (i < runtime.NumCPU()); i++ {
-			go httpConvertWorkerFunction(convertChannel, resultChannel, convertType)
+			go httpConvertWorkerFunction(convertChannel, resultChannel, convertType, customParameters)
 		}
 
 		// Perform convert
