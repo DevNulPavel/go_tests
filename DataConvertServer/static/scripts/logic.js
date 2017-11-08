@@ -79,7 +79,7 @@ function onFileSelected() {
     validValues = []
 
     if ($.inArray(extentions[0], imagesExt) >= 0){
-        validValues = ["pvr", "pvrgz16", "pvrgz32"]
+        validValues = ["pvr", "pvrgz16", "pvrgz32", "webp"]
     }else if ($.inArray(extentions[0], audioExt) >= 0){
         validValues = ["m4a", "ogg"]
     }

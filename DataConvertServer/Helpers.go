@@ -26,7 +26,7 @@ func newUUID() (string, error) {
 
 func checkErr(e error) bool {
 	if e != nil {
-        debug.PrintStack()
+		debug.PrintStack()
 		log.Println(e)
 		return true
 	}

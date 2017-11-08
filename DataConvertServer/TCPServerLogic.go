@@ -10,8 +10,8 @@ import (
 	"log"
 	"net"
 	"os"
+	"runtime"
 	"time"
-    "runtime"
 )
 
 const TCP_SERVER_PORT = 10000
@@ -127,9 +127,9 @@ func convertDataForConnection(c net.Conn, convertType, srcFileExtLen, resultFile
 	}
 
 	// File send
-    io.Copy(c, file)
-    file.Close()
-    os.Remove(resultFile)
+	io.Copy(c, file)
+	file.Close()
+	os.Remove(resultFile)
 }
 
 func handleServerConnectionRaw(c net.Conn) {
@@ -140,36 +140,36 @@ func handleServerConnectionRaw(c net.Conn) {
 	c.SetWriteDeadline(timeVal)
 	c.SetReadDeadline(timeVal)
 
-    requestTypeArr := make([]byte, 1)
+	requestTypeArr := make([]byte, 1)
 	readCount, err := c.Read(requestTypeArr)
-    if (readCount == 0) || (err != nil) {
-        return
-    }
+	if (readCount == 0) || (err != nil) {
+		return
+	}
 
-    requestType := requestTypeArr[0]
-    switch requestType {
-    case REQUEST_TYPE_PROC_COUNT:
-        numCount := byte(runtime.NumCPU())
-        c.Write([]byte{numCount})
-    case REQUEST_TYPE_CONVERT:
-        // Read convertDataForConnection type
-        const metaSize = 8
-        metaData := make([]byte, metaSize)
-        _, err := io.ReadFull(c, metaData)
-        if err != nil {
-            return
-        }
+	requestType := requestTypeArr[0]
+	switch requestType {
+	case REQUEST_TYPE_PROC_COUNT:
+		numCount := byte(runtime.NumCPU())
+		c.Write([]byte{numCount})
+	case REQUEST_TYPE_CONVERT:
+		// Read convertDataForConnection type
+		const metaSize = 8
+		metaData := make([]byte, metaSize)
+		_, err := io.ReadFull(c, metaData)
+		if err != nil {
+			return
+		}
 
-        // Parse bytes
-        convertType := metaData[0]
-        srcFileExtLen := metaData[1]
-        resultFileExtLen := metaData[2]
-        paramsStrSize := metaData[3]
-        dataSize := binary.BigEndian.Uint32(metaData[4:8])
+		// Parse bytes
+		convertType := metaData[0]
+		srcFileExtLen := metaData[1]
+		resultFileExtLen := metaData[2]
+		paramsStrSize := metaData[3]
+		dataSize := binary.BigEndian.Uint32(metaData[4:8])
 
-        // Converting
-        convertDataForConnection(c, convertType, srcFileExtLen, resultFileExtLen, paramsStrSize, dataSize)
-    }
+		// Converting
+		convertDataForConnection(c, convertType, srcFileExtLen, resultFileExtLen, paramsStrSize, dataSize)
+	}
 }
 
 func tcpServer() {

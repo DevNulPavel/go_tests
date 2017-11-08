@@ -3,20 +3,22 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
-	"log"
 )
 
 const (
 	CONVERT_TYPE_IMAGE_PVR    = 1
 	CONVERT_TYPE_IMAGE_PVRGZ  = 2
-	CONVERT_TYPE_SOUND_FFMPEG = 3
+	CONVERT_TYPE_IMAGE_WEBP   = 3
+	CONVERT_TYPE_SOUND_FFMPEG = 4
 )
 
 const (
-	PVR_TOOL_PATH = "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/CLI/OSX_x86/PVRTexToolCLI"
-	FFMPEG_PATH   = "ffmpeg"
+	PVR_TOOL_PATH    = "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/CLI/OSX_x86/PVRTexToolCLI"
+	FFMPEG_TOOL_PATH = "ffmpeg"
+	WEBP_TOOL_PATH   = "cwebp"
 )
 
 func convertFile(srcFilePath, resultFile, uuid string, convertType byte, paramsStr string) error {
@@ -30,7 +32,7 @@ func convertFile(srcFilePath, resultFile, uuid string, convertType byte, paramsS
 		err := command.Run()
 		if err != nil {
 			output, _ := command.CombinedOutput()
-			log.Println(string(output))
+            log.Printf("Error exec command '%s': %s", commandText, string(output))
 		}
 		return err
 	case CONVERT_TYPE_IMAGE_PVRGZ:
@@ -43,16 +45,27 @@ func convertFile(srcFilePath, resultFile, uuid string, convertType byte, paramsS
 		err := command.Run()
 		if err != nil {
 			output, _ := command.CombinedOutput()
-			log.Println(string(output))
+            log.Printf("Error exec command '%s': %s", convertCommandText, string(output))
 		}
 		return err
+    case CONVERT_TYPE_IMAGE_WEBP:
+        // Params examples
+        // -q 94
+        commandText := fmt.Sprintf("%s %s %s -o %s", WEBP_TOOL_PATH, paramsStr, srcFilePath, resultFile)
+        command := exec.Command("bash", "-c", commandText)
+        err := command.Run()
+        if err != nil {
+            output, _ := command.CombinedOutput()
+            log.Printf("Error exec command '%s': %s, %s", commandText, string(output))
+        }
+        return err
 	case CONVERT_TYPE_SOUND_FFMPEG:
-		commandText := fmt.Sprintf("%s -y %s -i %s %s", FFMPEG_PATH, paramsStr, srcFilePath, resultFile)
+		commandText := fmt.Sprintf("%s -y %s -i %s %s", FFMPEG_TOOL_PATH, paramsStr, srcFilePath, resultFile)
 		command := exec.Command("bash", "-c", commandText)
 		err := command.Run()
 		if err != nil {
 			output, _ := command.CombinedOutput()
-			log.Println(string(output))
+            log.Printf("Error exec command '%s': %s", commandText, string(output))
 		}
 		return err
 	}

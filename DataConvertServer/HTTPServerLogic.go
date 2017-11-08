@@ -64,6 +64,11 @@ func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo,
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
 			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVRGZ, "-f r8g8b8a8 -dither -q pvrtcbest")
+		case "webp":
+			const extention = ".webp"
+			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
+			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
+			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_WEBP, "-q 96")
 		case "m4a":
 			const extention = ".m4a"
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
