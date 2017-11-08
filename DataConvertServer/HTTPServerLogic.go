@@ -61,7 +61,7 @@ func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo, resultC
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
             if len(convertParams) == 0 {
-                convertParams = "-f r4g4b4a4 -dither -q pvrtcbest"
+                convertParams = "-f r4g4b4a4 -dither"
             }
 			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVRGZ, convertParams)
 		case "pvrgz32":
@@ -69,7 +69,7 @@ func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo, resultC
 			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
             if len(convertParams) == 0 {
-                convertParams = "-f r8g8b8a8 -dither -q pvrtcbest"
+                convertParams = "-f r8g8b8a8 -dither"
             }
 			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVRGZ, convertParams)
 		case "webp":
