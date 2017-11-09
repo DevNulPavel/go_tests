@@ -301,10 +301,15 @@ func httpRootFunc(writer http.ResponseWriter, req *http.Request) {
 	mainPageTemplate.Execute(writer, nil)
 }
 
-func startHttpServer() {
+func startHttpServer(customPort int) {
+	port := HTTP_SERVER_PORT
+	if customPort != 0 {
+		port = customPort
+	}
+
 	// Http server
 	loadHtmlTemplates()
 	http.HandleFunc("/", httpRootFunc)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
-	http.ListenAndServe(fmt.Sprintf(":%d", HTTP_SERVER_PORT), nil)
+	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }

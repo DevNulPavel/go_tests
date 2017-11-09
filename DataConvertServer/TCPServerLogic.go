@@ -22,6 +22,7 @@ const REQUEST_TYPE_CONVERT = 2
 
 var CONFIG_DATA_SALT = []byte{0xBA, 0xBA, 0xEB, 0x53, 0x78, 0x88, 0x32, 0x91}
 
+
 func convertDataForConnection(c net.Conn, convertType, srcFileExtLen, resultFileExtLen, paramsStrSize byte, dataSize uint32) {
 	if (srcFileExtLen == 0) || (resultFileExtLen == 0) {
 		return
@@ -172,9 +173,14 @@ func handleServerConnectionRaw(c net.Conn) {
 	}
 }
 
-func tcpServer() {
+func tcpServer(customPort int) {
+    port := TCP_SERVER_PORT
+    if customPort != 0 {
+        port = customPort
+    }
+
 	// Прослушивание сервера
-	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", TCP_SERVER_PORT))
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Println(err)
 		return
