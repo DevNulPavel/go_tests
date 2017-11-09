@@ -34,7 +34,7 @@ func initializeToolsPathes() {
     // FFMPEG
     webpPath := os.Getenv("WEBP_TOOL_PATH")
     if len(webpPath) > 0 {
-        FFMPEG_TOOL_PATH = webpPath
+		WEBP_TOOL_PATH = webpPath
     }
 }
 
