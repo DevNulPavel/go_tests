@@ -14,6 +14,7 @@ func main() {
 	// Parse flags
     tcpPort := flag.Int("tcpPort", TCP_SERVER_PORT, "TCP port value")
     httpPort := flag.Int("httpPort", HTTP_SERVER_PORT, "HTTP port value")
+    contentFolder := flag.String("contentPath", "", "Content path")
     flag.Parse()
 
 	// Tools pathes
@@ -23,5 +24,5 @@ func main() {
 	go tcpServer(*tcpPort)
 
 	// HTTP server
-	startHttpServer(*httpPort)
+	startHttpServer(*httpPort, *contentFolder)
 }

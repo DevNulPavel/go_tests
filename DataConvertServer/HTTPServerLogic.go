@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+    "path"
 	"runtime"
 	"strings"
 )
@@ -31,10 +32,11 @@ type HttpSendFileInfo struct {
 	uploadName string
 }
 
-func loadHtmlTemplates() {
+func loadHtmlTemplates(contentFolder string) {
 	var err error = nil
 	// MainPage
-	mainPageTemplate, err = template.ParseFiles("templates/fileConvertTemplate.html")
+	templatePath := path.Join(contentFolder, "/templates/fileConvertTemplate.html")
+	mainPageTemplate, err = template.ParseFiles(templatePath)
 	if checkErr(err) {
 		return
 	}
@@ -120,9 +122,6 @@ func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo, resultC
 }
 
 func httpRootFunc(writer http.ResponseWriter, req *http.Request) {
-    // TODO: Debug
-    loadHtmlTemplates()
-
 	if req.Method == "POST" {
 		receivedFiles := make([]HttpReceivedFileInfo, 0)
 
@@ -301,15 +300,18 @@ func httpRootFunc(writer http.ResponseWriter, req *http.Request) {
 	mainPageTemplate.Execute(writer, nil)
 }
 
-func startHttpServer(customPort int) {
+func startHttpServer(customPort int, contentFolder string) {
 	port := HTTP_SERVER_PORT
 	if customPort != 0 {
 		port = customPort
 	}
 
+	// Static files full path
+    staticFilesPath := path.Join(contentFolder, "/static")
+
 	// Http server
-	loadHtmlTemplates()
+	loadHtmlTemplates(contentFolder)
 	http.HandleFunc("/", httpRootFunc)
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(staticFilesPath))))
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }

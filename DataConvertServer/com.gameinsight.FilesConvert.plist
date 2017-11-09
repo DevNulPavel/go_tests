@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.gameinsight.FilesConvert</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/devnul/ConvertServer/DataConvertServer</string>
+		<string>-tcpPort</string>
+		<string>10000</string>
+		<string>-httpPort</string>
+		<string>8080</string>
+		<string>-contentPath</string>
+		<string>/Users/devnul/ConvertServer</string>
+	</array>
+	<key>StandardErrorPath</key>
+	<string>/var/log/ConverServer.log</string>
+	<key>StandardOutPath</key>
+	<string>/var/log/ConverServer.log</string>
+	<key>KeepAlive</key>
+	<true/>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>Sockets</key>
+	<dict>
+		<key>TCP</key>
+		<dict>
+			<key>SockServiceName</key>
+			<string>10000</string>
+			<key>SockType</key>
+			<string>stream</string>
+			<key>SockFamily</key>
+			<string>IPv4</string>
+		</dict>
+		<key>HTTP</key>
+		<dict>
+			<key>SockServiceName</key>
+			<string>8080</string>
+			<key>SockType</key>
+			<string>stream</string>
+			<key>SockFamily</key>
+			<string>IPv4</string>
+		</dict>
+	</dict>
+</dict>
+</plist>
