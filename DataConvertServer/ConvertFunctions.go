@@ -15,11 +15,28 @@ const (
 	CONVERT_TYPE_SOUND_FFMPEG = 4
 )
 
-const (
-	PVR_TOOL_PATH    = "/Applications/Imagination/PowerVR_Graphics/PowerVR_Tools/PVRTexTool/CLI/OSX_x86/PVRTexToolCLI"
-	FFMPEG_TOOL_PATH = "ffmpeg"
-	WEBP_TOOL_PATH   = "cwebp"
-)
+var PVR_TOOL_PATH = "PVRTexToolCLI"
+var FFMPEG_TOOL_PATH = "ffmpeg"
+var WEBP_TOOL_PATH = "cwebp"
+
+
+func initializeToolsPathes() {
+    // PVR
+    pvrPath := os.Getenv("PVR_TOOL_PATH")
+    if len(pvrPath) > 0 {
+        PVR_TOOL_PATH = pvrPath
+    }
+    // FFMPEG
+    ffmpegPath := os.Getenv("FFMPEG_TOOL_PATH")
+    if len(ffmpegPath) > 0 {
+        FFMPEG_TOOL_PATH = ffmpegPath
+    }
+    // FFMPEG
+    webpPath := os.Getenv("WEBP_TOOL_PATH")
+    if len(webpPath) > 0 {
+        FFMPEG_TOOL_PATH = webpPath
+    }
+}
 
 func convertFile(srcFilePath, resultFile, uuid string, convertType byte, paramsStr string) error {
 	// Convert file
