@@ -1,3 +1,5 @@
 #! /usr/bin/env bash
 
-sudo launchctl load /Library/LaunchDaemons/com.gameinsight.FilesConvert.plist
+PLIST_FOLDER=/Library/LaunchDaemons
+
+sudo launchctl load $PLIST_FOLDER/com.gameinsight.FilesConvert.plist

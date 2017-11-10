@@ -19,7 +19,7 @@
 	<true/>
 	<key>RunAtLoad</key>
 	<true/>
-	<key>Sockets</key>
+	<key>__Sockets</key>
 	<dict>
 		<key>TCP</key>
 		<dict>
