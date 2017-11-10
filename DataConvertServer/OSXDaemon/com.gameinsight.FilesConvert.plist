@@ -4,15 +4,12 @@
 <dict>
 	<key>Label</key>
 	<string>com.gameinsight.FilesConvert</string>
+	<key>WorkingDirectory</key>
+	<string>/Users/devnul/ConvertServer/</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/Users/devnul/ConvertServer/DataConvertServer</string>
-		<string>-tcpPort</string>
-		<string>10000</string>
-		<string>-httpPort</string>
-		<string>8080</string>
-		<string>-contentPath</string>
-		<string>/Users/devnul/ConvertServer</string>
+		<string>bash</string>
+		<string>filesConvertDaemon.sh</string>
 	</array>
 	<key>StandardErrorPath</key>
 	<string>/var/log/ConverServer.log</string>
@@ -36,7 +33,7 @@
 		<key>HTTP</key>
 		<dict>
 			<key>SockServiceName</key>
-			<string>8080</string>
+			<string>18000</string>
 			<key>SockType</key>
 			<string>stream</string>
 			<key>SockFamily</key>

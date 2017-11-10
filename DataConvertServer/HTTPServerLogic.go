@@ -35,7 +35,7 @@ type HttpSendFileInfo struct {
 func loadHtmlTemplates(contentFolder string) {
 	var err error = nil
 	// MainPage
-	templatePath := path.Join(contentFolder, "/templates/fileConvertTemplate.html")
+	templatePath := path.Join(contentFolder, "templates/fileConvertTemplate.html")
 	mainPageTemplate, err = template.ParseFiles(templatePath)
 	if checkErr(err) {
 		return
@@ -307,7 +307,7 @@ func startHttpServer(customPort int, contentFolder string) {
 	}
 
 	// Static files full path
-    staticFilesPath := path.Join(contentFolder, "/static")
+    staticFilesPath := path.Join(contentFolder, "static")
 
 	// Http server
 	loadHtmlTemplates(contentFolder)
