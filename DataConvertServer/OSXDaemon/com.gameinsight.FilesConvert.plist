@@ -19,7 +19,11 @@
 	<true/>
 	<key>RunAtLoad</key>
 	<true/>
-	<key>__Sockets</key>
+	<key>_UserName</key>
+	<string>root</string>
+	<key>_GroupName</key>
+	<string>wheel</string>
+	<key>_Sockets</key>
 	<dict>
 		<key>TCP</key>
 		<dict>
