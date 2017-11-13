@@ -5,44 +5,23 @@
 	<key>Label</key>
 	<string>com.gameinsight.FilesConvert</string>
 	<key>WorkingDirectory</key>
-	<string>/Users/devnul/ConvertServer/</string>
+	<string>/Users/pavelershov/ConvertServer/</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>bash</string>
 		<string>filesConvertDaemon.sh</string>
 	</array>
 	<key>StandardErrorPath</key>
-	<string>/var/log/ConverServer.log</string>
+	<string>/tmp/ConverServerErr.log</string>
 	<key>StandardOutPath</key>
-	<string>/var/log/ConverServer.log</string>
+	<string>/tmp/ConverServerOut.log</string>
 	<key>KeepAlive</key>
 	<true/>
 	<key>RunAtLoad</key>
 	<true/>
-	<key>_UserName</key>
-	<string>root</string>
-	<key>_GroupName</key>
-	<string>wheel</string>
-	<key>_Sockets</key>
-	<dict>
-		<key>TCP</key>
-		<dict>
-			<key>SockServiceName</key>
-			<string>10000</string>
-			<key>SockType</key>
-			<string>stream</string>
-			<key>SockFamily</key>
-			<string>IPv4</string>
-		</dict>
-		<key>HTTP</key>
-		<dict>
-			<key>SockServiceName</key>
-			<string>18000</string>
-			<key>SockType</key>
-			<string>stream</string>
-			<key>SockFamily</key>
-			<string>IPv4</string>
-		</dict>
-	</dict>
+	<key>UserName</key>
+	<string>devnul</string>
+	<key>GroupName</key>
+	<string>staff</string>
 </dict>
 </plist>
