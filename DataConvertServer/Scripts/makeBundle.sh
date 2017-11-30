@@ -7,6 +7,7 @@ go build
 zip -u $ZIP_FILE_NAME DataConvertServer
 zip -ur $ZIP_FILE_NAME templates/
 zip -ur $ZIP_FILE_NAME static/
-zip -urj $ZIP_FILE_NAME OSXDaemon/filesConvertDaemon.sh
+zip -ur $ZIP_FILE_NAME OSXDaemon/
+# zip -urj $ZIP_FILE_NAME OSXDaemon/filesConvertDaemon.sh
 
 rm DataConvertServer
