@@ -1,0 +1,4 @@
+Tools:
+
+brew install webp
+brew install ffmpeg --with-webp --with-theora --with-libvpx --with-tools --with-x265 --with-opus --with-openh264 --with-libvorbis
