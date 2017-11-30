@@ -86,14 +86,14 @@ func convertDataForConnection(c net.Conn, convertType, srcFileExtLen, resultFile
 	}
 
 	// Save file
-	filePath := os.TempDir() + uuid + string(srcFileExt)
+	filePath := os.TempDir() + "in_" + uuid + string(srcFileExt)
 	err = ioutil.WriteFile(filePath, dataBytes, 0644)
 	if checkErr(err) {
 		return
 	}
 
 	// Result file path
-	resultFile := os.TempDir() + uuid + string(resultFileExt)
+	resultFile := os.TempDir() + "out_" + uuid + string(resultFileExt)
 
 	// Defer remove files
 	defer os.Remove(filePath)

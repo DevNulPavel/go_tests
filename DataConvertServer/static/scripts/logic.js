@@ -48,6 +48,7 @@ function onFileSelected() {
 
     imagesExt = ["jpeg", "jpg", "png"]
     audioExt = ["wav", "mp3", "ogg"]
+    videoExt = ["avi", "mp4", "mkv"]
 
     type = -1
     for (var i = 0; i < extentions.length; i++) {
@@ -69,6 +70,15 @@ function onFileSelected() {
                 showErrorText()
                 return
             }
+        }else if ($.inArray(extentions[i], videoExt) >= 0){
+            testTypeVal = 3
+            if(type < 0){
+                type = testTypeVal
+            } else if (type != testTypeVal){
+                disableAll()
+                showErrorText()
+                return
+            }
         }else {
             disableAll()
             showErrorText()
@@ -82,6 +92,8 @@ function onFileSelected() {
         validValues = ["pvr", "pvrgz16", "pvrgz32", "webp"]
     }else if ($.inArray(extentions[0], audioExt) >= 0){
         validValues = ["m4a", "ogg"]
+    }else if ($.inArray(extentions[0], videoExt) >= 0){
+        validValues = ["mp4", "webm"]
     }
 
     validInputType = false

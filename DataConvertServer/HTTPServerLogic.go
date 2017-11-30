@@ -52,7 +52,7 @@ func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo, resultC
 		switch convertType {
 		case "pvr":
 			const extention = ".pvr"
-			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
+			resultFilePath = os.TempDir() + "out_" + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
             if len(convertParams) == 0 {
                 convertParams = "-f PVRTC1_4 -pot + -dither -q pvrtcbest"
@@ -60,7 +60,7 @@ func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo, resultC
 			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVR, convertParams)
 		case "pvrgz16":
 			const extention = ".pvrgz"
-			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
+			resultFilePath = os.TempDir() + "out_" + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
             if len(convertParams) == 0 {
                 convertParams = "-f r4g4b4a4 -dither"
@@ -68,7 +68,7 @@ func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo, resultC
 			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVRGZ, convertParams)
 		case "pvrgz32":
 			const extention = ".pvrgz"
-			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
+			resultFilePath = os.TempDir() + "out_" + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
             if len(convertParams) == 0 {
                 convertParams = "-f r8g8b8a8 -dither"
@@ -76,28 +76,23 @@ func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo, resultC
 			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVRGZ, convertParams)
 		case "webp":
 			const extention = ".webp"
-			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
+			resultFilePath = os.TempDir() + "out_" + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
             if len(convertParams) == 0 {
                 convertParams = "-q 96"
             }
 			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_WEBP, convertParams)
-		case "m4a":
-			const extention = ".m4a"
-			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
+		case "m4a", "ogg", "mp4", "webm":
+			extention := "." + convertType
+			resultFilePath = os.TempDir() + "out_" + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
             /*if len(convertParams) == 0 {
                 convertParams = ""
             }*/
-			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_SOUND_FFMPEG, convertParams)
-		case "ogg":
-			const extention = ".ogg"
-			resultFilePath = os.TempDir() + fileInfo.fileUUID + extention
-			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-            /*if len(convertParams) == 0 {
-                convertParams = ""
-            }*/
-			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_SOUND_FFMPEG, convertParams)
+            if convertType == "webm" {
+                convertParams += " -strict -2 "
+            }
+			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_FFMPEG, convertParams)
 		default:
 			os.Remove(fileInfo.filePath)
 			resultChannel <- nil
@@ -158,7 +153,7 @@ func httpRootFunc(writer http.ResponseWriter, req *http.Request) {
 			}
 
 			// Save file
-			sourceFilePath := os.TempDir() + uuid + inputFileExt
+			sourceFilePath := os.TempDir() + "in_" + uuid + inputFileExt
 			sourceFile, err := os.Create(sourceFilePath)
 			if err != nil {
 				receivedFileData.Close()

@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	CONVERT_TYPE_IMAGE_PVR    = 1
-	CONVERT_TYPE_IMAGE_PVRGZ  = 2
-	CONVERT_TYPE_IMAGE_WEBP   = 3
-	CONVERT_TYPE_SOUND_FFMPEG = 4
+	CONVERT_TYPE_IMAGE_PVR   = 1
+	CONVERT_TYPE_IMAGE_PVRGZ = 2
+	CONVERT_TYPE_IMAGE_WEBP  = 3
+	CONVERT_TYPE_FFMPEG      = 4
 )
 
 var PVR_TOOL_PATH = "PVRTexToolCLI"
@@ -56,7 +56,7 @@ func convertFile(srcFilePath, resultFile, uuid string, convertType byte, paramsS
 		// Params examples
 		// -f r8g8b8a8 -dither -q pvrtcbest
 		// -f r4g4b4a4 -dither -q pvrtcbest
-		tempFileName := os.TempDir() + uuid + ".pvr"
+		tempFileName := os.TempDir() + "out_" + uuid + ".pvr"
 		convertCommandText := fmt.Sprintf("%s %s -i %s -o %s; gzip -f --suffix gz -9 %s", PVR_TOOL_PATH, paramsStr, srcFilePath, tempFileName, tempFileName)
 		command := exec.Command("bash", "-c", convertCommandText)
 		err := command.Run()
@@ -76,8 +76,8 @@ func convertFile(srcFilePath, resultFile, uuid string, convertType byte, paramsS
             log.Printf("Error exec command '%s': %s, %s", commandText, string(output))
         }
         return err
-	case CONVERT_TYPE_SOUND_FFMPEG:
-		commandText := fmt.Sprintf("%s -y %s -i %s %s", FFMPEG_TOOL_PATH, paramsStr, srcFilePath, resultFile)
+	case CONVERT_TYPE_FFMPEG:
+		commandText := fmt.Sprintf("%s -i %s -y %s %s", FFMPEG_TOOL_PATH, srcFilePath, paramsStr, resultFile)
 		command := exec.Command("bash", "-c", commandText)
 		err := command.Run()
 		if err != nil {
