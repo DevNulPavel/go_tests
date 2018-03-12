@@ -1,0 +1,88 @@
+{
+    "connectionParams": {
+        "server": "192.168.14.12",
+        "_server": "127.0.0.1",
+        "port": 10000
+    },
+    "customConvertParams": {
+        "PVR": "-f PVRTC1_4 -pot + -dither -q pvrtcbest",
+        "PVRGZ16": "-f r4g4b4a4 -dither",
+        "PVRGZ32": "-f r8g8b8a8 -dither",
+        "FFMPEG" : "",
+        "WEBP": "-q 96"
+    },
+    "folders": [
+        {
+            "folder": "res/test_sounds/",
+            "soundFormatIOS": "m4a",
+            "soundFormatAndroid": "ogg",
+            "recursive": false,
+            "foldersCustomParams": {
+                ".": {
+                    "FFMPEG": {
+                        "IOS": "-acodec aac",
+                        "ANDROID": "-acodec libvorbis"
+                    }
+                }
+            }
+        },
+        {
+            "folder": "res/test_videos/",
+            "videoFormatIOS": "mp4",
+            "videoFormatAndroid": "mp4",
+            "recursive": false
+        },
+        {
+            "folder": "res/convertTestImages_png/",
+            "recursive": true,
+            "imageFormatIOS": "pvr",
+            "imageFormatAndroid": "pvrgz",
+            "imagePVRGZBits": 32,
+            "ignoreFolders": [
+                "ignoreFolder"
+            ],
+            "foldersCustomParams": {
+                ".": {
+                    "PVR": "-f PVRTC1_4 -legacypvr -l -q pvrtcbest -m -flip y -pot + -square +",
+                    "PVRGZ16": "-f r4g4b4a4 -dither",
+                    "PVRGZ32": "-f r8g8b8a8 -dither",
+                    "FFMPEG" : "",
+                    "WEBP": "-q 96"
+                },
+                "subfolder": {
+                    "PVR": "-f PVRTC1_4 -pot + -dither -q pvrtcbest",
+                    "PVRGZ16": "-f r4g4b4a4 -dither",
+                    "PVRGZ32": "-f r8g8b8a8 -dither",
+                    "FFMPEG" : "",
+                    "WEBP": "-q 20"
+                }
+            }
+        }
+    ],
+    "files": [
+        {
+            "file": "res/convertTestImages_png/image_1.png",
+            "imageFormatIOS": "pvr",
+            "imageFormatAndroid": "pvrgz",
+            "imagePVRGZBits": 32,
+            "customParams": {
+                "PVR": "-f PVRTC1_4 -pot + -dither -q pvrtcbest",
+                "PVRGZ16": "-f r4g4b4a4 -dither",
+                "PVRGZ32": "-f r8g8b8a8 -dither",
+                "FFMPEG" : "",
+                "WEBP": "-q 96"
+            }
+        },
+        {
+            "file": "res/test_sounds/ambient_birds_1.wav",
+            "soundFormatIOS": "m4a",
+            "soundFormatAndroid": "ogg",
+            "customParams": {
+                "FFMPEG": {
+                    "IOS": "-acodec aac",
+                    "ANDROID": "-acodec libvorbis"
+                }
+            }
+        }
+    ]
+}
