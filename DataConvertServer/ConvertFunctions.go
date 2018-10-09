@@ -9,33 +9,39 @@ import (
 )
 
 const (
-	CONVERT_TYPE_IMAGE_PVR   = 1
-	CONVERT_TYPE_IMAGE_PVRGZ = 2
-	CONVERT_TYPE_IMAGE_WEBP  = 3
-	CONVERT_TYPE_FFMPEG      = 4
+	CONVERT_TYPE_IMAGE_PVR       = 1
+	CONVERT_TYPE_IMAGE_PVRGZ     = 2
+	CONVERT_TYPE_IMAGE_TO_WEBP   = 3
+	CONVERT_TYPE_IMAGE_FROM_WEBP = 4
+	CONVERT_TYPE_FFMPEG          = 5
 )
 
 var PVR_TOOL_PATH = "PVRTexToolCLI"
 var FFMPEG_TOOL_PATH = "ffmpeg"
-var WEBP_TOOL_PATH = "cwebp"
-
+var WEBP_ENCODE_TOOL_PATH = "cwebp"
+var WEBP_DECODE_TOOL_PATH = "dwebp"
 
 func initializeToolsPathes() {
-    // PVR
-    pvrPath := os.Getenv("PVR_TOOL_PATH")
-    if len(pvrPath) > 0 {
-        PVR_TOOL_PATH = pvrPath
-    }
-    // FFMPEG
-    ffmpegPath := os.Getenv("FFMPEG_TOOL_PATH")
-    if len(ffmpegPath) > 0 {
-        FFMPEG_TOOL_PATH = ffmpegPath
-    }
-    // FFMPEG
-    webpPath := os.Getenv("WEBP_TOOL_PATH")
-    if len(webpPath) > 0 {
-		WEBP_TOOL_PATH = webpPath
-    }
+	// PVR
+	pvrPath := os.Getenv("PVR_TOOL_PATH")
+	if len(pvrPath) > 0 {
+		PVR_TOOL_PATH = pvrPath
+	}
+	// FFMPEG
+	ffmpegPath := os.Getenv("FFMPEG_TOOL_PATH")
+	if len(ffmpegPath) > 0 {
+		FFMPEG_TOOL_PATH = ffmpegPath
+	}
+	// WebP encode
+	webpEncodePath := os.Getenv("WEBP_ENCODE_TOOL_PATH")
+	if len(webpEncodePath) > 0 {
+		WEBP_ENCODE_TOOL_PATH = webpEncodePath
+	}
+	// WebP decode
+	webpDecodePath := os.Getenv("WEBP_DECODE_TOOL_PATH")
+	if len(webpDecodePath) > 0 {
+		WEBP_DECODE_TOOL_PATH = webpDecodePath
+	}
 }
 
 func convertFile(srcFilePath, resultFile, uuid string, convertType byte, paramsStr string) error {
@@ -49,7 +55,7 @@ func convertFile(srcFilePath, resultFile, uuid string, convertType byte, paramsS
 		err := command.Run()
 		if err != nil {
 			output, _ := command.CombinedOutput()
-            log.Printf("Error exec command '%s': %s", commandText, string(output))
+			log.Printf("Error exec command '%s': %s", commandText, string(output))
 		}
 		return err
 	case CONVERT_TYPE_IMAGE_PVRGZ:
@@ -62,27 +68,38 @@ func convertFile(srcFilePath, resultFile, uuid string, convertType byte, paramsS
 		err := command.Run()
 		if err != nil {
 			output, _ := command.CombinedOutput()
-            log.Printf("Error exec command '%s': %s", convertCommandText, string(output))
+			log.Printf("Error exec command '%s': %s", convertCommandText, string(output))
 		}
 		return err
-    case CONVERT_TYPE_IMAGE_WEBP:
-        // Params examples
-        // -q 94
-        commandText := fmt.Sprintf("%s %s %s -o %s", WEBP_TOOL_PATH, paramsStr, srcFilePath, resultFile)
-        command := exec.Command("bash", "-c", commandText)
-        err := command.Run()
-        if err != nil {
-            output, _ := command.CombinedOutput()
-            log.Printf("Error exec command '%s': %s, %s", commandText, string(output))
-        }
-        return err
+	case CONVERT_TYPE_IMAGE_TO_WEBP:
+		// Params examples
+		// -q 94
+		commandText := fmt.Sprintf("%s %s %s -o %s", WEBP_ENCODE_TOOL_PATH, paramsStr, srcFilePath, resultFile)
+		command := exec.Command("bash", "-c", commandText)
+		err := command.Run()
+		if err != nil {
+			output, _ := command.CombinedOutput()
+			log.Printf("Error exec command '%s': %s", commandText, string(output))
+		}
+		return err
+	case CONVERT_TYPE_IMAGE_FROM_WEBP:
+		// Params examples
+		// -q 94
+		commandText := fmt.Sprintf("%s %s %s -o %s", WEBP_DECODE_TOOL_PATH, paramsStr, srcFilePath, resultFile)
+		command := exec.Command("bash", "-c", commandText)
+		err := command.Run()
+		if err != nil {
+			output, _ := command.CombinedOutput()
+			log.Printf("Error exec command '%s': %s", commandText, string(output))
+		}
+		return err
 	case CONVERT_TYPE_FFMPEG:
 		commandText := fmt.Sprintf("%s -i %s -y %s %s", FFMPEG_TOOL_PATH, srcFilePath, paramsStr, resultFile)
 		command := exec.Command("bash", "-c", commandText)
 		err := command.Run()
 		if err != nil {
 			output, _ := command.CombinedOutput()
-            log.Printf("Error exec command '%s': %s", commandText, string(output))
+			log.Printf("Error exec command '%s': %s", commandText, string(output))
 		}
 		return err
 	}

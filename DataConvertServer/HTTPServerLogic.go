@@ -7,8 +7,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
-    "path"
 	"runtime"
 	"strings"
 )
@@ -54,44 +54,57 @@ func httpConvertWorkerFunction(inputChannel <-chan HttpReceivedFileInfo, resultC
 			const extention = ".pvr"
 			resultFilePath = os.TempDir() + "out_" + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-            if len(convertParams) == 0 {
-                convertParams = "-f PVRTC1_4 -pot + -dither -q pvrtcbest"
-            }
+			if len(convertParams) == 0 {
+				convertParams = "-f PVRTC1_4 -pot + -dither -q pvrtcbest"
+			}
 			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVR, convertParams)
 		case "pvrgz16":
 			const extention = ".pvrgz"
 			resultFilePath = os.TempDir() + "out_" + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-            if len(convertParams) == 0 {
-                convertParams = "-f r4g4b4a4 -dither"
-            }
+			if len(convertParams) == 0 {
+				convertParams = "-f r4g4b4a4 -dither"
+			}
 			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVRGZ, convertParams)
 		case "pvrgz32":
 			const extention = ".pvrgz"
 			resultFilePath = os.TempDir() + "out_" + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-            if len(convertParams) == 0 {
-                convertParams = "-f r8g8b8a8 -dither"
-            }
+			if len(convertParams) == 0 {
+				convertParams = "-f r8g8b8a8 -dither"
+			}
 			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_PVRGZ, convertParams)
 		case "webp":
 			const extention = ".webp"
 			resultFilePath = os.TempDir() + "out_" + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-            if len(convertParams) == 0 {
-                convertParams = "-q 96"
-            }
-			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_WEBP, convertParams)
+			if len(convertParams) == 0 {
+				convertParams = "-q 96"
+			}
+			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_TO_WEBP, convertParams)
+		case "png":
+			const extention = ".png"
+			resultFilePath = os.TempDir() + "out_" + fileInfo.fileUUID + extention
+			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
+
+			if fileInfo.inputFileExt == ".webp" {
+				if len(convertParams) == 0 {
+					convertParams = ""
+				}
+				err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_IMAGE_FROM_WEBP, convertParams)
+			} else if fileInfo.inputFileExt == ".pvr" {
+
+			}
 		case "m4a", "ogg", "mp4", "webm":
 			extention := "." + convertType
 			resultFilePath = os.TempDir() + "out_" + fileInfo.fileUUID + extention
 			uploadFileName = strings.Replace(fileInfo.inputFileName, fileInfo.inputFileExt, extention, -1)
-            /*if len(convertParams) == 0 {
-                convertParams = ""
-            }*/
-            if convertType == "webm" {
-                convertParams += " -strict -2 "
-            }
+			/*if len(convertParams) == 0 {
+			    convertParams = ""
+			}*/
+			if convertType == "webm" {
+				convertParams += " -strict -2 "
+			}
 			err = convertFile(fileInfo.filePath, resultFilePath, fileInfo.fileUUID, CONVERT_TYPE_FFMPEG, convertParams)
 		default:
 			os.Remove(fileInfo.filePath)
@@ -187,7 +200,7 @@ func httpRootFunc(writer http.ResponseWriter, req *http.Request) {
 		convertType := req.FormValue("convertType")
 
 		// Custom parameters
-        customParameters := req.FormValue("customParams")
+		customParameters := req.FormValue("customParams")
 
 		// Workers pool
 		convertChannel := make(chan HttpReceivedFileInfo)
@@ -302,7 +315,7 @@ func startHttpServer(customPort int, contentFolder string) {
 	}
 
 	// Static files full path
-    staticFilesPath := path.Join(contentFolder, "static")
+	staticFilesPath := path.Join(contentFolder, "static")
 
 	// Http server
 	loadHtmlTemplates(contentFolder)

@@ -46,13 +46,14 @@ function onFileSelected() {
         return
     }
 
-    imagesExt = ["jpeg", "jpg", "png"]
+    normalImagesExt = ["jpeg", "jpg", "png"]
+    webpImagesExt = ["webp"]
     audioExt = ["wav", "mp3", "ogg"]
     videoExt = ["avi", "mp4", "mkv"]
 
     type = -1
     for (var i = 0; i < extentions.length; i++) {
-        if ($.inArray(extentions[i], imagesExt) >= 0){
+        if ($.inArray(extentions[i], normalImagesExt) >= 0){
             testTypeVal = 1
             if(type < 0){
                 type = testTypeVal
@@ -61,7 +62,7 @@ function onFileSelected() {
                 showErrorText()
                 return
             }
-        }else if ($.inArray(extentions[i], audioExt) >= 0){
+        }else if ($.inArray(extentions[i], webpImagesExt) >= 0){
             testTypeVal = 2
             if(type < 0){
                 type = testTypeVal
@@ -70,8 +71,17 @@ function onFileSelected() {
                 showErrorText()
                 return
             }
-        }else if ($.inArray(extentions[i], videoExt) >= 0){
+        }else if ($.inArray(extentions[i], audioExt) >= 0){
             testTypeVal = 3
+            if(type < 0){
+                type = testTypeVal
+            } else if (type != testTypeVal){
+                disableAll()
+                showErrorText()
+                return
+            }
+        }else if ($.inArray(extentions[i], videoExt) >= 0){
+            testTypeVal = 4
             if(type < 0){
                 type = testTypeVal
             } else if (type != testTypeVal){
@@ -88,8 +98,10 @@ function onFileSelected() {
 
     validValues = []
 
-    if ($.inArray(extentions[0], imagesExt) >= 0){
+    if ($.inArray(extentions[0], normalImagesExt) >= 0){
         validValues = ["pvr", "pvrgz16", "pvrgz32", "webp"]
+    }else if ($.inArray(extentions[0], webpImagesExt) >= 0){
+        validValues = ["png"]
     }else if ($.inArray(extentions[0], audioExt) >= 0){
         validValues = ["m4a", "ogg"]
     }else if ($.inArray(extentions[0], videoExt) >= 0){
