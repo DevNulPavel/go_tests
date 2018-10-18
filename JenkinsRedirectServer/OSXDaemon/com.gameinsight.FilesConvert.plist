@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.gameinsight.FilesConvert</string>
+	<key>WorkingDirectory</key>
+	<string>/Users/pavelershov/ConvertServer/</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>bash</string>
+		<string>filesConvertDaemon.sh</string>
+	</array>
+	<key>StandardErrorPath</key>
+	<string>/tmp/ConverServerErr.log</string>
+	<key>StandardOutPath</key>
+	<string>/tmp/ConverServerOut.log</string>
+	<key>KeepAlive</key>
+	<true/>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>UserName</key>
+	<string>devnul</string>
+	<key>GroupName</key>
+	<string>staff</string>
+</dict>
+</plist>
