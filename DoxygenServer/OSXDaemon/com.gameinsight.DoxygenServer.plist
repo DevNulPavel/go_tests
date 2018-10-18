@@ -3,18 +3,18 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.gameinsight.JenkinsRedirectServer</string>
+	<string>com.gameinsight.DoxygenServer.plist</string>
 	<key>WorkingDirectory</key>
-	<string>/Users/devnul/Projects/GoTests/JenkinsRedirectServer</string>
+	<string>/Users/devnul/Projects/GoTests/DoxygenServer</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>bash</string>
-		<string>jenkinsRedirectDaemon.sh</string>
+		<string>doxygenServerDaemon.sh</string>
 	</array>
 	<key>StandardErrorPath</key>
-	<string>/tmp/JenkinsRedirectDaemonErr.log</string>
+	<string>/tmp/DoxygenServerDaemonErr.log</string>
 	<key>StandardOutPath</key>
-	<string>/tmp/JenkinsRedirectDaemonOut.log</string>
+	<string>/tmp/DoxygenServerDaemonOut.log</string>
 	<key>KeepAlive</key>
 	<true/>
 	<key>RunAtLoad</key>

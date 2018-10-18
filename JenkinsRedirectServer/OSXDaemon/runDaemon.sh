@@ -4,4 +4,4 @@ PLIST_NAME=com.gameinsight.JenkinsRedirectServer.plist
 PLIST_FOLDER=/Library/LaunchDaemons
 PLIST_PATH=$PLIST_FOLDER/$PLIST_NAME
 
-sudo launchctl load $PLIST_PATH
+launchctl load $PLIST_PATH
