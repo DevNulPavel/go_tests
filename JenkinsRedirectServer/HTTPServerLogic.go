@@ -15,33 +15,17 @@ const (
 var mainPageTemplate *template.Template = nil
 var contentFolder string = ""
 
-type HttpReceivedFileInfo struct {
-	inputFileName string
-	inputFileExt  string
-	filePath      string
-	fileUUID      string
-}
-
-type HttpSendFileInfo struct {
-	filePath   string
-	uploadName string
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func loadHtmlTemplates(contentFolder string) {
-	var err error = nil
 	// MainPage
 	templatePath := path.Join(contentFolder, "templates/rootTemplate.html")
-	mainPageTemplate, err = template.ParseFiles(templatePath)
-	if checkErr(err) {
-		return
-	}
+	mainPageTemplate, _ = template.ParseFiles(templatePath)
 }
 
 func httpRootFunc(writer http.ResponseWriter, req *http.Request) {
 	// TODO: For test only
-	loadHtmlTemplates(contentFolder)
+	//loadHtmlTemplates(contentFolder)
 
 	mainPageTemplate.Execute(writer, nil)
 }
@@ -66,7 +50,6 @@ func startHttpServer(customPort int, contentFolderLocal string) {
 
 	// Static files full path
 	staticFilesPath := path.Join(contentFolderLocal, "static")
-	doxygenFiles := path.Join(contentFolderLocal, "doxygen_html")
 
 	// Грузим шаблоны
 	loadHtmlTemplates(contentFolderLocal)
@@ -75,6 +58,5 @@ func startHttpServer(customPort int, contentFolderLocal string) {
 	http.HandleFunc("/", httpRootFunc)
 	http.HandleFunc("/redirect", httpRedirectFunc)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(staticFilesPath))))
-	http.Handle("/doxygen_html/", http.StripPrefix("/doxygen_html/", http.FileServer(http.Dir(doxygenFiles))))
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
