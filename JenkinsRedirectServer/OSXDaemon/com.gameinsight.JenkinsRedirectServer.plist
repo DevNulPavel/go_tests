@@ -3,18 +3,18 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.gameinsight.FilesConvert</string>
+	<string>com.gameinsight.JenkinsRedirectServer</string>
 	<key>WorkingDirectory</key>
-	<string>/Users/pavelershov/ConvertServer/</string>
+	<string>/Users/devnul/Projects/GoTests/JenkinsRedirectServer</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>bash</string>
-		<string>filesConvertDaemon.sh</string>
+		<string>jenkinsRedirectDaemon.sh</string>
 	</array>
 	<key>StandardErrorPath</key>
-	<string>/tmp/ConverServerErr.log</string>
+	<string>/tmp/JenkinsRedirectDaemonErr.log</string>
 	<key>StandardOutPath</key>
-	<string>/tmp/ConverServerOut.log</string>
+	<string>/tmp/JenkinsRedirectDaemonOut.log</string>
 	<key>KeepAlive</key>
 	<true/>
 	<key>RunAtLoad</key>
