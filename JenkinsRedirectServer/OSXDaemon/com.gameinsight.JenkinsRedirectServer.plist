@@ -9,7 +9,7 @@
 	<key>ProgramArguments</key>
 	<array>
 		<string>bash</string>
-		<string>jenkinsRedirectDaemon.sh</string>
+		<string>OSXDaemon/jenkinsRedirectDaemon.sh</string>
 	</array>
 	<key>StandardErrorPath</key>
 	<string>/tmp/JenkinsRedirectDaemonErr.log</string>

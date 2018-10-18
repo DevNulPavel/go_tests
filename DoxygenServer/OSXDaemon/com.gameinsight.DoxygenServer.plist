@@ -9,7 +9,7 @@
 	<key>ProgramArguments</key>
 	<array>
 		<string>bash</string>
-		<string>doxygenServerDaemon.sh</string>
+		<string>OSXDaemon/doxygenServerDaemon.sh</string>
 	</array>
 	<key>StandardErrorPath</key>
 	<string>/tmp/DoxygenServerDaemonErr.log</string>
