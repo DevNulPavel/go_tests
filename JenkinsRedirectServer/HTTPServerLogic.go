@@ -19,8 +19,8 @@ var contentFolder string = ""
 
 func loadHtmlTemplates(contentFolder string) {
 	// MainPage
-	templatePath := path.Join(contentFolder, "templates/rootTemplate.html")
-	mainPageTemplate, _ = template.ParseFiles(templatePath)
+	mainTemplatePath := path.Join(contentFolder, "templates/rootTemplate.html")
+	mainPageTemplate, _ = template.ParseFiles(mainTemplatePath)
 }
 
 func httpRootFunc(writer http.ResponseWriter, req *http.Request) {
@@ -40,6 +40,10 @@ func httpRedirectFunc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func httpServerStatFunc(w http.ResponseWriter, r *http.Request) {
+	GetHardwareData(w, r)
+}
+
 func startHttpServer(customPort int, contentFolderLocal string) {
 	port := HTTP_SERVER_PORT
 	if customPort != 0 {
@@ -57,6 +61,7 @@ func startHttpServer(customPort int, contentFolderLocal string) {
 	// Http server
 	http.HandleFunc("/", httpRootFunc)
 	http.HandleFunc("/redirect", httpRedirectFunc)
+	http.HandleFunc("/server_stat", httpServerStatFunc)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(staticFilesPath))))
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
