@@ -1,9 +1,9 @@
 package game_server
 
 type ClienState struct {
-	Id int       `json:"id"`
-	X  float64   `json:"x"`
-	Y  float64   `json:"y"`
+	Id uint32  `json:"id"`
+	X  float64 `json:"x"`
+	Y  float64 `json:"y"`
 }
 
 // конвертация в строку
