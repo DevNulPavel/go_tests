@@ -5,7 +5,8 @@ import "net/http"
 import "./game_server"
 
 func main() {
-	log.SetFlags(log.Lshortfile)
+	//log.SetFlags(log.Lshortfile)
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 
 	// Запуск сервера
 	server := game_server.NewServer()

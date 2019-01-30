@@ -138,17 +138,18 @@ func (client *Client) loopWrite() {
 			err := websocket.JSON.Send(client.wSocket, message) // Функция синхронная
 			if err != nil {
 				log.Println("Error:", err.Error())
-				log.Println("loopWrite->exit")
+				client.server.QueueDeleteClient(client)
 				client.exitReadChannel <- true // для метода loopRead, чтобы выйти из него
 				client.completeWait.Done()
+				log.Println("loopWrite->exit")
 				return
 			}
 		// Получение флага выхода из функции
 		case <-client.exitWriteChannel:
 			client.server.QueueDeleteClient(client)
-			log.Println("loopWrite->exit")
 			client.exitReadChannel <- true // для метода loopRead, чтобы выйти из него
 			client.completeWait.Done()
+			log.Println("loopWrite->exit")
 			return
 		}
 	}
@@ -162,9 +163,9 @@ func (client *Client) loopRead() {
 		// Получение флага выхода
 		case <-client.exitReadChannel:
 			client.server.QueueDeleteClient(client)
-			log.Println("loopRead->exit")
 			client.exitWriteChannel <- true // для метода loopWrite, чтобы выйти из него
 			client.completeWait.Done()
+			log.Println("loopRead->exit")
 			return
 
 		// Чтение данных из webSocket
@@ -175,9 +176,10 @@ func (client *Client) loopRead() {
 
 			if err == io.EOF {
 				// Отправляем в очередь сообщение выхода для loopWrite
+				client.server.QueueDeleteClient(client)
 				client.exitWriteChannel <- true // для метода loopWrite, чтобы выйти из него
-				log.Println("loopRead->exit")
 				client.completeWait.Done()
+				log.Println("loopRead->exit")
 				return
 			} else if err != nil {
 				// Ошибка
