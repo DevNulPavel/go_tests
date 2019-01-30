@@ -22,7 +22,9 @@ type Client struct {
 	stateMutex        sync.Mutex
 	state             ClienState
 	usersStateChannel chan []ClienState
-	exitChannel       chan bool
+	exitReadChannel   chan bool
+	exitWriteChannel  chan bool
+	completeWait      sync.WaitGroup
 }
 
 // Конструктор
@@ -38,10 +40,20 @@ func NewClient(ws *websocket.Conn, server *Server) *Client {
 
 	// Конструируем клиента и его каналы
 	clientState := ClienState{newID, float64(rand.Int() % 600), float64(rand.Int() % 600)}
-	usersStateChannel := make(chan []ClienState, CHANNEL_BUF_SIZE)
-	successChannel := make(chan bool)
 
-	return &Client{newID, ws, server, sync.Mutex{}, clientState, usersStateChannel, successChannel}
+	client := Client{
+		newID,
+		ws,
+		server,
+		sync.Mutex{},
+		clientState,
+		make(chan []ClienState, CHANNEL_BUF_SIZE),
+		make(chan bool, 1),
+		make(chan bool, 1),
+		sync.WaitGroup{}}
+	client.completeWait.Add(2)
+
+	return &client
 }
 
 // Пишем сообщение клиенту
@@ -72,16 +84,16 @@ func (client *Client) QueueSendAllStates(states []ClienState) {
 			// Удаляем клиента если уже нет канала
 			client.server.QueueDeleteClient(client)
 			err := fmt.Errorf("client %d disconnected", client.id)
-			client.server.QueueSendErr(err)
-			client.QueueSendExit() // Вызываем выход из горутины loopWrite
-			return
+			log.Println("Error:", err.Error())
+			client.QueueSendExit() // Вызываем выход из горутины write + read
 		}
 	}
 }
 
 // Пишем сообщение клиенту только с его состоянием
 func (client *Client) QueueSendCurrentClientState() {
-	currentUserStateArray := []ClienState{client.state}
+	currentUserStateArray := []ClienState{}
+	currentUserStateArray = append(currentUserStateArray, client.GetState())
 	select {
 	// Пишем сообщение в канал
 	case client.usersStateChannel <- currentUserStateArray:
@@ -93,22 +105,24 @@ func (client *Client) QueueSendCurrentClientState() {
 			// Удаляем клиента если уже нет канала
 			client.server.QueueDeleteClient(client)
 			err := fmt.Errorf("client %d disconnected", client.id)
-			client.server.QueueSendErr(err)
-			client.QueueSendExit() // Вызываем выход из горутины loopWrite
-			return
+			log.Println("Error:", err.Error())
+			client.QueueSendExit() // Вызываем выход из горутин write + read
 		}
 	}
 }
 
 // Отправляем успешный результат
 func (client *Client) QueueSendExit() {
-	client.exitChannel <- true
+	client.exitReadChannel <- true
+	client.exitWriteChannel <- true
 }
 
 // Запускаем ожидания записи и чтения (блокирующая функция)
 func (client *Client) SyncListen() {
 	go client.loopWrite() // в отдельной горутине
-	client.loopRead()
+	go client.loopRead()
+	client.completeWait.Wait()
+	log.Println("SyncListen->exit")
 }
 
 // Ожидание записи
@@ -123,15 +137,18 @@ func (client *Client) loopWrite() {
 			// С помощью библиотеки websocket производим кодирование сообщения и отправку на сокет
 			err := websocket.JSON.Send(client.wSocket, message) // Функция синхронная
 			if err != nil {
+				log.Println("Error:", err.Error())
 				log.Println("loopWrite->exit")
-				client.QueueSendExit() // для метода loopRead, чтобы выйти из него
+				client.exitReadChannel <- true // для метода loopRead, чтобы выйти из него
+				client.completeWait.Done()
 				return
 			}
 		// Получение флага выхода из функции
-		case <-client.exitChannel:
+		case <-client.exitWriteChannel:
 			client.server.QueueDeleteClient(client)
 			log.Println("loopWrite->exit")
-			client.QueueSendExit() // для метода loopRead, чтобы выйти из него
+			client.exitReadChannel <- true // для метода loopRead, чтобы выйти из него
+			client.completeWait.Done()
 			return
 		}
 	}
@@ -143,10 +160,11 @@ func (client *Client) loopRead() {
 	for {
 		select {
 		// Получение флага выхода
-		case <-client.exitChannel:
+		case <-client.exitReadChannel:
 			client.server.QueueDeleteClient(client)
 			log.Println("loopRead->exit")
-			client.QueueSendExit() // для метода loopWrite, чтобы выйти из него
+			client.exitWriteChannel <- true // для метода loopWrite, чтобы выйти из него
+			client.completeWait.Done()
 			return
 
 		// Чтение данных из webSocket
@@ -157,12 +175,13 @@ func (client *Client) loopRead() {
 
 			if err == io.EOF {
 				// Отправляем в очередь сообщение выхода для loopWrite
-				client.QueueSendExit()
+				client.exitWriteChannel <- true // для метода loopWrite, чтобы выйти из него
 				log.Println("loopRead->exit")
+				client.completeWait.Done()
 				return
 			} else if err != nil {
 				// Ошибка
-				client.server.QueueSendErr(err)
+				log.Println("Error:", err.Error())
 			} else {
 				if state.Id > 0 {
 					// Сбновляем состояние данного клиента
