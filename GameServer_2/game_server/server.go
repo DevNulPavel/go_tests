@@ -113,7 +113,7 @@ func (server *Server) mainListenFunction() {
 
 		// Создание нового клиента
 		client := NewClient(ws, server)
-		server.QueueAddNewClient(client) // выставляем клиента в очередь на добавление
+		server.QueueAddNewClient(client) // выставляем клиента в очередь на добавление (синхронно)
 		client.SyncListen()              // блокируется выполнение на данной функции, пока не выйдет клиент
 		log.Println("WebSocket connect handler out")
 	}

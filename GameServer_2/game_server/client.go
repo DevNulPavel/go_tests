@@ -37,12 +37,11 @@ func NewClient(ws *websocket.Conn, server *Server) *Client {
 	newID := atomic.AddUint32(&maxId, 1)
 
 	// Конструируем клиента и его каналы
-	mutex := sync.Mutex{}
 	clientState := ClienState{newID, float64(rand.Int() % 600), float64(rand.Int() % 600)}
 	usersStateChannel := make(chan []ClienState, CHANNEL_BUF_SIZE)
 	successChannel := make(chan bool)
 
-	return &Client{newID, ws, server, mutex, clientState, usersStateChannel, successChannel}
+	return &Client{newID, ws, server, sync.Mutex{}, clientState, usersStateChannel, successChannel}
 }
 
 // Пишем сообщение клиенту
@@ -72,7 +71,7 @@ func (client *Client) QueueSendAllStates(states []ClienState) {
 		{
 			// Удаляем клиента если уже нет канала
 			client.server.QueueDeleteClient(client)
-			err := fmt.Errorf("Client %d disconnected", client.id)
+			err := fmt.Errorf("client %d disconnected", client.id)
 			client.server.QueueSendErr(err)
 			client.QueueSendExit() // Вызываем выход из горутины loopWrite
 			return
@@ -93,7 +92,7 @@ func (client *Client) QueueSendCurrentClientState() {
 		{
 			// Удаляем клиента если уже нет канала
 			client.server.QueueDeleteClient(client)
-			err := fmt.Errorf("Client %d disconnected", client.id)
+			err := fmt.Errorf("client %d disconnected", client.id)
 			client.server.QueueSendErr(err)
 			client.QueueSendExit() // Вызываем выход из горутины loopWrite
 			return
@@ -122,8 +121,12 @@ func (client *Client) loopWrite() {
 			//log.Println("Send:", message)
 
 			// С помощью библиотеки websocket производим кодирование сообщения и отправку на сокет
-			websocket.JSON.Send(client.wSocket, message) // Функция синхронная
-
+			err := websocket.JSON.Send(client.wSocket, message) // Функция синхронная
+			if err != nil {
+				log.Println("loopWrite->exit")
+				client.QueueSendExit() // для метода loopRead, чтобы выйти из него
+				return
+			}
 		// Получение флага выхода из функции
 		case <-client.exitChannel:
 			client.server.QueueDeleteClient(client)
@@ -155,6 +158,7 @@ func (client *Client) loopRead() {
 			if err == io.EOF {
 				// Отправляем в очередь сообщение выхода для loopWrite
 				client.QueueSendExit()
+				log.Println("loopRead->exit")
 				return
 			} else if err != nil {
 				// Ошибка
