@@ -28,8 +28,8 @@ type GameRoom struct {
 func NewGameRoom(server *Server) *GameRoom {
 	newRoomId := atomic.AddUint32(&LAST_ID, 1)
 
-	const width = 600
-	const height = 400
+	const width = 800
+	const height = 600
 	roomState := GameRoomState{
 		ID:         newRoomId,
 		Status:     GAME_ROOM_STATUS_ACTIVE,

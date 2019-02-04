@@ -7,48 +7,55 @@ define(
         document.body.appendChild(app.view);
 
         // create a texture from an image path
-        var texture = PIXI.Texture.fromImage('resources/ava.png');
-
-        // Scale mode for pixelation
-        texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+        var playerTexture = PIXI.Texture.fromImage('resources/ava.png');
+        var ballTexture = PIXI.Texture.fromImage('resources/ava.png');
+        playerTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+        ballTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
         var currentPlayerId = 0
-        var bunnies = new Object()
-
-        /*testBunny = createBunny(99, 200, 50)
-        bunnies[99] = testBunny
-        app.stage.addChild(testBunny);*/
+        var leftPlayer = null
+        var rightPlayer = null
+        var ball = null
 
         var ws = new WebSocket("ws://" + window.location.hostname + ":8080/websocket");
         var list = new UserStateUpdater(ws);
         ko.applyBindings(list);
 
-        function createBunny(id, x, y, interactive) {
+        function createPlayer(id, type, y, height, status, interactive) {
 
             // create our little bunny friend..
-            var bunny = new PIXI.Sprite(texture);
+            var playerSprite = new PIXI.Sprite(playerTexture);
 
-            bunny.id = id
+            playerSprite.id = id
+            playerSprite.y = y;
+            playerSprite.type = type
+            playerSprite.height = height
+            playerSprite.status = status
+
+            if (type == 0){
+                // move the sprite to its designated position
+                bunny.x = 0;
+            }else{
+                // move the sprite to its designated position
+                bunny.x = 800;
+            }
 
             // enable the bunny to be interactive... this will allow it to respond to mouse and touch events
-            bunny.interactive = interactive;
-
+            playerSprite.interactive = interactive;
             // this button mode will mean the hand cursor appears when you roll over the bunny with your mouse
-            bunny.buttonMode = true;
-
+            playerSprite.buttonMode = true;
             // center the bunny's anchor point
-            bunny.anchor.set(0.5);
-
+            playerSprite.anchor.set(0.5);
             // make it a bit bigger, so it's easier to grab
-            bunny.scale.set(1);
+            playerSprite.scale.set(1);
 
             if (interactive == false){
-                bunny.alpha = 0.8;
+                playerSprite.alpha = 0.8;
             }
 
             // setup events for mouse + touch using
             // the pointer events
-            bunny
+            playerSprite
                 .on('pointerdown', onDragStart)
                 .on('pointerup', onDragEnd)
                 .on('pointerupoutside', onDragEnd)
@@ -66,11 +73,7 @@ define(
             // .on('touchendoutside', onDragEnd)
             // .on('touchmove', onDragMove);
 
-            // move the sprite to its designated position
-            bunny.x = x;
-            bunny.y = y;
-
-            return bunny
+            return playerSprite
         }
 
         function onDragStart(event) {
@@ -114,29 +117,36 @@ define(
             };
 
             ws.onmessage = function(e) {
-                var states = []
+                var inputJson = $.evalJSON(e.data);
 
-                var model = $.evalJSON(e.data);
-                for (var i = 0; i < model.length; i++) {
-                    //console.log(model[i]);
-                    var msg = new UserState(model[i]);
-                    states.push(msg)
-                }
+                // Инициализация юзера после подключения
+                if(currentPlayerId == 0 && inputJson.messageType == 0){
+                    if(inputJson.leftPlayer.id > 0){
 
+                    }
+                    if(inputJson.rightPlayer.id > 0){
 
-                // Current user check
-                if(currentPlayerId == 0){
-                    var userState = states[states.length-1]
+                    }
 
-                    newBunny = createBunny(userState.id, userState.x, userState.y, true)
+                    newPlayer = createPlayer(userState.id, userState.t, userState.y, userState.h, userState.st, true)
                     currentPlayerId = userState.id
-                    bunnies[userState.id] = newBunny
+                    
+                    if (userState.t = 0){
+                        leftPlayer = newPlayer
+                    }else{
+                        rightPlayer = newPlayer
+                    }
 
                     // add it to the stage
                     app.stage.addChild(newBunny);
                 }
 
-                var activeIds = []
+                // Обновление состояния карты
+                if(inputJson.messageType == 1){
+
+                }
+
+                /*var activeIds = []
                 for (var i = 0; i < states.length; i++){
                     var userState = states[i]
                     activeIds.push(userState.id.toString())
@@ -146,14 +156,14 @@ define(
                     }
 
                     // Update
-                    bunny = bunnies[userState.id]
+                    bunny = players[userState.id]
                     if (bunny != null){
                         bunny.id = userState.id;
                         bunny.x = userState.x;
                         bunny.y = userState.y;
                     }else{
                         newBunny = createBunny(userState.id, userState.x, userState.y, false)
-                        bunnies[userState.id] = newBunny
+                        players[userState.id] = newBunny
 
                         // add it to the stage
                         app.stage.addChild(newBunny);
@@ -161,7 +171,7 @@ define(
                 }
 
                 // Remove
-                for(key in bunnies){
+                for(key in players){
                     if (currentPlayerId.toString() === key){
                         continue
                     }
@@ -176,31 +186,11 @@ define(
 
                     if (contains == false){
                         // add it to the stage
-                        app.stage.removeChild(bunnies[key]);
-                        delete bunnies[key]
+                        app.stage.removeChild(players[key]);
+                        delete players[key]
                     }
-                }
+                }*/
             };
-        }
-
-        function UserState(model) {
-            if (model !== undefined) {
-                this.id = model.id;
-                this.x = model.x;
-                this.y = model.y;
-            } else {
-                this.id = 0;
-                this.x = 0;
-                this.y = 0;
-            }
-
-            this.toModel = function() {
-                return {
-                    id: this.id,
-                    x: this.x,
-                    y: this.y
-                };
-            }
         }
 	}
 );

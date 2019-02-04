@@ -6,7 +6,7 @@ const (
 )
 
 type PlayerMessage struct {
-	Type             uint8         `json:"type"`
+	Type             uint8         `json:"messageType"`
 	RoomState        GameRoomState `json:"room"`
 	LeftClientState  ClientState   `json:"leftPlayer"`
 	RightClientState ClientState   `json:"rightPlayer"`
