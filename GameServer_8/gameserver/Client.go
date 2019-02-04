@@ -1,13 +1,11 @@
 package gameserver
 
 import (
-	"container/list"
-	"golang.org/x/net/websocket"
-	"io"
 	"log"
-	"math/rand"
+	"net"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 const UPDATE_QUEUE_SIZE = 100
@@ -15,180 +13,113 @@ const UPDATE_QUEUE_SIZE = 100
 // Variables
 var MAX_ID uint32 = 0
 
-type ClientShootUpdateResult struct {
-	clientID uint32  `json:"id"`
-	bullet   *Bullet `json:"bullets"`
-	client   *Client `json:"clients"`
-}
-
-type ClientPositionInfo struct {
-	clientID uint32  `json:"id"`
-	x        int16   `json:"x"`
-	y        int16   `json:"y"`
-	size     uint8   `json:"size"`
-	client   *Client `json:"client"`
-}
-
-// Структура клиента
+// Client ... Структура клиента
 type Client struct {
-	server        *Server
-	connection    *websocket.Conn
+	gameRoom      *GameRoom
+	address       *net.UDPAddr
 	id            uint32
 	mutex         sync.RWMutex
-	state         *ClientState
-	uploadStateCh chan GameStateMessage
+	isReadyAtomic uint32
+	state         ClientState
+	inDataCh      chan []byte
+	uploadDataCh  chan []byte
 	exitReadCh    chan bool
 	exitWriteCh   chan bool
 }
 
 // NewClient ... Конструктор
-func NewClient(connection *websocket.Conn, server *Server) *Client {
-	if connection == nil {
-		panic("No connection")
+func NewClient(address *net.UDPAddr, clientType uint8, gameRoom *GameRoom) *Client {
+	if address == nil {
+		panic("No address")
 	}
-	if server == nil {
-		panic("No game server")
+	if gameRoom == nil {
+		panic("No game room")
 	}
 
 	// Увеличиваем id
 	curId := atomic.AddUint32(&MAX_ID, 1)
 
-	// Состояние для отгрузки клиенту
-	clientState := NewState(curId, int16(rand.Int()%200+100), int16(rand.Int()%200+100))
-
 	// Конструируем клиента и его каналы
-	uploadDataCh := make(chan GameStateMessage, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
+	clientState := ClientState{
+		ID:     curId,
+		Type:   clientType,
+		Y:      100,
+		Height: 100,
+		Status: CLIENT_STATUS_IN_GAME,
+	}
+	inDataCh := make(chan []byte, UPDATE_QUEUE_SIZE)
+	uploadDataCh := make(chan []byte, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
 	exitReadCh := make(chan bool, 1)
 	exitWriteCh := make(chan bool, 1)
 
 	return &Client{
-		server:        server,
-		connection:    connection,
+		gameRoom:      gameRoom,
+		address:       address,
 		id:            curId,
 		mutex:         sync.RWMutex{},
+		isReadyAtomic: 0,
 		state:         clientState,
-		uploadStateCh: uploadDataCh,
+		inDataCh:      inDataCh,
+		uploadDataCh:  uploadDataCh,
 		exitReadCh:    exitReadCh,
 		exitWriteCh:   exitWriteCh,
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 func (client *Client) GetCurrentState() ClientState {
-	client.mutex.RLock()
-	stateData := *client.state
-	client.mutex.RUnlock()
-	return stateData
-}
-
-func (client *Client) UpdateCurrentState(delta float64, worldSizeX, worldSizeY uint16) (bool, []ClientShootUpdateResult, ClientPositionInfo) {
-	maxX := float64(worldSizeX)
-	maxY := float64(worldSizeY)
-
-	hasNews := false
-	bullets := []ClientShootUpdateResult{}
-	deleteBullets := []*list.Element{}
-
 	client.mutex.Lock()
-
-	// Position info
-	positionInfo := ClientPositionInfo{
-		clientID: client.id,
-		x:        client.state.X,
-		y:        client.state.Y,
-		size:     client.state.Size,
-		client:   client,
-	}
-
-	// Bullets
-	if client.state.Status != CLIENT_STATUS_FAIL {
-		// обновление позиций пуль с удалением старых
-		it := client.state.Bullets.Front()
-		for i := 0; i < client.state.Bullets.Len(); i++ {
-
-			bul := it.Value.(*Bullet)
-			bul.WorldTick(delta)
-
-			// Проверяем пулю на выход из карты
-			if (bul.X > 0) && (bul.X < maxX) && (bul.Y > 0) && (bul.Y < maxY) {
-				clientBulletPair := ClientShootUpdateResult{
-					clientID: client.id,
-					client:   client,
-					bullet:   bul,
-				}
-				bullets = append(bullets, clientBulletPair)
-				hasNews = true
-			} else {
-				deleteBullets = append(deleteBullets, it)
-				hasNews = true
-			}
-
-			it = it.Next()
-		}
-		// Удаление старых
-		for _, it := range deleteBullets {
-			client.state.Bullets.Remove(it)
-		}
-	}
+	stateCopy := client.state
 	client.mutex.Unlock()
-	return hasNews, bullets, positionInfo
+
+	return stateCopy
 }
 
-func (client *Client) IncreaseFrag(bullet *Bullet) {
-	client.mutex.Lock()
-	{
-		// Frag increase
-		client.state.Frags++
-		// Delete bullet
-		it := client.state.Bullets.Front()
-		for i := 0; i < client.state.Bullets.Len(); i++ {
-			bul := it.Value.(*Bullet)
-			if bul.ID == bullet.ID {
-				client.state.Bullets.Remove(it)
-				break
-			}
-			it = it.Next()
-		}
-	}
-	client.mutex.Unlock()
-}
-
-func (client *Client) SetFailStatus() {
-	client.mutex.Lock()
-	client.state.Status = CLIENT_STATUS_FAIL
-	client.mutex.Unlock()
-}
-
-// Пишем сообщение клиенту
-func (client *Client) QueueSendGameState(gameStateMessage GameStateMessage) {
-	// Если очередь превышена - считаем, что юзер отвалился
-	if len(client.uploadStateCh)+1 > UPDATE_QUEUE_SIZE {
-		log.Printf("Queue full for state %d", client.id)
+// Обрабатываем входящее соединение
+func (client *Client) HandleIncomingMessage(data []byte) {
+	if len(client.inDataCh)+1 > UPDATE_QUEUE_SIZE {
+		log.Printf("Incoming queue full for client %d", client.id)
 		return
 	} else {
-		client.uploadStateCh <- gameStateMessage
+		client.inDataCh <- data
+	}
+}
+
+// Пишем сообщение клиенту c игровым состоянием
+func (client *Client) QueueSendGameState(stateData []byte) {
+	// Если очередь превышена - считаем, что юзер отвалился
+	if len(client.uploadDataCh)+1 > UPDATE_QUEUE_SIZE {
+		log.Printf("Upload queue full for client %d", client.id)
+		return
+	} else {
+		client.uploadDataCh <- stateData
 	}
 }
 
 // Пишем сообщение клиенту только с его состоянием
 func (client *Client) QueueSendCurrentClientState() {
 	// Если очередь превышена - считаем, что юзер отвалился
-	if len(client.uploadStateCh)+1 > UPDATE_QUEUE_SIZE {
-		log.Printf("Queue full for state %d", client.id)
+	if len(client.uploadDataCh)+1 > UPDATE_QUEUE_SIZE {
+		log.Printf("Upload queue for client %d", client.id)
 		return
 	} else {
-		var message GameStateMessage
+		client.mutex.RLock()
+		currentUserStateCopy := client.state
+		client.mutex.RUnlock()
 
-		// Type
-		message.Type = GAME_STATE_MESSAGE_INIT_PLAYER
+		data, err := currentUserStateCopy.ConvertToBytes()
+		if err != nil {
+			log.Printf("State upload error for client %d: %s\n", client.id, err)
+		}
 
-		// World info
-		message.WorldData = *client.server.worldInfo
-
-		// Clients data
-		message.ClienStates = append(message.ClienStates, client.GetCurrentState())
-
-		client.uploadStateCh <- message
+		client.uploadDataCh <- data
 	}
+}
+
+func (client *Client) IsReady() bool {
+	isReady := bool(atomic.LoadUint32(&client.isReadyAtomic) > 0)
+	return isReady
 }
 
 // Запускаем ожидания записи и чтения (блокирующая функция)
@@ -200,28 +131,58 @@ func (client *Client) StartLoop() {
 func (client *Client) StopLoop() {
 	client.exitWriteCh <- true
 	client.exitReadCh <- true
-	client.connection.Close()
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Ожидание записи
 func (client *Client) loopWrite() {
-	//log.Println("StartSyncListenLoop write to state:", state.id)
+	//log.Println("StartSyncListenLoop write to client:", client.id)
+
+    // Специальный таймер, который запускает повторную инициализацию клиенту пока не придет инициализационный ответ
+    const checkPeriodMS = 1000
+    checkTime := time.Millisecond * checkPeriodMS
+    timer := time.NewTimer(checkTime)
+    timer.Stop()
+    initSendCount := 0
+
 	for {
 		select {
 		// Отправка записи клиенту
-		case worldStateInfo := <-client.uploadStateCh:
-			// С помощью библиотеки websocket производим кодирование сообщения и отправку на сокет
-			err := websocket.JSON.Send(client.connection, worldStateInfo) // Функция синхронная
-			if err != nil {
-				log.Println("Error:", err.Error())
-				client.server.DeleteClient(client)
-				client.exitReadCh <- true // для метода loopRead, чтобы выйти из него
-				log.Printf("LoopWrite exit by ERROR (%s), clientId = %d\n", err, client.id)
-				return
-			}
+		case payloadData := <-client.uploadDataCh:
+			// Отсылаем
+			message := ServerMessage{address: client.address, data: payloadData}
+			client.gameRoom.server.SendMessage(message)
+
+            if client.IsReady() == false  {
+                initSendCount++
+                timer.Reset(checkTime)
+            }else {
+                timer.Stop()
+            }
+
+        // таймер проверки инициализации
+        case <-timer.C:
+            if client.IsReady() == false {
+                if initSendCount < 20 {
+                    client.QueueSendCurrentClientState()
+
+                    initSendCount++
+                    timer.Reset(checkTime)
+                }else{
+                    timer.Stop()
+					client.exitReadCh <- true
+                    client.gameRoom.DeleteClient(client)
+                    log.Println("LoopWrite exit by init timeout, clientId =", client.id)
+                    return
+                }
+            }else{
+                timer.Stop()
+            }
 
 		// Получение флага выхода из функции
 		case <-client.exitWriteCh:
+            timer.Stop()
 			log.Println("LoopWrite exit, clientId =", client.id)
 			return
 		}
@@ -230,57 +191,51 @@ func (client *Client) loopWrite() {
 
 // Ожидание чтения
 func (client *Client) loopRead() {
-	//log.Println("Listening read from state")
+	//log.Println("Listening read from client")
+
+	// Специальный таймер, который отслеживает долгое отсутствие входящих данных,
+	// если данные долго не приходят - считаем клиента отвалившимся
+	const checkPeriodMS = 5000
+	checkTime := time.Millisecond * checkPeriodMS
+	timer := time.NewTimer(checkTime)
+	timer.Stop()
+
 	for {
 		select {
-		// Получение флага выхода
-		case <-client.exitReadCh:
-			log.Println("LoopRead exit, clientId =", client.id)
-			return
+		// Читаем
+		case data := <-client.inDataCh:
+			// Декодирование
+			state, err := NewClientState(data)
 
-		// Чтение данных из сокета
-		default:
-			// Выполняем получение данных из вебсокета и декодирование из Json в структуру
-			var command ClientCommand
-			err := websocket.JSON.Receive(client.connection, &command) // Функция синхронная
-
-			if err == io.EOF {
-				// Клиент отключился
-				client.server.DeleteClient(client)
-				client.connection.Close()
-				client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
-				log.Printf("LoopRead exit by disconnect, clientId = %d\n", client.id)
-				return
-			} else if err != nil {
-				// Произошла ошибка
-				client.server.DeleteClient(client)
-				client.connection.Close()
-				client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
-				log.Printf("LoopRead exit by ERROR (%s), clientId = %d\n", err, client.id)
-				return
-			} else {
-				// Обновление состояния
+			if (err == nil) && (state.ID > 0) {
+				// Сбновляем состояние данного клиента
 				client.mutex.Lock()
-				{
-					client.state.X = command.X
-					client.state.Y = command.Y
-					client.state.Angle = command.Angle
-					// Дополнительные действия
-					switch command.Type {
-					case CLIENT_COMMAND_TYPE_MOVE:
-						break
-					case CLIENT_COMMAND_TYPE_SHOOT:
-						// Выстрел, создаем новую пулю
-						bullet := NewBullet(client.state.X, client.state.Y, int16(client.state.Size)/2, client.state.Angle)
-						client.state.Bullets.PushBack(bullet)
-						break
-					}
-				}
+				client.state.Y = state.Y
 				client.mutex.Unlock()
 
-				// Запрашиваем отправку обновления состояния всем
-				client.server.QueueSendAllNewState()
+				// Отправляем обновление состояния всем
+				client.gameRoom.ClientStateUpdated(client)
+
+				// Выставляем флаг готовности
+				atomic.StoreUint32(&client.isReadyAtomic, 1)
 			}
+
+			// Сброс ожидания
+			timer.Reset(checkTime)
+
+		// Слишком долго ждали ответа - выходим
+		case <-timer.C:
+			timer.Stop()
+			client.exitWriteCh <- true
+            client.gameRoom.DeleteClient(client)
+			log.Println("LoopRead exit by timeout, clientId =", client.id)
+			return
+
+		// Получение флага выхода
+		case <-client.exitReadCh:
+			timer.Stop()
+			log.Println("LoopRead exit, clientId =", client.id)
+			return
 		}
 	}
 }

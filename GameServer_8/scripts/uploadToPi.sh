@@ -3,8 +3,8 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 HOST="pi@devnulpavel.ddns.net"
-TARGET_DIR="/home/pi/Projects/GoTests/GameServer_4"
+TARGET_DIR="/home/pi/Projects/GoTests/GameServer_5"
 SRC_DIR="$SCRIPT_DIR/.."
 
-ssh pi@devnulpavel.ddns.net mkdir -p $TARGET_DIR
+ssh $HOST mkdir -p $TARGET_DIR
 rsync -h -v -r --delete -e ssh $SRC_DIR $HOST:$TARGET_DIR
