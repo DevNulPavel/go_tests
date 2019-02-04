@@ -1,14 +1,13 @@
 package gameserver
 
 import (
-	"log"
+	"golang.org/x/net/websocket"
 	"sync/atomic"
 	"time"
 )
 
 const (
-	BALL_SPEED           = 60.0
-	MESSAGES_BUFFER_SIZE = 100
+	BALL_SPEED = 50.0
 )
 
 var LAST_ID uint32 = 0
@@ -19,8 +18,8 @@ type GameRoom struct {
 	clientLeft           *Client
 	clientRight          *Client
 	gameRoomState        GameRoomState
-	isFullAtomic         uint32
-	messagesCh           chan ServerMessage
+	isFullCh             chan (chan bool)
+	addClientByConnCh    chan *websocket.Conn
 	deleteClientCh       chan *Client
 	clientStateUpdatedCh chan bool
 	exitLoopCh           chan bool
@@ -48,8 +47,8 @@ func NewGameRoom(server *Server) *GameRoom {
 		clientLeft:           nil,
 		clientRight:          nil,
 		gameRoomState:        roomState,
-		isFullAtomic:         0,
-		messagesCh:           make(chan ServerMessage, MESSAGES_BUFFER_SIZE),
+		isFullCh:             make(chan (chan bool)),
+		addClientByConnCh:    make(chan *websocket.Conn),
 		deleteClientCh:       make(chan *Client),
 		clientStateUpdatedCh: make(chan bool),
 		exitLoopCh:           make(chan bool),
@@ -67,12 +66,8 @@ func (room *GameRoom) Exit() {
 	room.exitLoopCh <- true
 }
 
-func (room *GameRoom) HandleMessage(message ServerMessage) {
-	if len(room.messagesCh) < (MESSAGES_BUFFER_SIZE - 1) {
-		room.messagesCh <- message
-	} else {
-		log.Printf("Messages buffer full for room: %d\n", room.roomId)
-	}
+func (room *GameRoom) AddClientForConnection(connection *websocket.Conn) {
+	room.addClientByConnCh <- connection
 }
 
 func (room *GameRoom) DeleteClient(client *Client) {
@@ -84,48 +79,42 @@ func (room *GameRoom) ClientStateUpdated(client *Client) {
 }
 
 func (room *GameRoom) GetIsFull() bool {
-	isFull := bool(atomic.LoadUint32(&room.isFullAtomic) > 0)
-	return isFull
+	testCh := make(chan bool)
+	room.isFullCh <- testCh
+	return <-testCh
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (room *GameRoom) sendAllNewState() {
-    clientsExists := (room.clientLeft != nil) && (room.clientRight != nil)
-    if clientsExists {
-        gameStateBytes, err := room.gameRoomState.ConvertToBytes()
-        if err != nil {
-            return
-        }
-        room.clientLeft.QueueSendGameState(gameStateBytes)
-        room.clientRight.QueueSendGameState(gameStateBytes)
-    }else{
-        if room.clientLeft != nil {
-            room.clientLeft.QueueSendCurrentClientState()
-        }
-        if room.clientRight != nil {
-            room.clientRight.QueueSendCurrentClientState()
-        }
-    }
+	// Создание сообщения
+	var message PlayerMessage
+	message.Type = PLAYER_MESSAGE_TYPE_WORLD_STATE
+	message.RoomState = room.gameRoomState // TODO: Sync?
+	if room.clientLeft != nil {
+		message.LeftClientState = room.clientLeft.GetCurrentState()
+	}
+	if room.clientRight != nil {
+		message.RightClientState = room.clientRight.GetCurrentState()
+	}
+
+	// Отправка сообщения
+	if room.clientLeft != nil {
+		room.clientLeft.QueueSendGameState(message)
+	}
+	if room.clientRight != nil {
+		room.clientRight.QueueSendGameState(message)
+	}
 }
 
 func (room *GameRoom) worldTick(delta float64) {
-	clientsExists := (room.clientLeft != nil) && (room.clientRight != nil)
-    if clientsExists && room.clientLeft.IsReady() && room.clientRight.IsReady() {
-        room.gameRoomState.clientLeftState = room.clientLeft.GetCurrentState()
-        room.gameRoomState.clientRightState = room.clientRight.GetCurrentState()
+	if (room.clientLeft == nil) || (room.clientRight == nil) {
+		return
+	}
 
-        room.gameRoomState.WorldTick(delta)
+	WorldTick(delta, &room.gameRoomState, &room.clientLeft.state, &room.clientRight.state)
 
-        room.sendAllNewState()
-    }else{
-        if room.clientLeft != nil {
-            room.clientLeft.QueueSendCurrentClientState()
-        }
-        if room.clientRight != nil {
-            room.clientRight.QueueSendCurrentClientState()
-        }
-    }
+	room.sendAllNewState()
 }
 
 func (room *GameRoom) mainLoop() {
@@ -141,60 +130,35 @@ func (room *GameRoom) mainLoop() {
 	for {
 		select {
 		// Канал добавления нового юзера
-		case message := <-room.messagesCh:
-			// Определяем, для какого клиента это сообщение
-			var foundClient *Client = nil
-			clientFound := false
-			if (room.clientLeft != nil) && EqAddressesUDP(room.clientLeft.address, message.address) {
-				clientFound = true
-				foundClient = room.clientLeft
-			} else if (room.clientRight != nil) && EqAddressesUDP(room.clientRight.address, message.address) {
-				clientFound = true
-				foundClient = room.clientRight
+		case connection := <-room.addClientByConnCh:
+			var client *Client = nil
+			clientAdded := false
+			if room.clientLeft == nil {
+				client = NewClient(connection, CLIENT_TYPE_LEFT, room)
+				room.clientLeft = client
+				clientAdded = true
+			} else if room.clientRight == nil {
+				client = NewClient(connection, CLIENT_TYPE_RIGHT, room)
+				room.clientRight = client
+				clientAdded = true
 			}
 
-			if clientFound {
-                foundClient.HandleIncomingMessage(message.data)
+			if client != nil {
+				client.StartLoop()
+				client.QueueSendCurrentClientState()
+			}
 
-			} else {
-                // Создаем клиента
-				var newClient *Client = nil
-				clientAdded := false
-				if room.clientLeft == nil {
-					newClient = NewClient(message.address, CLIENT_TYPE_LEFT, room)
-					room.clientLeft = newClient
-					clientAdded = true
-				} else if room.clientRight == nil {
-					newClient = NewClient(message.address, CLIENT_TYPE_RIGHT, room)
-					room.clientRight = newClient
-					clientAdded = true
-				}
+			canStartGame := (room.clientLeft != nil) && (room.clientRight != nil)
 
-				// Инициализация клиента
-				if newClient != nil {
-					newClient.StartLoop()
-                    newClient.QueueSendCurrentClientState()
-				}
+			if clientAdded && canStartGame {
+				room.gameRoomState.Reset(BALL_SPEED, -BALL_SPEED)
+			}
 
-				canStartGame := (room.clientLeft != nil) && (room.clientRight != nil)
-
-				// Сброс игры
-				if clientAdded && canStartGame {
-					room.gameRoomState.Reset(BALL_SPEED, -BALL_SPEED)
-				}
-
+			if clientAdded && canStartGame && !timerActive {
 				// Запуск таймера
-				if clientAdded && canStartGame && !timerActive {
-					timerActive = true
-					lastTickTime = time.Now()
-					timer.Reset(worldUpdateTime)
-				}
-			}
-
-			if (room.clientLeft != nil) && (room.clientRight != nil) {
-				atomic.StoreUint32(&room.isFullAtomic, 1)
-			} else {
-				atomic.StoreUint32(&room.isFullAtomic, 0)
+				timerActive = true
+				lastTickTime = time.Now()
+				timer.Reset(worldUpdateTime)
 			}
 
 		// Канал обновления состояния юзера
@@ -207,9 +171,11 @@ func (room *GameRoom) mainLoop() {
 		case client := <-room.deleteClientCh:
 			deleted := false
 			if room.clientLeft == client {
+				room.clientLeft.Close()
 				room.clientLeft = nil
 				deleted = true
 			} else if room.clientRight == client {
+				room.clientRight.Close()
 				room.clientRight = nil
 				deleted = true
 			}
@@ -221,20 +187,22 @@ func (room *GameRoom) mainLoop() {
 				room.sendAllNewState()
 			}
 
-			// Изменяем статус заполненности клиента
-			if (room.clientLeft != nil) && (room.clientRight != nil) {
-				atomic.StoreUint32(&room.isFullAtomic, 1)
-			} else {
-				atomic.StoreUint32(&room.isFullAtomic, 0)
-			}
-
 		// Канал таймера
 		case <-timer.C:
 			delta := time.Now().Sub(lastTickTime).Seconds()
 			lastTickTime = time.Now()
+
 			timer.Reset(worldUpdateTime)
 
 			room.worldTick(delta)
+
+		// Канал проверки заполнения
+		case resultChannel := <-room.isFullCh:
+			if (room.clientLeft == nil) || (room.clientRight == nil) {
+				resultChannel <- false
+			} else {
+				resultChannel <- true
+			}
 
 		// Выход из цикла обработки событий
 		case <-room.exitLoopCh:
@@ -244,11 +212,13 @@ func (room *GameRoom) mainLoop() {
 			}
 			// Clients
 			if room.clientLeft != nil {
-				room.server.DeleteRoomForAddress(room.clientLeft.address)
+				room.clientLeft.Close()
 			}
 			if room.clientRight != nil {
-				room.server.DeleteRoomForAddress(room.clientRight.address)
+				room.clientRight.Close()
 			}
+			// Server
+			room.server.DeleteRoom(room)
 			return
 		}
 	}
