@@ -1,7 +1,6 @@
 package gameserver
 
 import (
-	"golang.org/x/net/websocket"
 	"sync/atomic"
 	"time"
 )
@@ -19,7 +18,7 @@ type GameRoom struct {
 	clientRight          *Client
 	gameRoomState        GameRoomState
 	isFullCh             chan (chan bool)
-	addClientByConnCh    chan *websocket.Conn
+	addClientByConnCh    chan *WebSocket
 	deleteClientCh       chan *Client
 	clientStateUpdatedCh chan bool
 	exitLoopCh           chan bool
@@ -48,7 +47,7 @@ func NewGameRoom(server *Server) *GameRoom {
 		clientRight:          nil,
 		gameRoomState:        roomState,
 		isFullCh:             make(chan (chan bool)),
-		addClientByConnCh:    make(chan *websocket.Conn),
+		addClientByConnCh:    make(chan *WebSocket),
 		deleteClientCh:       make(chan *Client),
 		clientStateUpdatedCh: make(chan bool),
 		exitLoopCh:           make(chan bool),
@@ -66,7 +65,7 @@ func (room *GameRoom) Exit() {
 	room.exitLoopCh <- true
 }
 
-func (room *GameRoom) AddClientForConnection(connection *websocket.Conn) {
+func (room *GameRoom) AddClientForConnection(connection *WebSocket) {
 	room.addClientByConnCh <- connection
 }
 

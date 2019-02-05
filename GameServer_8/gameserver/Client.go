@@ -16,7 +16,7 @@ var MAX_ID uint32 = 0
 // Client ... Структура клиента
 type Client struct {
 	gameRoom     *GameRoom
-	connection   *websocket.Conn
+	socket       *WebSocket
 	id           uint32
 	mutex        sync.RWMutex
 	state        ClientState
@@ -26,7 +26,7 @@ type Client struct {
 }
 
 // NewClient ... Конструктор
-func NewClient(connection *websocket.Conn, clientType uint8, gameRoom *GameRoom) *Client {
+func NewClient(connection *WebSocket, clientType uint8, gameRoom *GameRoom) *Client {
 	if connection == nil {
 		panic("No connection")
 	}
@@ -51,7 +51,7 @@ func NewClient(connection *websocket.Conn, clientType uint8, gameRoom *GameRoom)
 
 	return &Client{
 		gameRoom:     gameRoom,
-		connection:   connection,
+		socket:       connection,
 		id:           curId,
 		mutex:        sync.RWMutex{},
 		state:        clientState,
@@ -62,7 +62,7 @@ func NewClient(connection *websocket.Conn, clientType uint8, gameRoom *GameRoom)
 }
 
 func (client *Client) Close() {
-	client.connection.Close()
+	client.socket.Close()
 	log.Printf("Connection closed for client %d", client.id)
 }
 
@@ -133,7 +133,7 @@ func (client *Client) loopWrite() {
 		// Отправка записи клиенту
 		case message := <-client.uploadDataCh:
 			// С помощью библиотеки websocket производим кодирование сообщения и отправку на сокет
-			err := websocket.JSON.Send(client.connection, message) // Функция синхронная
+			err := websocket.JSON.Send(client.socket.connection, message) // Функция синхронная
 			if err != nil {
 				client.Close()
 				client.gameRoom.DeleteClient(client)
@@ -163,7 +163,7 @@ func (client *Client) loopRead() {
 		default:
 			// Выполняем получение данных из вебсокета и декодирование из Json в структуру
 			var message FromPlayerMessage
-			err := websocket.JSON.Receive(client.connection, &message) // Функция синхронная
+			err := websocket.JSON.Receive(client.socket.connection, &message) // Функция синхронная
 
 			if err == io.EOF {
 				// Отправляем в очередь сообщение выхода для loopWrite
@@ -185,7 +185,7 @@ func (client *Client) loopRead() {
 				client.mutex.Lock()
 				// Сбновляем состояние данного клиента
 				if message.ID == client.state.ID {
-					client.state.Y = message.Y
+					client.state.Y = (int16)(message.Y)
 				}
 				client.mutex.Unlock()
 

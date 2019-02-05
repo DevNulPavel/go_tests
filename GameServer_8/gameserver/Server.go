@@ -10,7 +10,7 @@ type Server struct {
 	loopExitCh   chan bool
 	gameRooms    map[uint32]*GameRoom
 	removeRoomCh chan *GameRoom
-	makeClientCh chan *websocket.Conn
+	makeClientCh chan *WebSocket
 }
 
 // Создание нового сервера
@@ -19,7 +19,7 @@ func NewServer() *Server {
 		loopExitCh:   make(chan bool),
 		gameRooms:    make(map[uint32]*GameRoom),
 		removeRoomCh: make(chan *GameRoom),
-		makeClientCh: make(chan *websocket.Conn),
+		makeClientCh: make(chan *WebSocket),
 	}
 	return &server
 }
@@ -40,7 +40,9 @@ func (server *Server) DeleteRoom(room *GameRoom) {
 func (server *Server) setupWebSocketListener() {
 	onConnectedHandler := func(ws *websocket.Conn) {
 		log.Println("WebSocket connect handler in")
-		server.makeClientCh <- ws // Раз появилось новое соединение - запускаем его в работу
+		connection := WebSocket{ws, make(chan bool)}
+		server.makeClientCh <- &connection // Раз появилось новое соединение - запускаем его в работу
+		<-connection.closeChannel          // Блокируем, иначе при выходе из функции произойдет выход
 		log.Println("WebSocket connect handler out")
 	}
 	http.Handle("/websocket", websocket.Handler(onConnectedHandler))

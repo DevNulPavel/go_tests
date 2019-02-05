@@ -25,19 +25,19 @@ define(
             if(currentPlayerId == 0 && inputJson.messageType == 0){
                 userState = null
                 if(inputJson.leftPlayer.id > 0){
-                    userState = inputJson.leftPlayer
+                    userState = inputJson.leftPlayer;
                 }else if(inputJson.rightPlayer.id > 0){
-                    userState = inputJson.rightPlayer
+                    userState = inputJson.rightPlayer;
                 }
 
                 if(userState != null){
-                    newPlayer = createPlayer(userState.id, userState.t, userState.y, userState.h, userState.st, true)
-                    currentPlayerId = userState.id
+                    newPlayer = createPlayer(userState.id, userState.t, userState.y, userState.h, userState.st, true);
+                    currentPlayerId = userState.id;
                     
-                    if (userState.t = 0){
-                        this.leftPlayer = newPlayer
+                    if (userState.t == 0){
+                        this.leftPlayer = newPlayer;
                     }else{
-                        this.rightPlayer = newPlayer
+                        this.rightPlayer = newPlayer;
                     }
     
                     // add it to the stage
@@ -47,70 +47,58 @@ define(
 
             // Обновление состояния карты
             if(inputJson.messageType == 1){
+                // Обновляем левого игрока
                 if (inputJson.leftPlayer.id > 0 && inputJson.leftPlayer.id != currentPlayerId){
-                    userState = inputJson.leftPlayer
+                    userState = inputJson.leftPlayer;
                     if (this.leftPlayer != null){
-                        this.leftPlayer.y = userState.y
+                        this.leftPlayer.y = userState.y;
                     }else{
-                        this.leftPlayer = createPlayer(userState.id, userState.t, userState.y, userState.h, userState.st, false)
+                        this.leftPlayer = createPlayer(userState.id, userState.t, userState.y, userState.h, userState.st, false);
+                        app.stage.addChild(this.leftPlayer);
                     }
                 }
 
+                // Обновляем правого игрока
                 if (inputJson.rightPlayer.id > 0 && inputJson.rightPlayer.id != currentPlayerId){
-                    userState = inputJson.rightPlayer
+                    userState = inputJson.rightPlayer;
                     if (this.rightPlayer != null){
-                        this.rightPlayer.y = userState.y
+                        this.rightPlayer.y = userState.y;
                     }else{
-                        this.rightPlayer = createPlayer(userState.id, userState.t, userState.y, userState.h, userState.st, false)
+                        this.rightPlayer = createPlayer(userState.id, userState.t, userState.y, userState.h, userState.st, false);
+                        app.stage.addChild(this.rightPlayer);
                     }
                 }
-            }
 
-            /*var activeIds = []
-            for (var i = 0; i < states.length; i++){
-                var userState = states[i]
-                activeIds.push(userState.id.toString())
-
-                if (currentPlayerId == userState.id){
-                    continue
-                }
-
-                // Update
-                bunny = players[userState.id]
-                if (bunny != null){
-                    bunny.id = userState.id;
-                    bunny.x = userState.x;
-                    bunny.y = userState.y;
+                // Обновляем шар на поле
+                roomState = inputJson.room
+                if(this.ball != null){
+                    this.ball.x = roomState.ballPosX;
+                    this.ball.y = roomState.ballPosY;
                 }else{
-                    newBunny = createBunny(userState.id, userState.x, userState.y, false)
-                    players[userState.id] = newBunny
-
-                    // add it to the stage
-                    app.stage.addChild(newBunny);
+                    this.ball = createBall(roomState.ballPosX, roomState.ballPosY);
+                    app.stage.addChild(this.ball);
                 }
             }
-
-            // Remove
-            for(key in players){
-                if (currentPlayerId.toString() === key){
-                    continue
-                }
-
-                var contains = false
-                for (var i = 0; i < activeIds.length; i++){
-                    if(activeIds[i] === key){
-                        contains = true;
-                        break;
-                    }
-                }
-
-                if (contains == false){
-                    // add it to the stage
-                    app.stage.removeChild(players[key]);
-                    delete players[key]
-                }
-            }*/
         };
+
+        function createBall(x, y) {
+            // create our little bunny friend..
+            var sprite = new PIXI.Sprite(ballTexture);
+
+            sprite.x = x;
+            sprite.y = y;
+
+            // enable the bunny to be interactive... this will allow it to respond to mouse and touch events
+            sprite.interactive = false;
+            // this button mode will mean the hand cursor appears when you roll over the bunny with your mouse
+            sprite.buttonMode = false;
+            // center the bunny's anchor point
+            sprite.anchor.set(0.5);
+            // make it a bit bigger, so it's easier to grab
+            sprite.scale.set(1);
+
+            return sprite
+        }
 
         function createPlayer(id, type, y, height, status, interactive) {
             // create our little bunny friend..
