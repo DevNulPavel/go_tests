@@ -3,33 +3,35 @@ define(
 	[
 	],
 	function() {
-        var app = new PIXI.Application(800, 600, {backgroundColor : 0x1099bb});
-        document.body.appendChild(app.view);
-
-        // create a texture from an image path
-        var playerTexture = PIXI.Texture.fromImage('resources/ava.png');
-        var ballTexture = PIXI.Texture.fromImage('resources/ava.png');
-        playerTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-        ballTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-
+        var app = null;
         var currentPlayerId = 0;
         var leftPlayer = null;
         var rightPlayer = null;
         var ball = null;
 
+        // Создание поля
+        app = new PIXI.Application(800, 600, {backgroundColor : 0x1099bb});
+        document.body.appendChild(app.view);
+
+        // create a texture from an image path
+        var playerMeTexture = PIXI.Texture.fromImage('resources/userMe.png');
+        var playerOtherTexture = PIXI.Texture.fromImage('resources/userFriend.png');
+        var ballTexture = PIXI.Texture.fromImage('resources/ball.png');
+
         var ws = new WebSocket("ws://" + window.location.hostname + ":8080/websocket");
         ws.onmessage = function(e) {
             var inputJson = $.evalJSON(e.data);
 
-            // Инициализация юзера после подключения
+            // Инициализация юзера и карты после подключения
             if(currentPlayerId == 0 && inputJson.messageType == 0){
+
+                // Инициализация игрока
                 userState = null
                 if(inputJson.leftPlayer.id > 0){
                     userState = inputJson.leftPlayer;
                 }else if(inputJson.rightPlayer.id > 0){
                     userState = inputJson.rightPlayer;
                 }
-
                 if(userState != null){
                     newPlayer = createPlayer(userState.id, userState.t, userState.y, userState.h, userState.st, true);
                     currentPlayerId = userState.id;
@@ -102,7 +104,7 @@ define(
 
         function createPlayer(id, type, y, height, status, interactive) {
             // create our little bunny friend..
-            var playerSprite = new PIXI.Sprite(playerTexture);
+            var playerSprite = new PIXI.Sprite(interactive ? playerMeTexture : playerOtherTexture);
 
             playerSprite.id = id
             playerSprite.y = y;
@@ -113,17 +115,17 @@ define(
             if (type == 0){
                 // move the sprite to its designated position
                 playerSprite.x = 0;
+                playerSprite.anchor.set(0, 0.5);
             }else{
                 // move the sprite to its designated position
                 playerSprite.x = 800;
+                playerSprite.anchor.set(1, 0.5);
             }
 
             // enable the bunny to be interactive... this will allow it to respond to mouse and touch events
             playerSprite.interactive = interactive;
             // this button mode will mean the hand cursor appears when you roll over the bunny with your mouse
             playerSprite.buttonMode = true;
-            // center the bunny's anchor point
-            playerSprite.anchor.set(0.5);
             // make it a bit bigger, so it's easier to grab
             playerSprite.scale.set(1);
 

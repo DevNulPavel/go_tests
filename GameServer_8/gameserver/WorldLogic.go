@@ -20,7 +20,7 @@ func WorldTick(delta float64, state *GameRoomState, leftClientState *ClientState
 	}
 
 	// Проверка по X
-	const panelWidth float64 = 14.0
+	const panelWidth float64 = 34.0
 	leftBorder := panelWidth
 	rightborder := float64(state.Width) - panelWidth
 	// Слева
