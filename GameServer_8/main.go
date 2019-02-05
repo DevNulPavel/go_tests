@@ -2,7 +2,7 @@ package main
 
 import (
 	"./gameserver"
-	"fmt"
+	//"fmt"
 	"log"
 	"net/http"
 )
@@ -19,7 +19,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for {
+	/*for {
 		var input string
 		fmt.Scanln(&input)
 
@@ -27,7 +27,7 @@ func main() {
 			server.ExitServer()
 			break
 		}
-	}
+	}*/
 
 	//<-time.After(time.Second * 30)
 	//server.ExitServer()

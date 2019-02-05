@@ -20,7 +20,7 @@ type Client struct {
 	id           uint32
 	mutex        sync.RWMutex
 	state        ClientState
-	uploadDataCh chan PlayerMessage
+	uploadDataCh chan ToPlayerMessage
 	exitReadCh   chan bool
 	exitWriteCh  chan bool
 }
@@ -45,7 +45,7 @@ func NewClient(connection *websocket.Conn, clientType uint8, gameRoom *GameRoom)
 		Height: 100,
 		Status: CLIENT_STATUS_IN_GAME,
 	}
-	uploadDataCh := make(chan PlayerMessage, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
+	uploadDataCh := make(chan ToPlayerMessage, UPDATE_QUEUE_SIZE) // В канале апдейтов может накапливаться максимум 1000 апдейтов
 	exitReadCh := make(chan bool, 1)
 	exitWriteCh := make(chan bool, 1)
 
@@ -74,7 +74,7 @@ func (client *Client) GetCurrentState() ClientState {
 }
 
 // QueueSendAllStates ... Пишем сообщение клиенту
-func (client *Client) QueueSendGameState(gameState PlayerMessage) {
+func (client *Client) QueueSendGameState(gameState ToPlayerMessage) {
 	// Если очередь превышена - считаем, что юзер отвалился
 	if len(client.uploadDataCh)+1 > UPDATE_QUEUE_SIZE {
 		log.Printf("Queue full for client %d", client.id)
@@ -101,7 +101,7 @@ func (client *Client) QueueSendCurrentClientState() {
 	} else {
 		state := client.GetCurrentState()
 
-		var message PlayerMessage
+		var message ToPlayerMessage
 		message.Type = PLAYER_MESSAGE_TYPE_PLAYER_INIT
 		if state.Type == CLIENT_TYPE_LEFT {
 			message.LeftClientState = state
@@ -162,8 +162,8 @@ func (client *Client) loopRead() {
 		// Чтение данных из сокета
 		default:
 			// Выполняем получение данных из вебсокета и декодирование из Json в структуру
-			var state ClientState
-			err := websocket.JSON.Receive(client.connection, &state) // Функция синхронная
+			var message FromPlayerMessage
+			err := websocket.JSON.Receive(client.connection, &message) // Функция синхронная
 
 			if err == io.EOF {
 				// Отправляем в очередь сообщение выхода для loopWrite
@@ -180,12 +180,16 @@ func (client *Client) loopRead() {
 				log.Printf("loopRead->exit by ERROR (%s), clientId = %d\n", err, client.id)
 				return
 			} else {
-				if state.ID > 0 {
-					// Сбновляем состояние данного клиента
-					client.mutex.Lock()
-					client.state.Y = state.Y
-					client.mutex.Unlock()
+				updated := false
 
+				client.mutex.Lock()
+				// Сбновляем состояние данного клиента
+				if message.ID == client.state.ID {
+					client.state.Y = message.Y
+				}
+				client.mutex.Unlock()
+
+				if updated == true {
 					// Отправляем обновление состояния всем
 					client.gameRoom.ClientStateUpdated(client)
 				}

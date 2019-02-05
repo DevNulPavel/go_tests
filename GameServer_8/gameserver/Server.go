@@ -39,8 +39,8 @@ func (server *Server) DeleteRoom(room *GameRoom) {
 
 func (server *Server) setupWebSocketListener() {
 	onConnectedHandler := func(ws *websocket.Conn) {
-		// Раз появилось новое соединение - запускаем его в работу с отдельной горутине
-		server.makeClientCh <- ws
+		log.Println("WebSocket connect handler in")
+		server.makeClientCh <- ws // Раз появилось новое соединение - запускаем его в работу
 		log.Println("WebSocket connect handler out")
 	}
 	http.Handle("/websocket", websocket.Handler(onConnectedHandler))
@@ -50,6 +50,7 @@ func (server *Server) setupWebSocketListener() {
 // Основная функция прослушивания
 func (server *Server) startMainLoop() {
 	loopFunction := func() {
+		log.Println("Start main loop")
 		for {
 			select {
 			// Обрабатываем новое подключение

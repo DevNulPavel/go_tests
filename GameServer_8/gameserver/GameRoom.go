@@ -88,7 +88,7 @@ func (room *GameRoom) GetIsFull() bool {
 
 func (room *GameRoom) sendAllNewState() {
 	// Создание сообщения
-	var message PlayerMessage
+	var message ToPlayerMessage
 	message.Type = PLAYER_MESSAGE_TYPE_WORLD_STATE
 	message.RoomState = room.gameRoomState // TODO: Sync?
 	if room.clientLeft != nil {
