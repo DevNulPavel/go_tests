@@ -40,9 +40,9 @@ func (server *Server) DeleteRoom(room *GameRoom) {
 func (server *Server) setupWebSocketListener() {
 	onConnectedHandler := func(ws *websocket.Conn) {
 		log.Println("WebSocket connect handler in")
-		connection := WebSocket{ws, make(chan bool)}
-		server.makeClientCh <- &connection // Раз появилось новое соединение - запускаем его в работу
-		<-connection.closeChannel          // Блокируем, иначе при выходе из функции произойдет выход
+		connection := MakeWebSocket(ws)
+		server.makeClientCh <- connection // Раз появилось новое соединение - запускаем его в работу
+		connection.WaitClose()            // Блокируем, иначе при выходе из функции произойдет выход
 		log.Println("WebSocket connect handler out")
 	}
 	http.Handle("/websocket", websocket.Handler(onConnectedHandler))
@@ -57,7 +57,7 @@ func (server *Server) startMainLoop() {
 			select {
 			// Обрабатываем новое подключение
 			case connection := <-server.makeClientCh:
-				log.Printf("Make client call\n")
+				log.Printf("Make client call begin\n")
 
 				roomFound := false
 				for _, gameRoom := range server.gameRooms {
@@ -77,9 +77,13 @@ func (server *Server) startMainLoop() {
 					newGameRoom.AddClientForConnection(connection)
 				}
 
+				log.Printf("Make client call end\n")
+
 			// Обработка удаления комнаты
 			case room := <-server.removeRoomCh:
+				log.Printf("Delete room call begin\n")
 				delete(server.gameRooms, room.roomId)
+				log.Printf("Delete room call end\n")
 
 			// Завершение работы
 			case <-server.loopExitCh:

@@ -170,7 +170,7 @@ func (client *Client) loopRead() {
 				client.gameRoom.DeleteClient(client)
 				client.Close()
 				client.exitWriteCh <- true // для метода loopWrite, чтобы выйти из него
-				log.Println("loopRead->exit")
+				log.Println("loopRead->exit by disconnect")
 				return
 			} else if err != nil {
 				// Ошибка
@@ -189,8 +189,8 @@ func (client *Client) loopRead() {
 				}
 				client.mutex.Unlock()
 
+				// Отправляем обновление состояния всем
 				if updated == true {
-					// Отправляем обновление состояния всем
 					client.gameRoom.ClientStateUpdated(client)
 				}
 			}

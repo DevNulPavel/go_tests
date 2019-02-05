@@ -1,12 +1,15 @@
 package gameserver
 
 import (
+	"log"
 	"sync/atomic"
 	"time"
 )
 
 const (
-	BALL_SPEED = 50.0
+	BALL_SPEED  = 150.0
+	ROOM_WIDTH  = 800
+	ROOM_HEIGHT = 600
 )
 
 var LAST_ID uint32 = 0
@@ -27,15 +30,13 @@ type GameRoom struct {
 func NewGameRoom(server *Server) *GameRoom {
 	newRoomId := atomic.AddUint32(&LAST_ID, 1)
 
-	const width = 800
-	const height = 600
 	roomState := GameRoomState{
 		ID:         newRoomId,
 		Status:     GAME_ROOM_STATUS_ACTIVE,
-		Width:      width,
-		Height:     height,
-		BallPosX:   width / 2,
-		BallPosY:   height / 2,
+		Width:      ROOM_WIDTH,
+		Height:     ROOM_HEIGHT,
+		BallPosX:   ROOM_WIDTH / 2,
+		BallPosY:   ROOM_HEIGHT / 2,
 		BallSpeedX: BALL_SPEED,
 		BallSpeedY: BALL_SPEED,
 	}
@@ -46,11 +47,11 @@ func NewGameRoom(server *Server) *GameRoom {
 		clientLeft:           nil,
 		clientRight:          nil,
 		gameRoomState:        roomState,
-		isFullCh:             make(chan (chan bool)),
+		isFullCh:             make(chan (chan bool)), // Для проверки специально испольузется канал, чтобы все происходило в контексте цикла комнаты
 		addClientByConnCh:    make(chan *WebSocket),
 		deleteClientCh:       make(chan *Client),
 		clientStateUpdatedCh: make(chan bool),
-		exitLoopCh:           make(chan bool),
+		exitLoopCh:           make(chan bool, 1),
 	}
 	return &room
 }
@@ -61,7 +62,7 @@ func (room *GameRoom) StartLoop() {
 	go room.mainLoop()
 }
 
-func (room *GameRoom) Exit() {
+func (room *GameRoom) ExitLoop() {
 	room.exitLoopCh <- true
 }
 
@@ -89,7 +90,7 @@ func (room *GameRoom) sendAllNewState() {
 	// Создание сообщения
 	var message ToPlayerMessage
 	message.Type = PLAYER_MESSAGE_TYPE_WORLD_STATE
-	message.RoomState = room.gameRoomState // TODO: Sync?
+	message.RoomState = room.gameRoomState
 	if room.clientLeft != nil {
 		message.LeftClientState = room.clientLeft.GetCurrentState()
 	}
@@ -168,6 +169,7 @@ func (room *GameRoom) mainLoop() {
 
 		// Канал удаления нового юзера
 		case client := <-room.deleteClientCh:
+			log.Printf("Game room loop delete client begin\n")
 			deleted := false
 			if room.clientLeft == client {
 				room.clientLeft.Close()
@@ -179,12 +181,15 @@ func (room *GameRoom) mainLoop() {
 				deleted = true
 			}
 
+			log.Printf("Game room loop delete client middle\n")
+
 			if timerActive && deleted {
 				timer.Stop()
 				timerActive = false
 
 				room.sendAllNewState()
 			}
+			log.Printf("Game room loop delete client end\n")
 
 		// Канал таймера
 		case <-timer.C:
@@ -205,6 +210,8 @@ func (room *GameRoom) mainLoop() {
 
 		// Выход из цикла обработки событий
 		case <-room.exitLoopCh:
+			log.Printf("Game room loop exit begin\n")
+
 			// Timer
 			if timerActive {
 				timer.Stop()
@@ -218,6 +225,7 @@ func (room *GameRoom) mainLoop() {
 			}
 			// Server
 			room.server.DeleteRoom(room)
+			log.Printf("Game room loop exit end\n")
 			return
 		}
 	}
