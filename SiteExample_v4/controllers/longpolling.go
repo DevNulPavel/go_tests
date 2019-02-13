@@ -4,42 +4,49 @@ import (
 	"WebIM/models"
 )
 
-// LongPollingController handles long polling requests.
+// LongPollingController контроллер
 type LongPollingController struct {
 	baseController
 }
 
-// Join method handles GET requests for LongPollingController.
+// Обрабатывает GET соединения для контроллера
 func (this *LongPollingController) Join() {
-	// Safe check.
+	// Проверка имени
 	uname := this.GetString("uname")
 	if len(uname) == 0 {
 		this.Redirect("/", 302)
 		return
 	}
 
-	// Join chat room.
+	// Подключение к чат-комнате
 	Join(uname, nil)
 
+	// Назначаем шаблон пулинга
 	this.TplName = "longpolling.html"
+
+	// Данные для шаблона?
 	this.Data["IsLongPolling"] = true
 	this.Data["UserName"] = uname
 }
 
-// Post method handles receive messages requests for LongPollingController.
+// Обработка POST запроса
 func (this *LongPollingController) Post() {
+	// Назначаем шаблон пулинга
 	this.TplName = "longpolling.html"
 
+	// Получаем данные шаблона?
 	uname := this.GetString("uname")
 	content := this.GetString("content")
+
 	if len(uname) == 0 || len(content) == 0 {
 		return
 	}
 
+	// Отправляем новый ивент для всех
 	publish <- newEvent(models.EVENT_MESSAGE, uname, content)
 }
 
-// Fetch method handles fetch archives requests for LongPollingController.
+// Метод обрабатываем получени архивов контроллера
 func (this *LongPollingController) Fetch() {
 	lastReceived, err := this.GetInt("lastReceived")
 	if err != nil {

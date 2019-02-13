@@ -10,7 +10,7 @@ import (
 	"WebIM/models"
 )
 
-// WebSocketController handles WebSocket requests.
+// Контроллер веб-сокета
 type WebSocketController struct {
 	baseController
 }

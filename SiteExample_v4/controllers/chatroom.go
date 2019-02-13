@@ -104,13 +104,13 @@ func chatroom() {
 			for sub := subscribers.Front(); sub != nil; sub = sub.Next() {
 				if sub.Value.(Subscriber).Name == unsub {
 					subscribers.Remove(sub)
-					// Clone connection.
+					// Закрываем WebSocket соединение
 					ws := sub.Value.(Subscriber).Conn
 					if ws != nil {
 						ws.Close()
 						beego.Error("WebSocket closed:", unsub)
 					}
-					publish <- newEvent(models.EVENT_LEAVE, unsub, "") // Publish a LEAVE event.
+					publish <- newEvent(models.EVENT_LEAVE, unsub, "") // Отправляем всем сообщение об отключении
 					break
 				}
 			}

@@ -64,7 +64,6 @@ func (this *AppController) Get() {
 	this.TplName = "welcome.html" // Выставляем шаблон данного контроллера
 }
 
-// Join method handles POST requests for AppController.
 // Реализация метода Join для POST запросов, отвечает за переход по нужному адресу
 func (this *AppController) Join() {
 	// Получаем значения из формы
