@@ -94,10 +94,10 @@ func chatroom() {
 
 			// Отправляем сообщение по WebSocket
 			broadcastWebSocket(event)
-			models.NewArchive(event)
+			models.AddEventToArchive(event)
 
 			if event.Type == models.EVENT_MESSAGE {
-				beego.Info("Message from", event.User, ";Content:", event.Content)
+				beego.Info("Message from", event.User, "; Content:", event.Content)
 			}
 		// Отключение пользователей
 		case unsub := <-unsubscribe:

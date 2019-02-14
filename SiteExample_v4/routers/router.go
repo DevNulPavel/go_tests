@@ -1,22 +1,23 @@
 package routers
 
 import (
-	"WebIM/controllers"
 	"github.com/astaxie/beego"
+
+	"WebIM/controllers"
 )
 
 func init() {
-	// Register routers.
+	// Регистрируем корневой контроллер
 	beego.Router("/", &controllers.AppController{})
-	// Indicate AppController.Join method to handle POST requests.
+	// Регистрируем метод AppController.Join для обработки POST запросов??
 	beego.Router("/join", &controllers.AppController{}, "post:Join")
 
-	// Long polling.
+	// Метод пулинга данных с сервера
 	beego.Router("/lp", &controllers.LongPollingController{}, "get:Join")
 	beego.Router("/lp/post", &controllers.LongPollingController{})
 	beego.Router("/lp/fetch", &controllers.LongPollingController{}, "get:Fetch")
 
-	// WebSocket.
+	// Работа с вебсокетом
 	beego.Router("/ws", &controllers.WebSocketController{})
 	beego.Router("/ws/join", &controllers.WebSocketController{}, "get:Join")
 

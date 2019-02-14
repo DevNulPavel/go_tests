@@ -38,8 +38,9 @@ func (this *baseController) Prepare() {
 
 	// Получаем информацию о языке из хедера запроса ('Accept-Language' поле)
 	al := this.Ctx.Request.Header.Get("Accept-Language")
-	if len(al) > 4 {
-		al = al[:5] // Сравниваем первые 5 символов
+	if len(al) > 2 {
+		beego.Trace("Request language: " + al)
+		al = al[:2] // Сравниваем первые 2 символов
 		if i18n.IsExist(al) {
 			this.Lang = al
 		}
@@ -47,7 +48,7 @@ func (this *baseController) Prepare() {
 
 	// Основной язык - английский, если не подобрали нужный
 	if len(this.Lang) == 0 {
-		this.Lang = "en-US"
+		this.Lang = "ru"
 	}
 
 	// Выставляем для обработки шаблона данные о языке

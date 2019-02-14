@@ -60,11 +60,12 @@ func (this *LongPollingController) Fetch() {
 		return
 	}
 
-	// Wait for new message(s).
+	// Ожидаем новые сообщения
 	ch := make(chan bool)
 	waitingList.PushBack(ch)
 	<-ch
 
+	// Отправляем Json??
 	this.Data["json"] = models.GetEvents(int(lastReceived))
 	this.ServeJSON()
 }
