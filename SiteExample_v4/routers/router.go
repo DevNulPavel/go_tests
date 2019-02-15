@@ -9,7 +9,7 @@ import (
 func init() {
 	// Регистрируем корневой контроллер
 	beego.Router("/", &controllers.AppController{})
-	// Регистрируем метод AppController.Join для обработки POST запросов??
+	// Регистрируем метод AppController.Join для обработки POST запросов (c помощью рефлексии)
 	beego.Router("/join", &controllers.AppController{}, "post:Join")
 
 	// Метод пулинга данных с сервера
