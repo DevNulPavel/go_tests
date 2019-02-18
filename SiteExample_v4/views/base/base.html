@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<!-- Вставляем содержимое head.html -->
 		{{template "base/head.html" .}}
+		<!-- Здесь впоследствии вставится блок head из чилдов -->
 		{{template "head" .}}
 	</head>
 	<body>
+		<!-- Здесь впоследствии вставится блок body из чилдов -->
 		{{template "body" .}}
+		<!-- Вставляем содержимое footer.html -->
 		{{template "base/footer.html" .}}
 	</body>
 </html>

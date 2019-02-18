@@ -1,7 +1,12 @@
+<!-- Подключаем шаблон -->
 {{template "base/base.html" .}}
+
+<!-- Определяем содержимое head, которое заменится в главном шаблоне -->
 {{define "head"}}
     <title>{{i18n .Lang "longpolling_chatroom"}} - {{i18n .Lang "app_intro"}}</title>
 {{end}}
+
+<!-- Определяем содержимое body, которое заменится в главном шаблоне -->
 {{define "body"}}
     <div class="container">
         <h3>{{i18n .Lang "username"}}: <span id="uname">{{.UserName}}</span></h3>
