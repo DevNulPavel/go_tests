@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	BALL_SPEED  = 150.0
+	BALL_SPEED  = 40.0
 	ROOM_WIDTH  = 800
 	ROOM_HEIGHT = 600
 )
