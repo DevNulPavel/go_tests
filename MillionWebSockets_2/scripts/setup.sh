@@ -6,13 +6,17 @@
 ## Server IP is usually the Docker gateway IP address, which is 172.17.0.1 by default
 ## Number of clients helps to speed up connections establishment at large scale, in order to make the demo faster
 
-# Example: ./setup.sh 100 100 127.0.0.1
+# Example: ./scripts/setup.sh 1000 100 127.0.0.1
+
 
 CONNECTIONS=$1
 REPLICAS=$2
 IP=$3
-go build --tags "static netgo" -o client ../client_src/client.go
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+go build -o client $DIR/../client_src/client.go
 for (( c=0; c<${REPLICAS}; c++ ))
 do
-    docker run -l 1m-go-websockets -v $(pwd)/client:/client -d alpine /client -conn=${CONNECTIONS} -ip=${IP}
+    docker run -l million_web_sockets_2 -v $DIR/../client:/client -d alpine /client -conn=${CONNECTIONS} -ip=${IP}
 done
