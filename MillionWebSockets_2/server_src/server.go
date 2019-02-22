@@ -5,12 +5,24 @@ import (
 	"github.com/gobwas/ws/wsutil"
 	"github.com/mailru/easygo/netpoll"
 	"log"
+	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"syscall"
 )
 
 var poller netpoll.Poller = nil
+
+type User struct {
+	conn         net.Conn
+	desc         *netpoll.Desc
+	needResponse bool
+}
+
+func (user *User) Close() {
+	poller.Stop(user.desc)
+	user.conn.Close()
+}
 
 // Вариант с использованием библиотеки WS
 func wsHandler(w http.ResponseWriter, r *http.Request) {
@@ -26,31 +38,47 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		// handle error
 	}*/
 
-	// Создаем дескриптор для poll на чтение
-	desc := netpoll.Must(netpoll.HandleRead(conn))
+	// Создаем дескриптор для poll на чтение/запись
+	desc := netpoll.Must(netpoll.HandleReadWrite(conn))
+
+	// Создаем временный объект
+	user := &User{
+		conn,
+		desc,
+		false,
+	}
 
 	// Устанавливаем обработчик для данного соединения
 	handleCallback := func(ev netpoll.Event) {
+		log.Printf("Callback with event: %s", ev.String())
+
 		// Вырубили соединение
-		if (ev & netpoll.EventReadHup) != 0 {
-			poller.Stop(desc)
-			conn.Close()
+		if ((ev & netpoll.EventReadHup) != 0) || ((ev & netpoll.EventWriteHup) != 0) {
+			user.Close()
 			return
 		}
+
 		// Можем читать данные
 		if (ev & netpoll.EventRead) != 0 {
-			// _, err := ioutil.ReadAll(conn)
 			data, code, err := wsutil.ReadClientData(conn)
 			if err != nil {
-				// TODO: Close? handle error?
-				poller.Stop(desc)
-				conn.Close()
+				user.Close()
 				return
 			}
 			log.Printf("msg: %s, code: %d", string(data), code)
+			user.needResponse = true
 		}
-		// Можем писать данные
-		if (ev & netpoll.EventWrite) != 0 {
+
+		// Можем писать данные ответа
+		if ((ev & netpoll.EventWrite) != 0) && (user.needResponse == true) {
+			responseData := []byte("Response")
+			err = wsutil.WriteServerText(conn, responseData)
+			if err != nil {
+				user.Close()
+				return
+			}
+			//log.Printf("Response write success")
+			user.needResponse = false
 		}
 	}
 	poller.Start(desc, handleCallback)

@@ -56,6 +56,14 @@ Example usage: ./client -ip=172.17.0.1 -conn=10
 				fmt.Printf("Failed to receive pong: %v", err)
 			}
 			conn.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf("Hello from conn %v", i)))
+
+			// Читаем ответ
+			//_, data, err := conn.ReadMessage()
+			_, _, err := conn.ReadMessage()
+			if err != nil {
+				fmt.Printf("Fail to read response: %v\n", err)
+			}
+			//fmt.Printf("Server response: %s\n", string(data))
 		}
 	}
 }
