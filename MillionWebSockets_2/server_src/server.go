@@ -10,20 +10,25 @@ import (
 	"github.com/DevNulPavel/easygo/netpoll"
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
+	"github.com/ivpusic/grpool"
 )
 
-var poller netpoll.Poller = nil
+var poller netpoll.Poller
+var workersPool *grpool.Pool
 
+// User - тип для обработки соединения
 type User struct {
-	conn         net.Conn
-	desc         *netpoll.Desc
-	needResponse bool
+	conn net.Conn
+	desc *netpoll.Desc
 }
 
+// Close закрывает все дескрипторы
 func (user *User) Close() {
 	poller.Stop(user.desc)
 	user.conn.Close()
 }
+
+////////////////////////////////////////////////////////////////
 
 // Вариант с использованием библиотеки WS
 func wsHandler(w http.ResponseWriter, r *http.Request) {
@@ -39,14 +44,13 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		// handle error
 	}*/
 
-	// Создаем дескриптор для poll на чтение/запись
-	desc := netpoll.Must(netpoll.HandleReadWrite(conn))
+	// Создаем дескриптор для poll на чтение
+	desc := netpoll.Must(netpoll.HandleRead(conn))
 
 	// Создаем временный объект
 	user := &User{
 		conn,
 		desc,
-		false,
 	}
 
 	// Устанавливаем обработчик для данного соединения
@@ -61,25 +65,22 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Можем читать данные
 		if (ev & netpoll.EventRead) != 0 {
-			data, code, err := wsutil.ReadClientData(conn)
-			if err != nil {
-				user.Close()
-				return
-			}
-			log.Printf("msg: %s, code: %d", string(data), code)
-			user.needResponse = true
-		}
+			// Закидываем в пулл задачу по вычитыванию данных и обработке
+			workersPool.JobQueue <- func() {
+				data, code, err := wsutil.ReadClientData(conn)
+				if err != nil {
+					user.Close()
+					return
+				}
+				log.Printf("msg: %s, code: %d", string(data), code)
 
-		// Можем писать данные ответа
-		if ((ev & netpoll.EventWrite) != 0) && (user.needResponse == true) {
-			responseData := []byte("Response")
-			err = wsutil.WriteServerText(conn, responseData)
-			if err != nil {
-				user.Close()
-				return
+				responseData := []byte("Response")
+				err = wsutil.WriteServerText(conn, responseData)
+				if err != nil {
+					user.Close()
+					return
+				}
 			}
-			//log.Printf("Response write success")
-			user.needResponse = false
 		}
 	}
 	poller.Start(desc, handleCallback)
@@ -104,8 +105,12 @@ func main() {
 		}
 	}()
 
+	// Пулл обработчиков
+	workersPool = grpool.NewPool(128, 128)
+	defer workersPool.Release()
+
 	// Создаем пулер
-	var err error = nil
+	var err error
 	poller, err = netpoll.New(nil)
 	if err != nil {
 		panic(err)
