@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/gobwas/ws"
-	"github.com/gobwas/ws/wsutil"
-	"github.com/mailru/easygo/netpoll"
 	"log"
 	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"syscall"
+
+	"github.com/DevNulPavel/easygo/netpoll"
+	"github.com/gobwas/ws"
+	"github.com/gobwas/ws/wsutil"
 )
 
 var poller netpoll.Poller = nil
