@@ -44,8 +44,11 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		// handle error
 	}*/
 
-	// Создаем дескриптор для poll на чтение
-	desc := netpoll.Must(netpoll.HandleRead(conn))
+	// Создаем дескриптор для poll на чтение c постоянным вызовом коллбека
+	//desc := netpoll.Must(netpoll.HandleRead(conn))
+
+	// Создаем дескриптор для poll на чтение с разовым вызовом коллбека
+	desc := netpoll.Must(netpoll.HandleReadOnce(conn))
 
 	// Создаем временный объект
 	user := &User{
@@ -55,7 +58,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Устанавливаем обработчик для данного соединения
 	handleCallback := func(ev netpoll.Event) {
-		log.Printf("Callback with event: %s", ev.String())
+		//log.Printf("Callback with event: %s", ev.String())
 
 		// Вырубили соединение
 		if ((ev & netpoll.EventReadHup) != 0) || ((ev & netpoll.EventWriteHup) != 0) {
@@ -65,14 +68,24 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Можем читать данные
 		if (ev & netpoll.EventRead) != 0 {
-			// Закидываем в пулл задачу по вычитыванию данных и обработке
+			// Вычитывать данные надо все-таки в том же самом потоке и коллбеке (если у нас режим не OneShot)
+			//data, code, err := wsutil.ReadClientData(conn)
+			/*_, _, err := wsutil.ReadClientData(conn)
+			if err != nil {
+				user.Close()
+				return
+			} */
+
+			// Закидываем в пулл задачу по обработке
 			workersPool.JobQueue <- func() {
-				data, code, err := wsutil.ReadClientData(conn)
+				// В режиме OneShot можно вычитывать в отдельной горутине
+				// data, code, err := wsutil.ReadClientData(conn)
+				_, _, err := wsutil.ReadClientData(conn)
 				if err != nil {
 					user.Close()
 					return
 				}
-				log.Printf("msg: %s, code: %d", string(data), code)
+				//log.Printf("msg: %s, code: %d", string(data), code)
 
 				responseData := []byte("Response")
 				err = wsutil.WriteServerText(conn, responseData)
@@ -80,6 +93,9 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 					user.Close()
 					return
 				}
+
+				// Снова запускаем отслеживание событий на данном дескрипторе
+				poller.Resume(desc)
 			}
 		}
 	}
