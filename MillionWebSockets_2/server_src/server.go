@@ -4,8 +4,10 @@ import (
 	"log"
 	"net"
 	"net/http"
-	_ "net/http/pprof"
+	"sync"
 	"syscall"
+
+	_ "net/http/pprof"
 
 	"github.com/DevNulPavel/easygo/netpoll"
 	"github.com/gobwas/ws"
@@ -18,14 +20,46 @@ var workersPool *grpool.Pool
 
 // User - тип для обработки соединения
 type User struct {
-	conn net.Conn
-	desc *netpoll.Desc
+	mutex   sync.RWMutex
+	conn    net.Conn
+	desc    *netpoll.Desc
+	reading bool
+	closed  bool
+}
+
+// SetReading выставляет статус чтения
+func (user *User) SetReading(status bool) {
+	user.mutex.Lock()
+	user.reading = status
+	user.mutex.Unlock()
+}
+
+// IsReading возвращает статус чтения
+func (user *User) IsReading() bool {
+	user.mutex.RLock()
+	readingCopy := user.reading
+	user.mutex.RUnlock()
+	return readingCopy
 }
 
 // Close закрывает все дескрипторы
 func (user *User) Close() {
+	user.mutex.Lock()
+
 	poller.Stop(user.desc)
 	user.conn.Close()
+	user.desc.Close()
+	user.closed = true
+
+	user.mutex.Unlock()
+}
+
+// IsClosed проверяет, не закрыто ли соединение
+func (user *User) IsClosed() bool {
+	user.mutex.RLock()
+	closedCopy := user.closed
+	user.mutex.RLock()
+	return closedCopy
 }
 
 ////////////////////////////////////////////////////////////////
@@ -33,7 +67,7 @@ func (user *User) Close() {
 // Вариант с использованием библиотеки WS
 func wsHandler(w http.ResponseWriter, r *http.Request) {
 	// Создаем WS соединение из http
-	conn, _, _, err := ws.UpgradeHTTP(r, w)
+	connection, _, _, err := ws.UpgradeHTTP(r, w)
 	if err != nil {
 		return
 	}
@@ -45,15 +79,18 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	}*/
 
 	// Создаем дескриптор для poll на чтение c постоянным вызовом коллбека
-	//desc := netpoll.Must(netpoll.HandleRead(conn))
+	//descriptor := netpoll.Must(netpoll.HandleRead(connection))
 
 	// Создаем дескриптор для poll на чтение с разовым вызовом коллбека
-	desc := netpoll.Must(netpoll.HandleReadOnce(conn))
+	descriptor := netpoll.Must(netpoll.HandleReadOnce(connection))
 
 	// Создаем временный объект
 	user := &User{
-		conn,
-		desc,
+		sync.RWMutex{},
+		connection,
+		descriptor,
+		false,
+		false,
 	}
 
 	// Устанавливаем обработчик для данного соединения
@@ -69,8 +106,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		// Можем читать данные
 		if (ev & netpoll.EventRead) != 0 {
 			// Вычитывать данные надо все-таки в том же самом потоке и коллбеке (если у нас режим не OneShot)
-			//data, code, err := wsutil.ReadClientData(conn)
-			/*_, _, err := wsutil.ReadClientData(conn)
+			//data, code, err := wsutil.ReadClientData(user.conn)
+			/*_, _, err := wsutil.ReadClientData(user.conn)
 			if err != nil {
 				user.Close()
 				return
@@ -78,9 +115,16 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 			// Закидываем в пулл задачу по обработке
 			workersPool.JobQueue <- func() {
+				//log.Printf("Thread function begin")
+
+				if user.IsClosed() {
+					log.Printf("Thread function exit by closed status")
+					return
+				}
+
 				// В режиме OneShot можно вычитывать в отдельной горутине
-				// data, code, err := wsutil.ReadClientData(conn)
-				_, _, err := wsutil.ReadClientData(conn)
+				//data, code, err := wsutil.ReadClientData(user.conn)
+				_, _, err := wsutil.ReadClientData(user.conn)
 				if err != nil {
 					user.Close()
 					return
@@ -88,18 +132,18 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 				//log.Printf("msg: %s, code: %d", string(data), code)
 
 				responseData := []byte("Response")
-				err = wsutil.WriteServerText(conn, responseData)
+				err = wsutil.WriteServerText(user.conn, responseData)
 				if err != nil {
 					user.Close()
 					return
 				}
 
-				// Снова запускаем отслеживание событий на данном дескрипторе
-				poller.Resume(desc)
+				// Снова запускаем отслеживание событий на данном дескрипторе (только для OneShot)
+				poller.Resume(user.desc)
 			}
 		}
 	}
-	poller.Start(desc, handleCallback)
+	poller.Start(user.desc, handleCallback)
 }
 
 func main() {
