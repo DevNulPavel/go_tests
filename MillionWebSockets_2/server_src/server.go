@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -23,23 +24,30 @@ type User struct {
 	mutex   sync.RWMutex
 	conn    net.Conn
 	desc    *netpoll.Desc
-	reading bool
+	reading uint16
 	closed  bool
 }
 
-// SetReading выставляет статус чтения
-func (user *User) SetReading(status bool) {
+// PushReading добавляет к счетчику количество чтений
+func (user *User) PushReading() {
 	user.mutex.Lock()
-	user.reading = status
+	user.reading = user.reading + 1
 	user.mutex.Unlock()
 }
 
-// IsReading возвращает статус чтения
+// PopReading извлекает одно чтение
+func (user *User) PopReading() {
+	user.mutex.Lock()
+	user.reading = user.reading - 1
+	user.mutex.Unlock()
+}
+
+// IsReading возвращает активно ли чтение
 func (user *User) IsReading() bool {
 	user.mutex.RLock()
-	readingCopy := user.reading
+	status := (user.reading > 0)
 	user.mutex.RUnlock()
-	return readingCopy
+	return status
 }
 
 // Close закрывает все дескрипторы
@@ -62,6 +70,55 @@ func (user *User) IsClosed() bool {
 	return closedCopy
 }
 
+// TryToStartReading стартует чтение если еще не активно
+func (user *User) TryToStartReading() {
+	// Закидываем в пулл задачу по обработке
+	workersPool.JobQueue <- func() {
+		log.Printf("Thread function begin")
+
+		// На всякий случай проверяем, что у нас не закрыто соединение
+		if user.IsClosed() {
+			log.Printf("Thread function exit by closed status (1)")
+			return
+		}
+
+		// В режиме OneShot можно вычитывать в отдельной горутине
+		data, code, err := wsutil.ReadClientData(user.conn)
+		//_, _, err := wsutil.ReadClientData(user.conn)
+		if err != nil {
+			log.Printf("Thread function return with close with read error: %v", err)
+			if err == io.EOF {
+				user.Close()
+			}
+			return
+		}
+
+		// Возобновляем оповещения о появлении новых данных
+		poller.Resume(user.desc)
+
+		// Выводим сообщение полученное
+		log.Printf("msg: %s, code: %d", string(data), code)
+
+		// На всякий случай проверяем, что у нас не закрыто соединение
+		if user.IsClosed() {
+			log.Printf("Thread function exit by closed status (2)")
+			return
+		}
+
+		// Пишем ответ
+		responseData := []byte("Response")
+		err = wsutil.WriteServerText(user.conn, responseData)
+		if err != nil {
+			log.Printf("Thread function return by close with write")
+			if err == io.EOF {
+				user.Close()
+			}
+			return
+		}
+
+	}
+}
+
 ////////////////////////////////////////////////////////////////
 
 // Вариант с использованием библиотеки WS
@@ -71,12 +128,6 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-
-	// Ручное создание дескриптора
-	/*desc, err := netpoll.Handle(conn, netpoll.EventRead | netpoll.EventEdgeTriggered)
-	if err != nil {
-		// handle error
-	}*/
 
 	// Создаем дескриптор для poll на чтение c постоянным вызовом коллбека
 	//descriptor := netpoll.Must(netpoll.HandleRead(connection))
@@ -89,13 +140,13 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		sync.RWMutex{},
 		connection,
 		descriptor,
-		false,
+		0,
 		false,
 	}
 
 	// Устанавливаем обработчик для данного соединения
 	handleCallback := func(ev netpoll.Event) {
-		//log.Printf("Callback with event: %s", ev.String())
+		log.Printf("Callback with event: %s", ev.String())
 
 		// Вырубили соединение
 		if ((ev & netpoll.EventReadHup) != 0) || ((ev & netpoll.EventWriteHup) != 0) {
@@ -105,42 +156,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Можем читать данные
 		if (ev & netpoll.EventRead) != 0 {
-			// Вычитывать данные надо все-таки в том же самом потоке и коллбеке (если у нас режим не OneShot)
-			//data, code, err := wsutil.ReadClientData(user.conn)
-			/*_, _, err := wsutil.ReadClientData(user.conn)
-			if err != nil {
-				user.Close()
-				return
-			} */
-
-			// Закидываем в пулл задачу по обработке
-			workersPool.JobQueue <- func() {
-				//log.Printf("Thread function begin")
-
-				if user.IsClosed() {
-					log.Printf("Thread function exit by closed status")
-					return
-				}
-
-				// В режиме OneShot можно вычитывать в отдельной горутине
-				//data, code, err := wsutil.ReadClientData(user.conn)
-				_, _, err := wsutil.ReadClientData(user.conn)
-				if err != nil {
-					user.Close()
-					return
-				}
-				//log.Printf("msg: %s, code: %d", string(data), code)
-
-				responseData := []byte("Response")
-				err = wsutil.WriteServerText(user.conn, responseData)
-				if err != nil {
-					user.Close()
-					return
-				}
-
-				// Снова запускаем отслеживание событий на данном дескрипторе (только для OneShot)
-				poller.Resume(user.desc)
-			}
+			// Для режима OneShot
+			user.TryToStartReading()
 		}
 	}
 	poller.Start(user.desc, handleCallback)
