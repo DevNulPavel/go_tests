@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"syscall"
 
 	_ "net/http/pprof"
@@ -24,29 +25,23 @@ type User struct {
 	mutex   sync.RWMutex
 	conn    net.Conn
 	desc    *netpoll.Desc
-	reading uint16
+	reading int32
 	closed  bool
 }
 
 // PushReading добавляет к счетчику количество чтений
 func (user *User) PushReading() {
-	user.mutex.Lock()
-	user.reading = user.reading + 1
-	user.mutex.Unlock()
+	atomic.AddInt32(&user.reading, 1)
 }
 
 // PopReading извлекает одно чтение
 func (user *User) PopReading() {
-	user.mutex.Lock()
-	user.reading = user.reading - 1
-	user.mutex.Unlock()
+	atomic.AddInt32(&user.reading, -1)
 }
 
 // IsReading возвращает активно ли чтение
 func (user *User) IsReading() bool {
-	user.mutex.RLock()
-	status := (user.reading > 0)
-	user.mutex.RUnlock()
+	status := atomic.LoadInt32(&user.reading) > 0
 	return status
 }
 
