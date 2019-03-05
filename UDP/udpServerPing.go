@@ -43,14 +43,14 @@ func (user *User) handleData(data []byte, c *net.UDPConn) {
 	//log.Printf("Received package number: %d", receivedPacketNumber)
 
 	// Может быть уже получали пакет или это более старый?
+	user.dataMutex.Lock()
 	if receivedPacketNumber <= user.lastPacketNumber {
 		log.Printf("Invalid UDP packages seq: %d received, %d last", receivedPacketNumber, user.lastPacketNumber)
 	} else {
 		// Это следующий пакет, все ок
-		user.dataMutex.Lock()
 		user.lastPacketNumber = receivedPacketNumber
-		user.dataMutex.Unlock()
 	}
+	user.dataMutex.Unlock()
 
 	// timer := time.NewTimer(10 * time.Millisecond)
 	// <-timer.C
@@ -69,10 +69,10 @@ func (user *User) handleData(data []byte, c *net.UDPConn) {
 //////////////////////////////////////////////////////////////////////
 
 func getUserForAddr(addr *net.UDPAddr) *User {
+	// Ищем пользователя, если нету - создаем нового
 	usersMutex.Lock()
 	defer usersMutex.Unlock()
 
-	// Ищем пользователя, если нету - создаем нового
 	user, ok := users[addr.String()]
 	if ok {
 		user.lastActiveTime = time.Now()
@@ -85,7 +85,9 @@ func getUserForAddr(addr *net.UDPAddr) *User {
 		lastActiveTime:   time.Now(),
 		lastPacketNumber: 0,
 	}
+
 	users[addr.String()] = newUser
+
 	return newUser
 }
 
@@ -109,9 +111,12 @@ func clearOldUsers() {
 				deleteKeys = append(deleteKeys, key)
 			}
 		}
-		for _, key := range deleteKeys {
-			delete(users, key)
-			log.Printf("User for address %s deleted", key)
+
+		if len(deleteKeys) > 0 {
+			for _, key := range deleteKeys {
+				delete(users, key)
+				log.Printf("User for address %s deleted", key)
+			}
 		}
 		usersMutex.Unlock()
 	}

@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const serverAddressString = "devnulpavel.ddns.net:9999" // "127.0.0.1:9999" "devnulpavel.ddns.net:9999"
+const serverAddressString = "127.0.0.1:9999" // "127.0.0.1:9999" "devnulpavel.ddns.net:9999"
 
 func rawClient() {
 	// Определяем адрес
@@ -30,7 +30,7 @@ func rawClient() {
 	const dataSize = 1024
 	const timeOffset = 0
 	const counterOffset = 200
-	const requestsCount = 100
+	const requestsCount = 1000
 
 	var counter uint64 = 1 // По-умолчанию 0
 	data := make([]byte, dataSize)
