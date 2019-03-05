@@ -7,10 +7,13 @@ import (
 	"net"
 	"sync"
 	"time"
+
+	"github.com/ivpusic/grpool"
 )
 
 var usersMutex sync.Mutex
 var users map[string]*User
+var workersPool *grpool.Pool
 
 //////////////////////////////////////////////////////////////////////
 
@@ -22,9 +25,10 @@ type User struct {
 	lastPacketNumber uint64
 }
 
-func (user *User) handleData(data []byte) {
+func (user *User) handleData(data []byte, c *net.UDPConn) {
 	const counterOffset = 200
 
+	// Делаем валидацию
 	if user == nil {
 		log.Printf("User do not exists")
 	}
@@ -41,13 +45,25 @@ func (user *User) handleData(data []byte) {
 	// Может быть уже получали пакет или это более старый?
 	if receivedPacketNumber <= user.lastPacketNumber {
 		log.Printf("Invalid UDP packages seq: %d received, %d last", receivedPacketNumber, user.lastPacketNumber)
-		return
+	} else {
+		// Это следующий пакет, все ок
+		user.dataMutex.Lock()
+		user.lastPacketNumber = receivedPacketNumber
+		user.dataMutex.Unlock()
 	}
 
-	// Это следующий пакет, все ок
-	user.dataMutex.Lock()
-	user.lastPacketNumber = receivedPacketNumber
-	user.dataMutex.Unlock()
+	// timer := time.NewTimer(10 * time.Millisecond)
+	// <-timer.C
+
+	// Теперь очередь ответной записи
+	writtenCount, err := c.WriteToUDP(data, user.clientAddress)
+	if err != nil {
+		log.Println(err)
+		return
+	} else if writtenCount < len(data) {
+		log.Printf("Written less bytes - %d from \n", writtenCount, len(data))
+		return
+	}
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -120,18 +136,17 @@ func handleServerConnectionRaw(c *net.UDPConn, serverAddress *net.UDPAddr, wg *s
 
 		//log.Printf("Handle message in thread: %d", threadIndex)
 
-		// Получаем юзера для текущего адреса
-		user := getUserForAddr(clientAddress)
-		user.handleData(udpBuffer[0:readCount])
+		// Создаем копию с данными
+		receivedData := make([]byte, readCount)
+		copy(receivedData, udpBuffer[0:readCount])
 
-		// Теперь очередь ответной записи
-		writtenCount, err := c.WriteToUDP(udpBuffer[0:readCount], clientAddress)
-		if err != nil {
-			log.Println(err)
-			continue
-		} else if writtenCount < readCount {
-			log.Printf("Written less bytes - %d from \n", writtenCount, readCount)
-			continue
+		// Закидываем в пулл задачу по обработке
+		workersPool.JobQueue <- func() {
+			// Получаем юзера для текущего адреса
+			user := getUserForAddr(clientAddress)
+
+			// Обрабатываем полученные данные
+			user.handleData(receivedData, c)
 		}
 	}
 }
@@ -145,6 +160,10 @@ func main() {
 		log.Println(err)
 		return
 	}
+
+	// Пулл обработчиков
+	workersPool = grpool.NewPool(128, 128)
+	defer workersPool.Release()
 
 	// Горутина удаления старых пользователей
 	go clearOldUsers()
@@ -166,10 +185,10 @@ func main() {
 			go handleServerConnectionRaw(connection, address, &wg, i)
 		}
 		wg.Wait()
+
+		// Закрытиие соединения
+		connection.Close()
 	} else {
 		log.Println("Error in accept: %s", err.Error())
 	}
-
-	// Закрытиие соединения
-	connection.Close()
 }

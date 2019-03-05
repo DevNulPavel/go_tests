@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const serverAddressString = "127.0.0.1:9999" // "127.0.0.1:9999" "devnulpavel.ddns.net:9999"
+const serverAddressString = "devnulpavel.ddns.net:9999" // "127.0.0.1:9999" "devnulpavel.ddns.net:9999"
 
 func rawClient() {
 	// Определяем адрес
