@@ -27,10 +27,11 @@ func rawClient() {
 	}
 	defer conn.Close()
 
-	const dataSize = 1024
+	// Гарантированный размер датаграммы
+	const dataSize = 508
 	const timeOffset = 0
 	const counterOffset = 200
-	const requestsCount = 1000
+	const requestsCount = 100000
 
 	var counter uint64 = 1 // По-умолчанию 0
 	data := make([]byte, dataSize)
@@ -91,7 +92,7 @@ func rawClient() {
 		readErrorCounter = 0
 
 		// Парсим прочитанные данные
-		receivedSendTimeUint64 := binary.BigEndian.Uint64(data[timeOffset : timeOffset+8])
+		//receivedSendTimeUint64 := binary.BigEndian.Uint64(data[timeOffset : timeOffset+8])
 		receivedCounterUint64 := binary.BigEndian.Uint64(data[counterOffset : counterOffset+8])
 
 		// Проверяем валидность данных
@@ -103,9 +104,9 @@ func rawClient() {
 		counter++
 
 		// Ping
-		receivedSendTime := time.Unix(0, int64(receivedSendTimeUint64))
-		ping := float64(time.Now().Sub(receivedSendTime).Nanoseconds()) / 1000.0 / 1000.0
-		fmt.Printf("Ping = %fms, from adress: %s\n", ping, serverAddress)
+		//receivedSendTime := time.Unix(0, int64(receivedSendTimeUint64))
+		//ping := float64(time.Now().Sub(receivedSendTime).Nanoseconds()) / 1000.0 / 1000.0
+		//fmt.Printf("Ping = %fms, from adress: %s\n", ping, serverAddress)
 
 		//time.Sleep(1000 * time.Millisecond)
 	}
@@ -120,6 +121,6 @@ func rawClient() {
 func main() {
 	rawClient()
 
-	var input string
-	fmt.Scanln(&input)
+	//var input string
+	//fmt.Scanln(&input)
 }

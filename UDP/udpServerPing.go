@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -9,11 +10,18 @@ import (
 	"time"
 
 	"github.com/ivpusic/grpool"
+	"github.com/pkg/profile"
 )
 
+type Stopper interface {
+	Stop()
+}
+
+var withProfiling bool = true
 var usersMutex sync.Mutex
 var users map[string]*User
 var workersPool *grpool.Pool
+var profileStopper Stopper
 
 //////////////////////////////////////////////////////////////////////
 
@@ -125,14 +133,15 @@ func clearOldUsers() {
 func handleServerConnectionRaw(c *net.UDPConn, serverAddress *net.UDPAddr, wg *sync.WaitGroup, threadIndex int) {
 	defer wg.Done()
 
-	const dataSize = 1024
+	// Гарантированный размер датаграммы
+	const dataSize = 508
 	udpBuffer := make([]byte, dataSize)
 
 	for {
 		// Читаем данные в буффер
 		readCount, clientAddress, err := c.ReadFromUDP(udpBuffer)
 		if (err == io.EOF) || (readCount == 0) { // Нужно ли проверять readCount
-			log.Println("Disconnected")
+			//log.Println("Disconnected")
 			continue
 		} else if err != nil {
 			log.Println(err)
@@ -157,6 +166,11 @@ func handleServerConnectionRaw(c *net.UDPConn, serverAddress *net.UDPAddr, wg *s
 }
 
 func main() {
+	if withProfiling {
+		//profileStopper = profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook)
+		profileStopper = profile.Start(profile.MemProfile, profile.ProfilePath("."), profile.NoShutdownHook)
+	}
+
 	users = make(map[string]*User)
 
 	// Определяем адрес
@@ -189,11 +203,22 @@ func main() {
 			wg.Add(1)
 			go handleServerConnectionRaw(connection, address, &wg, i)
 		}
-		wg.Wait()
+
+		if withProfiling {
+			log.Print("Press any key to continue profiling\n")
+			var input string
+			fmt.Scanln(&input)
+		} else {
+			wg.Wait()
+		}
 
 		// Закрытиие соединения
 		connection.Close()
 	} else {
 		log.Println("Error in accept: %s", err.Error())
+	}
+
+	if withProfiling {
+		profileStopper.Stop()
 	}
 }
