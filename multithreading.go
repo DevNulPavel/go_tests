@@ -50,7 +50,7 @@ func receiverSelect(channel1 <-chan string, channel2 <-chan string) {
 	}
 }
 
-func main() {
+func main_() {
 	for i := 0; i < 10; i++ {
 		go threadFunction1(i)
 	}
