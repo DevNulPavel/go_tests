@@ -19,9 +19,9 @@ const subsidy = 10
 
 // Transaction represents a Bitcoin transaction
 type Transaction struct {
-	ID   []byte
-	Vin  []TXInput
-	Vout []TXOutput
+	ID   []byte     // Идентификатор транзакции
+	Vin  []TXInput  // Выходы предыдущей транзации (входы текущей)
+	Vout []TXOutput // Входы следующей транзакции (выходы текущей)
 }
 
 // IsCoinbase checks whether the transaction is coinbase
@@ -172,9 +172,11 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 	return true
 }
 
-// NewCoinbaseTX creates a new coinbase transaction
+// NewCoinbaseTX создает базовую транзакцию для Genesis блока
 func NewCoinbaseTX(to, data string) *Transaction {
+	// Если данные пустые
 	if data == "" {
+		// Создаем данные и заполняем их случайными значениями
 		randData := make([]byte, 20)
 		_, err := rand.Read(randData)
 		if err != nil {
@@ -184,8 +186,12 @@ func NewCoinbaseTX(to, data string) *Transaction {
 		data = fmt.Sprintf("%x", randData)
 	}
 
+	// Создаем вход с рандомным публичным ключем
 	txin := TXInput{[]byte{}, -1, nil, []byte(data)}
+	// Создаем новый выход с указанием кому передаем значение, subsidy==10
+	// subsidy — это сумма вознаграждения
 	txout := NewTXOutput(subsidy, to)
+	// Создаем непосредственно транзакцию
 	tx := Transaction{nil, []TXInput{txin}, []TXOutput{*txout}}
 	tx.ID = tx.Hash()
 

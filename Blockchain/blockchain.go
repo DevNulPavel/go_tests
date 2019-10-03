@@ -162,7 +162,7 @@ func (bc *Blockchain) FindTransaction(ID []byte) (Transaction, error) {
 	bci := bc.Iterator()
 
 	for {
-		block := bci.Next()
+		block, hasNext := bci.Next()
 
 		for _, tx := range block.Transactions {
 			if bytes.Compare(tx.ID, ID) == 0 {
@@ -170,7 +170,7 @@ func (bc *Blockchain) FindTransaction(ID []byte) (Transaction, error) {
 			}
 		}
 
-		if len(block.PrevBlockHash) == 0 {
+		if hasNext == false {
 			break
 		}
 	}
@@ -185,7 +185,7 @@ func (bc *Blockchain) FindUTXO() map[string]TXOutputs {
 	bci := bc.Iterator()
 
 	for {
-		block := bci.Next()
+		block, hasNext := bci.Next()
 
 		for _, tx := range block.Transactions {
 			txID := hex.EncodeToString(tx.ID)
@@ -214,7 +214,7 @@ func (bc *Blockchain) FindUTXO() map[string]TXOutputs {
 			}
 		}
 
-		if len(block.PrevBlockHash) == 0 {
+		if hasNext == false {
 			break
 		}
 	}
@@ -278,11 +278,11 @@ func (bc *Blockchain) GetBlockHashes() [][]byte {
 	bci := bc.Iterator()
 
 	for {
-		block := bci.Next()
+		block, hasNext := bci.Next()
 
 		blocks = append(blocks, block.Hash)
 
-		if len(block.PrevBlockHash) == 0 {
+		if hasNext == false {
 			break
 		}
 	}

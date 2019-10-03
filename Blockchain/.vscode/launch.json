@@ -10,8 +10,8 @@
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}",
-            "_args": ["createblockchain", "-address", "CENTREAL_NODE"],
-            "args": ["send", "-from", "CENTREAL_NODE", "-to", "WALLET_1", "-amount", "10", "-mine"],
+            "args": ["createblockchain", "-address", "CENTREAL_NODE_AAAAAAAAAAAAAAAA"],
+            "_args": ["send", "-from", "CENTREAL_NODE", "-to", "WALLET_1", "-amount", "10", "-mine"],
             "env": {"NODE_ID": 3000}
         }
     ]

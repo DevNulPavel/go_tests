@@ -8,8 +8,8 @@ import (
 
 // TXOutput represents a transaction output
 type TXOutput struct {
-	Value      int
-	PubKeyHash []byte
+	Value      int    // Сумма
+	PubKeyHash []byte // Хэш
 }
 
 // Lock signs the output

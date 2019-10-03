@@ -6,19 +6,27 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-// BlockchainIterator is used to iterate over blockchain blocks
+// BlockchainIterator используется чтобы итерироваться по блокам блокчейна
 type BlockchainIterator struct {
-	currentHash []byte
-	db          *bolt.DB
+	currentHash []byte   // Хэш текущий
+	db          *bolt.DB // База данных
 }
 
-// Next returns next block starting from the tip
-func (i *BlockchainIterator) Next() *Block {
+// Next возвращает следующий блок, начиная с tip, возвращает блок и наличие следующего блока
+func (i *BlockchainIterator) Next() (*Block, bool) {
+	if len(i.currentHash) == 0 {
+		return nil, false
+	}
+
 	var block *Block
 
+	// Получаем доступ к базе данных на чтение
 	err := i.db.View(func(tx *bolt.Tx) error {
+		// Получаем доступ к корзине блоков
 		b := tx.Bucket([]byte(blocksBucket))
+		// Получаем данные блока для текущего хэша
 		encodedBlock := b.Get(i.currentHash)
+		// Создаем непосредственно блок из данных
 		block = DeserializeBlock(encodedBlock)
 
 		return nil
@@ -28,7 +36,8 @@ func (i *BlockchainIterator) Next() *Block {
 		log.Panic(err)
 	}
 
+	// Для следующей итерации сохраняем хэш предыдущего блока, по сути - обратный обход очереди получается
 	i.currentHash = block.PrevBlockHash
 
-	return block
+	return block, (len(i.currentHash) != 0)
 }

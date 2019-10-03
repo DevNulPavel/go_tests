@@ -7,17 +7,17 @@ import (
 	"time"
 )
 
-// Структура, представляющая отдельный блок в цепочке
+// Block - структура, представляющая отдельный блок в цепочке
 type Block struct {
 	Timestamp     int64          // Время создания блока
 	Transactions  []*Transaction // Полезная информация
 	PrevBlockHash []byte         // Хэш предыдущего блока
 	Hash          []byte         // Хэш текущего блока
-	Nonce         int
-	Height        int
+	Nonce         int            // Номер успешной попытки?
+	Height        int            // Вес
 }
 
-// Функция, которая возращает новый блок
+// NewBlock Функция, которая возращает новый блок
 func NewBlock(transactions []*Transaction, prevBlockHash []byte, height int) *Block {
 	// Создаем непосредственно объект блока
 	block := &Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0, height}
@@ -34,13 +34,13 @@ func NewBlock(transactions []*Transaction, prevBlockHash []byte, height int) *Bl
 	return block
 }
 
-// С помощью этой функции можно создавать базовый блок, без предыдущих
+// NewGenesisBlock С помощью этой функции можно создавать базовый блок, без предыдущих
 func NewGenesisBlock(coinbase *Transaction) *Block {
 	// Создание базового блока без предварительного хэша
 	return NewBlock([]*Transaction{coinbase}, []byte{}, 0)
 }
 
-// Возвращает хэш от вычисленных транзакций данного блока
+// HashTransactions Возвращает хэш от вычисленных транзакций данного блока
 func (b *Block) HashTransactions() []byte {
 	var transactions [][]byte
 
@@ -52,7 +52,7 @@ func (b *Block) HashTransactions() []byte {
 	return mTree.RootNode.Data
 }
 
-// Выполняем сериализацию блока в набор байтов
+// Serialize Выполняем сериализацию блока в набор байтов
 func (b *Block) Serialize() []byte {
 	// Создаем буффер
 	var result bytes.Buffer
