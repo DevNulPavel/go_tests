@@ -5,14 +5,78 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch",
+            "name": "Create wallet 1 (1)",
             "type": "go",
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}",
-            "args": ["createblockchain", "-address", "CENTREAL_NODE_AAAAAAAAAAAAAAAA"],
-            "_args": ["send", "-from", "CENTREAL_NODE", "-to", "WALLET_1", "-amount", "10", "-mine"],
+            "args": ["createwallet"],
+            "env": {"NODE_ID": 3000},
+            "cur_value": "1HR4kyLMxzCc3UZ2UBCY8fuNji2MSf96kw"
+        },
+        {
+            "name": "Create wallet 2 (2)",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}",
+            "args": ["createwallet"],
+            "env": {"NODE_ID": 3001},
+            "cur_value": "183vW9gdHKvyPM5e7WkmibK4gV4CrXNpns"
+        },
+        {
+            "name": "Create blochchain with wallet (3)",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}",
+            "args": ["createblockchain", "-address", "1HR4kyLMxzCc3UZ2UBCY8fuNji2MSf96kw"],
             "env": {"NODE_ID": 3000}
-        }
+        },
+        {
+            "name": "Get balance 1 (4)",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}",
+            "args": ["getbalance", "-address", "1HR4kyLMxzCc3UZ2UBCY8fuNji2MSf96kw"],
+            "env": {"NODE_ID": 3000}
+        },
+        {
+            "name": "Get balance 2 (4)",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}",
+            "args": ["getbalance", "-address", "183vW9gdHKvyPM5e7WkmibK4gV4CrXNpns"],
+            "env": {"NODE_ID": 3000}
+        },
+        {
+            "name": "Run server (5)",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}",
+            "args": ["startnode", "-miner", "1HR4kyLMxzCc3UZ2UBCY8fuNji2MSf96kw"],
+            "env": {"NODE_ID": 3000}
+        },
+        {
+            "name": "Send (6)",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}",
+            "args": ["send", "-from", "1HR4kyLMxzCc3UZ2UBCY8fuNji2MSf96kw", "-to", "183vW9gdHKvyPM5e7WkmibK4gV4CrXNpns", "-amount", "3"],
+            "env": {"NODE_ID": 3000}
+        },
+        {
+            "name": "Send and mine (7)",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}",
+            "args": ["send", "-from", "1HR4kyLMxzCc3UZ2UBCY8fuNji2MSf96kw", "-to", "183vW9gdHKvyPM5e7WkmibK4gV4CrXNpns", "-amount", "3", "-mine"],
+            "env": {"NODE_ID": 3000}
+        },
     ]
 }

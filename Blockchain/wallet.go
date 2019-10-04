@@ -14,25 +14,30 @@ import (
 const version = byte(0x00)
 const addressChecksumLen = 4
 
-// Wallet stores private and public keys
+// Wallet хранит приватный и публичный ключ нашего кошелька
 type Wallet struct {
-	PrivateKey ecdsa.PrivateKey
-	PublicKey  []byte
+	PrivateKey ecdsa.PrivateKey // Закрытый ключ
+	PublicKey  []byte           // Публичный ключ
 }
 
-// NewWallet creates and returns a Wallet
+// NewWallet создает и возвращает новый кошелек
 func NewWallet() *Wallet {
+	// Создаем приватный и публичный ключи
 	private, public := newKeyPair()
+	// Создаем кошелек с ними
 	wallet := Wallet{private, public}
 
 	return &wallet
 }
 
-// GetAddress returns wallet address
+// GetAddress возвращает адрес кошелька
 func (w Wallet) GetAddress() []byte {
+	// Получаем хэш от публичного ключа
 	pubKeyHash := HashPubKey(w.PublicKey)
 
+	// Слепляем версию и получившийся хэш, чтобы начиналось все с нуля
 	versionedPayload := append([]byte{version}, pubKeyHash...)
+	// Вычисляем контрольную сумму от результата
 	checksum := checksum(versionedPayload)
 
 	fullPayload := append(versionedPayload, checksum...)
@@ -41,8 +46,9 @@ func (w Wallet) GetAddress() []byte {
 	return address
 }
 
-// HashPubKey hashes public key
+// HashPubKey хэширует публичный ключ
 func HashPubKey(pubKey []byte) []byte {
+	// Берем публичный ключ
 	publicSHA256 := sha256.Sum256(pubKey)
 
 	RIPEMD160Hasher := ripemd160.New()

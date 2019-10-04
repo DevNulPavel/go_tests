@@ -65,7 +65,7 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 
 		// Считаем от них хэш
 		hash = sha256.Sum256(data)
-		fmt.Printf("\r%x", hash)
+		//fmt.Printf("\r%x", hash) // Вывод пока что отключим
 		hashInt.SetBytes(hash[:])
 
 		// Сравниваем, если хэш меньше целевого числа - ура, нашли - иначе пробуем с числом на 1цу больше
