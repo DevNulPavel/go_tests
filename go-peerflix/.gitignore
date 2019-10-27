@@ -1,2 +1,5 @@
 go-peerflix
 builds
+*.prof
+*.pdf
+*.svg

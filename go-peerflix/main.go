@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
+	"runtime/pprof"
 	"strconv"
 	"syscall"
 	"time"
@@ -19,6 +21,12 @@ const (
 )
 
 func main() {
+	// Профилирование кода
+	// https: //golang.org/pkg/runtime/pprof/
+	// https://blog.golang.org/profiling-go-programs
+	cpuprofile := flag.String("cpuprofile", "", "Write cpu profile to `file`")
+	memprofile := flag.String("memprofile", "", "Write memory profile to `file`")
+
 	// Парсим имя плеера для воспроизведения
 	player := flag.String("player", "", "Open the stream with a video player ("+joinPlayerNames()+")")
 
@@ -30,6 +38,33 @@ func main() {
 	flag.IntVar(&cfg.MaxConnections, "conn", cfg.MaxConnections, "Maximum number of connections")
 	flag.BoolVar(&cfg.TCP, "tcp", cfg.TCP, "Allow connections via TCP")
 	flag.Parse()
+
+	// Профилирование кода
+	// https://golang.org/pkg/runtime/pprof/
+	// https://blog.golang.org/profiling-go-programs
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal("could not create CPU profile: ", err)
+		}
+		defer f.Close()
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatal("could not start CPU profile: ", err)
+		}
+		defer pprof.StopCPUProfile()
+	}
+	if *memprofile != "" {
+		f, err := os.Create(*memprofile)
+		if err != nil {
+			log.Fatal("could not create memory profile: ", err)
+		}
+		defer f.Close()
+		runtime.GC() // get up-to-date statistics
+		if err := pprof.WriteHeapProfile(f); err != nil {
+			log.Fatal("could not write memory profile: ", err)
+		}
+	}
+
 	if len(flag.Args()) == 0 {
 		flag.Usage()
 		os.Exit(exitNoTorrentProvided)
@@ -62,6 +97,7 @@ func main() {
 
 	// Обработка закрытия приложения
 	// Создаем канал, куда будут прилетать сигналы
+	mainLoopExitChannel := make(chan bool)
 	interruptChannel := make(chan os.Signal, 1)
 	// Описываем нужные нам сигналы
 	signal.Notify(interruptChannel,
@@ -75,13 +111,21 @@ func main() {
 		for range interruptChannel {
 			log.Println("Exiting...")
 			client.Close()
-			os.Exit(0)
+			mainLoopExitChannel <- true
 		}
 	}(interruptChannel)
 
 	// Главный цикл работы приложения
-	for {
+	stopLoop := false
+	for !stopLoop {
 		client.RenderInfoToCLI()
 		time.Sleep(time.Second)
+
+		select {
+		case stopLoop = <-mainLoopExitChannel:
+		default:
+		}
 	}
+
+	log.Println("Exit success")
 }
