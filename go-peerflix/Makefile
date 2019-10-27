@@ -11,3 +11,8 @@ PROFILE_VISUALIZE_CPU:
 
 PROFILE_VISUALIZE_MEM:
 	go tool pprof ./mem.prof
+
+CLEAN:
+	rm go-peerflix
+	rm *.prof
+	
