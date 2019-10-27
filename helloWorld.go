@@ -174,6 +174,6 @@ func testThreads() {
 	wait.Wait()
 }
 
-func main() {
+func _main() {
 	testThreads()
 }
