@@ -1,8 +1,11 @@
 package main
 
-import "fmt"
-import "time"
-import rnd "math/rand"
+import (
+	"fmt"
+	"time"
+
+	rnd "math/rand"
+)
 
 func threadFunction1(value int) {
 	for i := 0; i < 10; i++ {
@@ -51,14 +54,14 @@ func receiverSelect(channel1 <-chan string, channel2 <-chan string) {
 }
 
 func main_() {
-	for i := 0; i < 10; i++ {
+	/*for i := 0; i < 10; i++ {
 		go threadFunction1(i)
-	}
+	}*/
 
-	/*var channel chan string = make(chan string)
-	  go sender("Ping!", channel)
-	  go sender("Pong!", channel)
-	  go receiver(channel)*/
+	var channel chan string = make(chan string, 1)
+	go sender("Ping!", channel)
+	//go sender("Pong!", channel)
+	receiver(channel)
 
 	/*channel1 := make(chan string, 10)
 	channel2 := make(chan string, 10)

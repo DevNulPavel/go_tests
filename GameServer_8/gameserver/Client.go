@@ -1,11 +1,12 @@
 package gameserver
 
 import (
-	"golang.org/x/net/websocket"
 	"io"
 	"log"
 	"sync"
 	"sync/atomic"
+
+	"golang.org/x/net/websocket"
 )
 
 const UPDATE_QUEUE_SIZE = 100
@@ -13,8 +14,17 @@ const UPDATE_QUEUE_SIZE = 100
 // Variables
 var MAX_ID uint32 = 0
 
+type BaseClient struct {
+	testVal int32
+}
+
+func (baseCLient *BaseClient) testMethod() {
+}
+
 // Client ... Структура клиента
 type Client struct {
+	BaseClient
+
 	gameRoom     *GameRoom
 	socket       *WebSocket
 	id           uint32
