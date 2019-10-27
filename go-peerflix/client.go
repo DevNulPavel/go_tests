@@ -218,9 +218,11 @@ func NewClient(cfg ClientConfig) (client Client, err error) {
 		// TODO: ???
 		// Данный код СИЛЬНО грузит CPU из-за работы с CondVar внутри
 		// Ждем получения новой информации
-		//<-client.Torrent.GotInfo()
+		<-client.Torrent.GotInfo()
 		// Выкачиваем эту информацию
-		//client.Torrent.DownloadAll()
+		client.Torrent.DownloadAll()
+
+		client.TorrentClient.WaitAll()
 
 		// TODO: ???
 		// Prioritize first 5% of the file.
