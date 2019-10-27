@@ -34,7 +34,7 @@ func main() {
 	cfg := NewClientConfig()
 	flag.IntVar(&cfg.Port, "port", cfg.Port, "Port to stream the video on")
 	flag.IntVar(&cfg.TorrentPort, "torrent-port", cfg.TorrentPort, "Port to listen for incoming torrent connections")
-	flag.BoolVar(&cfg.Seed, "seed", cfg.Seed, "Seed after finished downloading")
+	flag.BoolVar(&cfg.WithUploading, "seed", cfg.WithUploading, "Seed after finished downloading")
 	flag.IntVar(&cfg.MaxConnections, "conn", cfg.MaxConnections, "Maximum number of connections")
 	flag.BoolVar(&cfg.TCP, "tcp", cfg.TCP, "Allow connections via TCP")
 	flag.Parse()

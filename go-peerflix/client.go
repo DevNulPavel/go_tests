@@ -130,7 +130,7 @@ type ClientConfig struct {
 	TorrentPath    string
 	Port           int
 	TorrentPort    int
-	Seed           bool
+	WithUploading  bool
 	TCP            bool
 	MaxConnections int
 }
@@ -140,9 +140,9 @@ func NewClientConfig() ClientConfig {
 	return ClientConfig{
 		Port:           8080,
 		TorrentPort:    50007,
-		Seed:           false,
+		WithUploading:  false,
 		TCP:            true,
-		MaxConnections: 200,
+		MaxConnections: 25,
 	}
 }
 
@@ -169,10 +169,11 @@ func NewClient(cfg ClientConfig) (client Client, err error) {
 	// Создаем конфигурацию для торрент-клиента
 	torrentConfig := torrent.NewDefaultClientConfig()
 	torrentConfig.DataDir = os.TempDir()
-	torrentConfig.NoUpload = !cfg.Seed
+	torrentConfig.NoUpload = !cfg.WithUploading
 	torrentConfig.DisableTCP = !cfg.TCP
 	torrentConfig.ListenPort = cfg.TorrentPort
 	torrentConfig.IPBlocklist = blocklist
+	torrentConfig.EstablishedConnsPerTorrent = 1
 
 	// Создаем торрент-клиент
 	var c *torrent.Client
@@ -212,11 +213,11 @@ func NewClient(cfg ClientConfig) (client Client, err error) {
 	// Сохряняем торрент объект и устанавливаем нужное количество подключений
 	client.Torrent = t
 	client.Torrent.SetMaxEstablishedConns(cfg.MaxConnections)
+	//client.Torrent.SetMaxEstablishedConns(20)
 
 	// Запускаем корутину, которая отслеживает поступление новых данных
 	go func() {
 		// TODO: ???
-		// Данный код СИЛЬНО грузит CPU из-за работы с CondVar внутри
 		// Ждем получения новой информации
 		<-client.Torrent.GotInfo()
 		// Выкачиваем эту информацию
@@ -226,12 +227,12 @@ func NewClient(cfg ClientConfig) (client Client, err error) {
 
 		// TODO: ???
 		// Prioritize first 5% of the file.
-		/*largestFile := client.getLargestFile()
+		largestFile := client.getLargestFile()
 		firstPieceIndex := largestFile.Offset() * int64(t.NumPieces()) / t.Length()
 		endPieceIndex := (largestFile.Offset() + largestFile.Length()) * int64(t.NumPieces()) / t.Length()
 		for idx := firstPieceIndex; idx <= endPieceIndex*5/100; idx++ {
 			t.Piece(int(idx)).SetPriority(torrent.PiecePriorityNow)
-		}*/
+		}
 	}()
 
 	return
@@ -279,7 +280,7 @@ func (c *Client) RenderInfoToCLI() {
 	if currentProgress < totalLength {
 		fmt.Fprintf(output, "Download speed: %s\n", downloadSpeed)
 	}
-	if c.Config.Seed {
+	if c.Config.WithUploading {
 		fmt.Fprintf(output, "Upload speed: \t%s", uploadSpeed)
 	}
 
