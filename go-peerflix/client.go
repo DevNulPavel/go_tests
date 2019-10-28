@@ -173,7 +173,9 @@ func NewClient(cfg ClientConfig) (client Client, err error) {
 	torrentConfig.DisableTCP = !cfg.TCP
 	torrentConfig.ListenPort = cfg.TorrentPort
 	torrentConfig.IPBlocklist = blocklist
-	torrentConfig.EstablishedConnsPerTorrent = 1
+	//torrentConfig.EstablishedConnsPerTorrent = 1
+	//torrentConfig.DownloadRateLimiter = rate.NewLimiter(50, 50)
+	//torrentConfig.UploadRateLimiter = rate.NewLimiter(50, 50)
 
 	// Создаем торрент-клиент
 	var c *torrent.Client
@@ -223,7 +225,7 @@ func NewClient(cfg ClientConfig) (client Client, err error) {
 		// Выкачиваем эту информацию
 		client.Torrent.DownloadAll()
 
-		client.TorrentClient.WaitAll()
+		//client.TorrentClient.WaitAll()
 
 		// TODO: ???
 		// Prioritize first 5% of the file.
